@@ -402,7 +402,8 @@
 		 "patches": ["startup-notification-autogen.patch"]},
 
 		{"src": "fd-dbus:dbus-glib",
-		 "config-opts": ["--disable-gtk-doc"]},
+		 "config-opts": ["--enable-tests",
+		                 "--disable-gtk-doc"]},
 
 		{"src": "git:git://git.infradead.org/users/tgr/libnl.git",
 		 "name": "libnl3"},
