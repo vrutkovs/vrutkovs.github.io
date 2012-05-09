@@ -37,7 +37,8 @@
 		 "component": "devel",
 		 "noarch": true},
 
-		{"src": "git:git://github.com/atgreen/libffi.git"},
+		{"src": "git:git://github.com/atgreen/libffi.git",
+		 "branch": "v3.0.10"},
 
 		{"src": "gnome:glib"},
 
@@ -494,7 +495,8 @@
 		{"src": "gnome:librsvg",
 		 "config-opts": ["--disable-gtk-theme"]},
 
-		{"src": "gnome:cogl"},
+		{"src": "gnome:cogl",
+		 "branch": "cogl-1.10"},
 
 		{"src": "gnome:clutter"},
 
@@ -556,7 +558,8 @@
 
 		{"src": "gnome:gnome-icon-theme-extras"},
 
-		{"src": "gnome:gvfs"},
+		{"src": "gnome:gvfs",
+		 "config-opts": ["--disable-gphoto2"]},
 
 		{"src": "gnome:gnome-screensaver"},
 
@@ -700,6 +703,8 @@
 		{"src": "gnome:libgtop"},
 
 		{"src": "gnome:clutter-gst"},
+
+		{"src": "gnome:clutter-gtk"},
 
 		{"src": "gnome:gnome-control-center",
 		 "config-opts": ["--disable-cups"]},
