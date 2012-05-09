@@ -371,7 +371,7 @@
 		{"src": "fd:xkeyboard-config",
 		 "config-opts": ["--with-xkb-rules-symlink=xorg",
 		                 "--with-xkb-base=/usr/share/X11/xkb"],
-		 "patches": ["xorg-autogen.patch"]},
+		 "patches": ["xkeyboard-config-autogen.patch"]},
 
 		{"src": "fd:xorg/xserver",
 		 "patches": ["xorg-autogen.patch"]},
