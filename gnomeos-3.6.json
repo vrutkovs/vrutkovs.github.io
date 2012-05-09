@@ -534,7 +534,8 @@
 		 "branch": "lcms2.3"},
 
 		{"src": "git:git://gitorious.org/colord/master.git",
-		 "name": "colord"},
+		 "name": "colord",
+		 "patches": ["colord-builddir.patch"]},
 
 		{"src": "linuxwacom:libwacom",
 		 "patches": ["libwacom-autogen.patch"]},
