@@ -582,17 +582,19 @@
 		                 "--with-soup-gnome"]},
 
 		{"src": "fd-gstreamer:gstreamer",
+		 "branch": "0.10",
 		 "config-opts": ["--disable-tests",
 		                 "--disable-fatal-warnings"]},
 
 		{"src": "fd-gstreamer:gst-plugins-base",
+		 "branch": "0.10",
 		 "config-opts": ["--with-gtk=3.0",
 		                 "--disable-tests",
 				 "--disable-gnome_vfs",
-				 "--disable-fatal-warnings"],
-		 "patches": ["gst-plugins-base-no-builddir.patch"]},
+				 "--disable-fatal-warnings"]},
 
 		{"src": "fd-gstreamer:gst-plugins-good",
+		 "branch": "0.10",
 		 "config-opts": ["--with-gtk=3.0",
 		                 "--disable-tests",
 				 "--disable-examples",
