@@ -459,8 +459,7 @@
 
 		{"src": "gnome:gnome-doc-utils",
 		 "config-opts": ["--disable-scrollkeeper",
-		                 "--disable-documentation"],
-                 "patches": ["gnome-doc-utils-no-docs.patch"]},
+		                 "--disable-documentation"]},
 
 		{"src": "gnome:gconf",
 		 "config-opts": ["--disable-orbit",
