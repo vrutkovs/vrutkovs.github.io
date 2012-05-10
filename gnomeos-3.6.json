@@ -646,7 +646,8 @@
                                  "--disable-compiler-warnings"],
 		 "patches": ["telepathy-glib-builddir.patch"]},
 
-		{"src": "gnome:libgweather"},
+		{"src": "gnome:libgweather",
+		 "branch": "gnome-3-4"},
 
 		{"src": "cgwalters:liboauth-tarballs-as-git",
 		 "rm-configure": true,
