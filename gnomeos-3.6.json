@@ -666,8 +666,8 @@
 		 "config-opts": ["--enable-eds-backend",
 		                 "--disable-Werror",
 		                 "--disable-fatal-warnings"],
-		 "patches": ["folks-builddir.patch",
-			     "folks-config-fatal-warnings.patch"]},
+                 "branch": "932a2311c587013e726fbcecc52cde8eb13be6a9",
+		 "patches": ["folks-builddir.patch"]},
 
 		{"src": "gnome:dconf",
 		 "patches": ["dconf-builddir.patch"]},
