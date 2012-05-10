@@ -634,9 +634,7 @@
 		 	     "vala-tarballs-as-git-bootstrap.patch"]},
 
 		{"src": "gnome:vala",
-		 "name": "vala-0.16",
-		 "config-opts": ["--enable-vapigen"],
-		 "patches": ["vala-builddir.patch"]},
+		 "config-opts": ["--enable-vapigen"]},
 
 		{"src": "gnome:libgee",
 		 "branch": "0.6",
