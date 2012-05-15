@@ -520,8 +520,7 @@
 		 "patches": ["pulseaudio-autogen.patch"]},
 
 		{"src": "0pointer:libcanberra",
-		 "patches": ["libcanberra-autogen.patch",
-		             "libcanberra-no-lynx.patch"]},
+		 "patches": ["libcanberra-no-lynx.patch"]},
 
 		{"src": "gnome:gsettings-desktop-schemas"},
 
@@ -534,8 +533,7 @@
 		 "branch": "lcms2.3"},
 
 		{"src": "git:git://gitorious.org/colord/master.git",
-		 "name": "colord",
-		 "patches": ["colord-builddir.patch"]},
+		 "name": "colord"},
 
 		{"src": "linuxwacom:libwacom",
 		 "patches": ["libwacom-autogen.patch"]},
