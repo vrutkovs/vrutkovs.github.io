@@ -1,0 +1,150 @@
+From d2469e4693b8b280bbf763b6822f34d73686cfe8 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Tue, 1 May 2012 14:10:38 -0400
+Subject: [PATCH 2/6] Move gdm-fingerprint/gdm-smartcard into pam-redhat
+
+These are also Red Hat specific PAM files, so unify them with
+the rest.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=675085
+---
+ data/Makefile.am                |   14 ++------------
+ data/gdm-fingerprint.pam        |   17 -----------------
+ data/gdm-smartcard.pam          |   18 ------------------
+ data/pam-redhat/gdm-fingerprint |   17 +++++++++++++++++
+ data/pam-redhat/gdm-smartcard   |   18 ++++++++++++++++++
+ 5 files changed, 37 insertions(+), 47 deletions(-)
+ delete mode 100644 data/gdm-fingerprint.pam
+ delete mode 100644 data/gdm-smartcard.pam
+ create mode 100644 data/pam-redhat/gdm-fingerprint
+ create mode 100644 data/pam-redhat/gdm-smartcard
+
+diff --git a/data/Makefile.am b/data/Makefile.am
+index 9c8379b..e449ad5 100644
+--- a/data/Makefile.am
++++ b/data/Makefile.am
+@@ -89,16 +89,8 @@ localealias_DATA = locale.alias
+ sessiondir = $(datadir)/gnome-session/sessions
+ session_DATA = gdm-fallback.session gdm-shell.session
+ 
+-gdm-fingerprint: gdm-fingerprint.pam
+-	cp $(srcdir)/gdm-fingerprint.pam $(builddir)/gdm-fingerprint
+-
+-gdm-smartcard: gdm-smartcard.pam
+-	cp $(srcdir)/gdm-smartcard.pam $(builddir)/gdm-smartcard
+-
+-pamdir = $(PAM_PREFIX)/pam.d
+-pam_DATA = gdm-fingerprint gdm-smartcard
+-
+-pam_redhat_files = pam-redhat/gdm pam-redhat/gdm-autologin pam-redhat/gdm-welcome
++pam_redhat_files = pam-redhat/gdm pam-redhat/gdm-autologin pam-redhat/gdm-welcome \
++	           pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard
+ EXTRA_DIST += $(pam_redhat_files)
+ pam_openembedded_files = pam-openembedded/gdm pam-openembedded/gdm-autologin pam-openembedded/gdm-welcome
+ EXTRA_DIST += $(pam_openembedded_files)
+@@ -118,8 +110,6 @@ EXTRA_DIST +=			\
+ 	gdm.schemas.in.in	\
+ 	gdm.conf-custom.in 	\
+ 	Xsession.in 		\
+-	gdm-fingerprint.pam	\
+-	gdm-smartcard.pam	\
+ 	gdm-fallback.session	\
+ 	Init.in 		\
+ 	PreSession.in 		\
+diff --git a/data/gdm-fingerprint.pam b/data/gdm-fingerprint.pam
+deleted file mode 100644
+index 1a1c777..0000000
+--- a/data/gdm-fingerprint.pam
++++ /dev/null
+@@ -1,17 +0,0 @@
+-# Sample PAM file for doing fingerprint authentication.
+-# Distros should replace this with what makes sense for them.
+-auth        required      pam_env.so
+-auth        required      pam_fprintd.so
+-auth        sufficient    pam_succeed_if.so uid >= 500 quiet
+-auth        required      pam_deny.so
+-
+-account     required      pam_unix.so
+-account     sufficient    pam_localuser.so
+-account     sufficient    pam_succeed_if.so uid < 500 quiet
+-account     required      pam_permit.so
+-
+-password    required      pam_deny.so
+-
+-session     optional      pam_keyinit.so revoke
+-session     required      pam_limits.so
+-session     required      pam_unix.so
+diff --git a/data/gdm-smartcard.pam b/data/gdm-smartcard.pam
+deleted file mode 100644
+index d5ac1fa..0000000
+--- a/data/gdm-smartcard.pam
++++ /dev/null
+@@ -1,18 +0,0 @@
+-# Sample PAM file for doing smartcard authentication.
+-# Distros should replace this with what makes sense for them.
+-auth        required      pam_env.so
+-auth        [success=done ignore=ignore default=die] pam_pkcs11.so wait_for_card card_only
+-auth        requisite     pam_succeed_if.so uid >= 500 quiet
+-auth        required      pam_deny.so
+-
+-account     required      pam_unix.so
+-account     sufficient    pam_localuser.so
+-account     sufficient    pam_succeed_if.so uid < 500 quiet
+-account     required      pam_permit.so
+-
+-password    optional      pam_pkcs11.so
+-password    requisite     pam_cracklib.so try_first_pass retry=3 type=
+-
+-session     optional      pam_keyinit.so revoke
+-session     required      pam_limits.so
+-session     required      pam_unix.so
+diff --git a/data/pam-redhat/gdm-fingerprint b/data/pam-redhat/gdm-fingerprint
+new file mode 100644
+index 0000000..1a1c777
+--- /dev/null
++++ b/data/pam-redhat/gdm-fingerprint
+@@ -0,0 +1,17 @@
++# Sample PAM file for doing fingerprint authentication.
++# Distros should replace this with what makes sense for them.
++auth        required      pam_env.so
++auth        required      pam_fprintd.so
++auth        sufficient    pam_succeed_if.so uid >= 500 quiet
++auth        required      pam_deny.so
++
++account     required      pam_unix.so
++account     sufficient    pam_localuser.so
++account     sufficient    pam_succeed_if.so uid < 500 quiet
++account     required      pam_permit.so
++
++password    required      pam_deny.so
++
++session     optional      pam_keyinit.so revoke
++session     required      pam_limits.so
++session     required      pam_unix.so
+diff --git a/data/pam-redhat/gdm-smartcard b/data/pam-redhat/gdm-smartcard
+new file mode 100644
+index 0000000..d5ac1fa
+--- /dev/null
++++ b/data/pam-redhat/gdm-smartcard
+@@ -0,0 +1,18 @@
++# Sample PAM file for doing smartcard authentication.
++# Distros should replace this with what makes sense for them.
++auth        required      pam_env.so
++auth        [success=done ignore=ignore default=die] pam_pkcs11.so wait_for_card card_only
++auth        requisite     pam_succeed_if.so uid >= 500 quiet
++auth        required      pam_deny.so
++
++account     required      pam_unix.so
++account     sufficient    pam_localuser.so
++account     sufficient    pam_succeed_if.so uid < 500 quiet
++account     required      pam_permit.so
++
++password    optional      pam_pkcs11.so
++password    requisite     pam_cracklib.so try_first_pass retry=3 type=
++
++session     optional      pam_keyinit.so revoke
++session     required      pam_limits.so
++session     required      pam_unix.so
+-- 
+1.7.7.6
+

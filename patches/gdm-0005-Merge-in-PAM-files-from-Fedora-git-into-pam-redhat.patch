@@ -1,0 +1,148 @@
+From cfd3d53d5502f1e92862728a7c49b8e869e4262f Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Tue, 1 May 2012 14:29:42 -0400
+Subject: [PATCH 5/6] Merge in PAM files from Fedora git into pam-redhat
+
+No sense having broken copies in here; since we now have machinery to
+maintain OS-specific PAM files in gdm git, let's drain the Fedora
+version here.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=675085
+---
+ data/Makefile.am              |    4 ++--
+ data/pam-redhat/gdm-autologin |   12 +++++++++---
+ data/pam-redhat/gdm-password  |   21 +++++++++++++++++++++
+ data/pam-redhat/gdm-smartcard |   30 +++++++++++++++---------------
+ data/pam-redhat/gdm-welcome   |    2 ++
+ 5 files changed, 49 insertions(+), 20 deletions(-)
+ create mode 100644 data/pam-redhat/gdm-password
+
+diff --git a/data/Makefile.am b/data/Makefile.am
+index 5f3f024..3e65dd3 100644
+--- a/data/Makefile.am
++++ b/data/Makefile.am
+@@ -90,14 +90,14 @@ sessiondir = $(datadir)/gnome-session/sessions
+ session_DATA = gdm-fallback.session gdm-shell.session
+ 
+ EXTRA_DIST += pam-redhat/gdm pam-redhat/gdm-autologin pam-redhat/gdm-welcome \
+-	      pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard \
++	      pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard pam-redhat/gdm-password \
+ 	      pam-openembedded/gdm pam-openembedded/gdm-autologin pam-openembedded/gdm-welcome
+ 
+ enabled_pam_files =
+ if ENABLE_REDHAT_PAM_CONFIG
+ enabled_pam_files += pam-redhat/gdm-autologin pam-redhat/gdm-welcome
+ if ENABLE_SPLIT_AUTHENTICATION
+-enabled_pam_files += pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard
++enabled_pam_files += pam-redhat/gdm-password pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard
+ else
+ enabled_pam_files += pam-redhat/gdm
+ endif
+diff --git a/data/pam-redhat/gdm-autologin b/data/pam-redhat/gdm-autologin
+index c4e598a..0616e66 100644
+--- a/data/pam-redhat/gdm-autologin
++++ b/data/pam-redhat/gdm-autologin
+@@ -1,10 +1,16 @@
+-#%PAM-1.0
++ #%PAM-1.0
+ auth       required    pam_env.so
+ auth       required    pam_permit.so
++auth       include     postlogin
+ account    required    pam_nologin.so
+ account    include     system-auth
+ password   include     system-auth
+-session    optional    pam_keyinit.so force revoke
+-session    include     system-auth
++session    required    pam_selinux.so close
+ session    required    pam_loginuid.so
+ session    optional    pam_console.so
++-session    optional    pam_ck_connector.so
++session    required    pam_selinux.so open
++session    optional    pam_keyinit.so force revoke
++session    required    pam_namespace.so
++session    include     system-auth
++session    include     postlogin
+diff --git a/data/pam-redhat/gdm-password b/data/pam-redhat/gdm-password
+new file mode 100644
+index 0000000..650534c
+--- /dev/null
++++ b/data/pam-redhat/gdm-password
+@@ -0,0 +1,21 @@
++auth     [success=done ignore=ignore default=bad] pam_selinux_permit.so
++auth        substack      password-auth
++auth        required      pam_succeed_if.so user != root quiet
++auth        optional      pam_gnome_keyring.so
++auth        include       postlogin
++
++account     required      pam_nologin.so
++account     include       password-auth
++
++password    include       password-auth
++
++session     required      pam_selinux.so close
++session     required      pam_loginuid.so
++session     optional      pam_console.so
++-session    optional    pam_ck_connector.so
++session     required      pam_selinux.so open
++session     optional      pam_keyinit.so force revoke
++session     required      pam_namespace.so
++session     include       password-auth
++session     optional      pam_gnome_keyring.so auto_start
++session     include       postlogin
+diff --git a/data/pam-redhat/gdm-smartcard b/data/pam-redhat/gdm-smartcard
+index d5ac1fa..1c8c7b1 100644
+--- a/data/pam-redhat/gdm-smartcard
++++ b/data/pam-redhat/gdm-smartcard
+@@ -1,18 +1,18 @@
+-# Sample PAM file for doing smartcard authentication.
+-# Distros should replace this with what makes sense for them.
+-auth        required      pam_env.so
+-auth        [success=done ignore=ignore default=die] pam_pkcs11.so wait_for_card card_only
+-auth        requisite     pam_succeed_if.so uid >= 500 quiet
+-auth        required      pam_deny.so
++auth        substack      smartcard-auth
++auth        required      pam_succeed_if.so user != root quiet
++auth        include       postlogin
+ 
+-account     required      pam_unix.so
+-account     sufficient    pam_localuser.so
+-account     sufficient    pam_succeed_if.so uid < 500 quiet
+-account     required      pam_permit.so
++account     required      pam_nologin.so
++account     include       smartcard-auth
+ 
+-password    optional      pam_pkcs11.so
+-password    requisite     pam_cracklib.so try_first_pass retry=3 type=
++password    include       smartcard-auth
+ 
+-session     optional      pam_keyinit.so revoke
+-session     required      pam_limits.so
+-session     required      pam_unix.so
++session     required      pam_selinux.so close
++session     required      pam_loginuid.so
++session     optional      pam_console.so
++-session    optional    pam_ck_connector.so
++session     required      pam_selinux.so open
++session     optional      pam_keyinit.so force revoke
++session     required      pam_namespace.so
++session     include       smartcard-auth
++session     include       postlogin
+diff --git a/data/pam-redhat/gdm-welcome b/data/pam-redhat/gdm-welcome
+index b301f4f..17f323e 100644
+--- a/data/pam-redhat/gdm-welcome
++++ b/data/pam-redhat/gdm-welcome
+@@ -1,9 +1,11 @@
+ #%PAM-1.0
+ auth       required    pam_env.so
+ auth       required    pam_permit.so
++auth       include     postlogin
+ account    required    pam_nologin.so
+ account    include     system-auth
+ password   include     system-auth
+ session    required    pam_loginuid.so
+ session    optional    pam_keyinit.so force revoke
+ session    include     system-auth
++session    include     postlogin
+-- 
+1.7.7.6
+

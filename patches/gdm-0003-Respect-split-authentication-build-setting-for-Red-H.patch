@@ -1,0 +1,59 @@
+From d4a447a583c363fcec21675d4a334130df4b2192 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Tue, 1 May 2012 14:24:17 -0400
+Subject: [PATCH 3/6] Respect split-authentication build setting for Red Hat
+ PAM files
+
+If split authentication is disabled, install "pam.d/gdm", otherwise
+install the smartcard and fingerprint ones.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=675085
+---
+ data/Makefile.am |   20 ++++++++++++--------
+ 1 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/data/Makefile.am b/data/Makefile.am
+index e449ad5..5f3f024 100644
+--- a/data/Makefile.am
++++ b/data/Makefile.am
+@@ -89,17 +89,21 @@ localealias_DATA = locale.alias
+ sessiondir = $(datadir)/gnome-session/sessions
+ session_DATA = gdm-fallback.session gdm-shell.session
+ 
+-pam_redhat_files = pam-redhat/gdm pam-redhat/gdm-autologin pam-redhat/gdm-welcome \
+-	           pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard
+-EXTRA_DIST += $(pam_redhat_files)
+-pam_openembedded_files = pam-openembedded/gdm pam-openembedded/gdm-autologin pam-openembedded/gdm-welcome
+-EXTRA_DIST += $(pam_openembedded_files)
++EXTRA_DIST += pam-redhat/gdm pam-redhat/gdm-autologin pam-redhat/gdm-welcome \
++	      pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard \
++	      pam-openembedded/gdm pam-openembedded/gdm-autologin pam-openembedded/gdm-welcome
+ 
++enabled_pam_files =
+ if ENABLE_REDHAT_PAM_CONFIG
+-pam_files = $(pam_redhat_files)
++enabled_pam_files += pam-redhat/gdm-autologin pam-redhat/gdm-welcome
++if ENABLE_SPLIT_AUTHENTICATION
++enabled_pam_files += pam-redhat/gdm-fingerprint pam-redhat/gdm-smartcard
++else
++enabled_pam_files += pam-redhat/gdm
++endif
+ endif
+ if ENABLE_OPENEMBEDDED_PAM_CONFIG
+-pam_files = $(pam_openembedded_files)
++enabled_pam_files += pam-openembedded/gdm pam-openembedded/gdm-autologin pam-openembedded/gdm-welcome
+ endif
+ 
+ EXTRA_DIST +=			\
+@@ -234,7 +238,7 @@ install-data-hook: gdm.conf-custom Xsession Init PostSession PreSession 00-upstr
+ 		chmod 755 $(DESTDIR)$(PAM_PREFIX)/pam.d; \
+ 	   fi; \
+ 	   if test $$system = Linux; then \
+-	     for file in $(pam_files); do \
++	     for file in $(enabled_pam_files); do \
+                bn=$$(basename $$file); \
+ 	       if test '!' -f $(DESTDIR)$(PAM_PREFIX)/pam.d/$$bn; then \
+ 		 $(INSTALL_DATA) $(srcdir)/$$file $(DESTDIR)$(PAM_PREFIX)/pam.d/$$bn; \
+-- 
+1.7.7.6
+

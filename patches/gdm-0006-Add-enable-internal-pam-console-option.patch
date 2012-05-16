@@ -1,0 +1,176 @@
+From d6b62284bd35087f4b514cf48ce3682d8e825f04 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Tue, 15 May 2012 23:04:16 -0400
+Subject: [PATCH 6/6] Add --enable-internal-pam-console option
+
+For OS builders who don't want to ship the full pam_console[1], this
+simple option allows GDM to create the file /var/run/console/foo,
+which is enough for DBus, which in turn is enough for NetworkManager.
+
+Note there was a --enable-console-helper configure option which
+was unused, so I deleted it.
+
+This patch mirrors the Solaris devlogin handling.
+
+[1] Because it's messy, complex code, mostly to implement the "chown
+    device files" part which is completely obsoleted by udev.  The
+    "make /var/run/console/foo" file isn't though; that's what this
+    patch does.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=676138
+---
+ configure.ac              |   11 +++++---
+ daemon/gdm-simple-slave.c |   55 +++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 55 insertions(+), 11 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index fdd4676..8222244 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -247,10 +247,13 @@ esac
+ AM_CONDITIONAL(ENABLE_REDHAT_PAM_CONFIG, test x$with_default_pam_config = xredhat)
+ AM_CONDITIONAL(ENABLE_OPENEMBEDDED_PAM_CONFIG, test x$with_default_pam_config = xopenembedded)
+ 
+-AC_ARG_ENABLE(console-helper,
+-	      AS_HELP_STRING([--enable-console-helper],
+-                             [Enable PAM console helper @<:@default=auto@:>@]),,
+-              enable_console_helper=auto)
++AC_ARG_ENABLE(internal-pam-console,
++	      AS_HELP_STRING([--enable-internal-pam-console],
++                             [Directly write /var/run/console directly @<:@default=no@:>@]),,
++              enable_internal_pam_console=no)
++if test x$enable_internal_pam_console != xno; then
++        AC_DEFINE(ENABLE_INTERNAL_PAM_CONSOLE, 1, [Define if we should write /var/run/console directly])
++fi
+ 
+ AC_ARG_ENABLE(authentication-scheme,
+               AS_HELP_STRING([--enable-authentication-scheme=@<:@pam/crypt/shadow@:>@],
+diff --git a/daemon/gdm-simple-slave.c b/daemon/gdm-simple-slave.c
+index bf48246..dff7bf5 100644
+--- a/daemon/gdm-simple-slave.c
++++ b/daemon/gdm-simple-slave.c
+@@ -90,8 +90,10 @@ struct GdmSimpleSlavePrivate
+ 
+         guint              start_session_when_ready : 1;
+         guint              waiting_to_start_session : 1;
+-#ifdef  HAVE_LOGINDEVPERM
++#if defined(HAVE_LOGINDEVPERM)
+         gboolean           use_logindevperm;
++#elif defined(ENABLE_INTERNAL_PAM_CONSOLE)
++        gboolean           use_internal_pam_console;
+ #endif
+ #ifdef  WITH_PLYMOUTH
+         guint              plymouth_is_running : 1;
+@@ -140,7 +142,6 @@ on_session_started (GdmSession       *session,
+          */
+ }
+ 
+-#ifdef  HAVE_LOGINDEVPERM
+ static void
+ gdm_simple_slave_grant_console_permissions (GdmSimpleSlave *slave)
+ {
+@@ -151,6 +152,7 @@ gdm_simple_slave_grant_console_permissions (GdmSimpleSlave *slave)
+         username = gdm_session_direct_get_username (slave->priv->session);
+         display_device = gdm_session_direct_get_display_device (slave->priv->session);
+ 
++#if defined(HAVE_LOGINDEVPERM)
+         if (username != NULL) {
+                 gdm_get_pwent_for_name (username, &passwd_entry);
+ 
+@@ -175,6 +177,34 @@ gdm_simple_slave_grant_console_permissions (GdmSimpleSlave *slave)
+                 g_debug ("Not calling di_devperm_login login for user %s, device %s",
+                          username, display_device);
+         }
++#elif defined(ENABLE_INTERNAL_PAM_CONSOLE)
++        if (username != NULL && display_device != NULL) {
++                int fd;
++                char *consoledir_path;
++                char *path;
++
++                gdm_get_pwent_for_name (username, &passwd_entry);
++
++                slave->priv->use_internal_pam_console = TRUE;
++
++                consoledir_path = g_strdup_printf ("/var/run/console");
++
++                (void) mkdir (consoledir_path, 0755);
++                
++                path = g_build_filename (consoledir_path, username, NULL);
++                fd = open (path, O_CREAT | O_NOFOLLOW, 0644);
++                if (fd < 0) {
++                        g_warning ("Failed to create %s: %s", path, strerror (errno));
++                } else {
++                        (void)fchown (fd, passwd_entry->pw_uid, passwd_entry->pw_gid);
++                        close (fd);
++                }
++                g_free (path);
++        }
++#else
++#endif
++        g_free (username);
++        g_free (display_device);
+ }
+ 
+ static void
+@@ -182,10 +212,12 @@ gdm_simple_slave_revoke_console_permissions (GdmSimpleSlave *slave)
+ {
+         char *username;
+         char *display_device;
++        struct passwd *passwd_entry;
+ 
+         username = gdm_session_direct_get_username (slave->priv->session);
+         display_device = gdm_session_direct_get_display_device (slave->priv->session);
+ 
++#if defined(HAVE_LOGINDEVPERM)
+         /*
+          * Only do logindevperm processing if /dev/console or a device
+          * associated with a VT.  Do this after processing the PostSession
+@@ -204,11 +236,24 @@ gdm_simple_slave_revoke_console_permissions (GdmSimpleSlave *slave)
+                 g_debug ("Not calling di_devperm_logout logout for user %s, device %s",
+                          username, display_device);
+         }
++#elif defined(ENABLE_INTERNAL_PAM_CONSOLE)
++        if (slave->priv->use_internal_pam_console) {
++                char *path;
++                
++                gdm_get_pwent_for_name (username, &passwd_entry);
++
++                slave->priv->use_internal_pam_console = FALSE;
++                
++                path = g_strdup_printf ("/var/run/console/%s", username);
++                if (unlink (path) < 0)
++                        g_warning ("Failed to unlink %s: %s", path, strerror (errno));
++                g_free (path);
++        }
+ 
++#endif
+         g_free (username);
+         g_free (display_device);
+ }
+-#endif  /* HAVE_LOGINDEVPERM */
+ 
+ static void
+ on_session_exited (GdmSession     *session,
+@@ -567,9 +612,7 @@ on_session_opened (GdmSession     *session,
+                    const char     *service_name,
+                    GdmSimpleSlave *slave)
+ {
+-#ifdef  HAVE_LOGINDEVPERM
+         gdm_simple_slave_grant_console_permissions (slave);
+-#endif  /* HAVE_LOGINDEVPERM */
+ 
+         if (slave->priv->greeter_server != NULL) {
+                 gdm_greeter_server_session_opened (slave->priv->greeter_server, service_name);
+@@ -1647,9 +1690,7 @@ gdm_simple_slave_stop (GdmSlave *slave)
+                 }
+                 g_free (username);
+ 
+-#ifdef  HAVE_LOGINDEVPERM
+                 gdm_simple_slave_revoke_console_permissions (GDM_SIMPLE_SLAVE (slave));
+-#endif
+ 
+                 gdm_session_close (GDM_SESSION (GDM_SIMPLE_SLAVE (slave)->priv->session));
+                 g_object_unref (GDM_SIMPLE_SLAVE (slave)->priv->session);
+-- 
+1.7.7.6
+

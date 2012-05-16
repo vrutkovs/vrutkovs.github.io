@@ -1,73 +1,89 @@
-From 5239bd5782ba083f30d3667e038b7c44f2f579c9 Mon Sep 17 00:00:00 2001
+From 0ee291dd4fa73fbffb1f2ad571688440324564b3 Mon Sep 17 00:00:00 2001
 From: Colin Walters <walters@verbum.org>
 Date: Fri, 27 Apr 2012 18:34:39 -0400
-Subject: [PATCH 3/3] Add --with-default-pam-config option
+Subject: [PATCH 1/6] Add --with-default-pam-config option, autodetect from
+ /etc/foo-release files
 
 The PAM files that ship with GDM are really specific to Red Hat's
 historical fork of pam.  For example, the "system-auth" file still
-lives in the Fedora 17 "pam" git.
+lives in the Fedora 17 "pam" git.  A long while back, Debian hit the
+same problem, and of course the difference is the naming;
+common-auth/common-password etc.
 
-Add new PAM files (which may still not work for everybody, but hey,
-it's a starting point) that should be somewhat useful for people who
-build with "Linux PAM" upstream, which uses "common-*" prefixes.
+OpenEmbedded then picked up Debian's PAM fork.  Since for OSTree-GNOME
+we're using Poky/OpenEmbedded, let's add an option to integrate with
+their PAM.
 
-The default is still to use the Red Hat PAM files for backwards
-compatibility.
+We use code similar to what NetworkManager has, so we should keep
+using the Red Hat files on systems with /etc/redhat-release or
+/etc/fedora-release.
 
 https://bugzilla.gnome.org/show_bug.cgi?id=675085
 ---
- configure.ac                  |   17 +++++++++++++++++
- data/Makefile.am              |   33 +++++++++++++++++++++------------
- data/gdm                      |   12 ------------
- data/gdm-autologin            |   10 ----------
- data/gdm-welcome              |    9 ---------
- data/pam-linux/gdm            |   12 ++++++++++++
- data/pam-linux/gdm-autologin  |   10 ++++++++++
- data/pam-linux/gdm-welcome    |    9 +++++++++
- data/pam-redhat/gdm           |   12 ++++++++++++
- data/pam-redhat/gdm-autologin |   10 ++++++++++
- data/pam-redhat/gdm-welcome   |    9 +++++++++
- 11 files changed, 100 insertions(+), 43 deletions(-)
+ configure.ac                        |   22 ++++++++++++++++++++++
+ data/Makefile.am                    |   33 +++++++++++++++++++++------------
+ data/gdm                            |   12 ------------
+ data/gdm-autologin                  |   10 ----------
+ data/gdm-welcome                    |    9 ---------
+ data/pam-openembedded/gdm           |   12 ++++++++++++
+ data/pam-openembedded/gdm-autologin |   10 ++++++++++
+ data/pam-openembedded/gdm-welcome   |    9 +++++++++
+ data/pam-redhat/gdm                 |   12 ++++++++++++
+ data/pam-redhat/gdm-autologin       |   10 ++++++++++
+ data/pam-redhat/gdm-welcome         |    9 +++++++++
+ 11 files changed, 105 insertions(+), 43 deletions(-)
  delete mode 100644 data/gdm
  delete mode 100644 data/gdm-autologin
  delete mode 100644 data/gdm-welcome
- create mode 100644 data/pam-linux/gdm
- create mode 100644 data/pam-linux/gdm-autologin
- create mode 100644 data/pam-linux/gdm-welcome
+ create mode 100644 data/pam-openembedded/gdm
+ create mode 100644 data/pam-openembedded/gdm-autologin
+ create mode 100644 data/pam-openembedded/gdm-welcome
  create mode 100644 data/pam-redhat/gdm
  create mode 100644 data/pam-redhat/gdm-autologin
  create mode 100644 data/pam-redhat/gdm-welcome
 
 diff --git a/configure.ac b/configure.ac
-index 35e6e04..21e44e0 100644
+index 81ea23e..fdd4676 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -226,6 +226,23 @@ if test x$enable_split_authentication = xyes; then
+@@ -226,6 +226,27 @@ if test x$enable_split_authentication = xyes; then
    AC_DEFINE(ENABLE_SPLIT_AUTHENTICATION, 1, [Define if split authentication is enabled])
  fi
  
 +AC_ARG_WITH(default-pam-config,
-+	    AS_HELP_STRING([--with-default-pam-config: One of redhat, linux @<:@default=redhat@:>@]),
-+            with_default_pam_config=${withval}, with_default_pam_config=redhat)
++	    AS_HELP_STRING([--with-default-pam-config: One of redhat, openembedded, none @<:@default=auto@:>@]))
++dnl If not given, try autodetecting from release files (see NetworkManager source) 
++if test x$with_default_pam_config = x; then
++	AC_CHECK_FILE(/etc/redhat-release,with_default_pam_config="redhat")
++	AC_CHECK_FILE(/etc/fedora-release,with_default_pam_config="redhat")
++	dnl If not autodetected, default to none
++	if test x$with_default_pam_config = x; then
++	  with_default_pam_config=none
++	fi
++fi
 +case x$with_default_pam_config in
-+     xredhat|xlinux) ;;
++     xredhat|xopenembedded|xnone) ;;
 +     *)
 +       AC_MSG_ERROR([Invalid --with-default-pam-config ${with_default_pam_config}])
 +       exit 1
 +       ;;
 +esac
 +AM_CONDITIONAL(ENABLE_REDHAT_PAM_CONFIG, test x$with_default_pam_config = xredhat)
-+AM_CONDITIONAL(ENABLE_LINUX_PAM_CONFIG, test x$with_default_pam_config = xlinux)
-+
-+if test x$enable_split_authentication = xyes; then
-+  AC_DEFINE(ENABLE_SPLIT_AUTHENTICATION, 1, [Define if split authentication is enabled])
-+fi
++AM_CONDITIONAL(ENABLE_OPENEMBEDDED_PAM_CONFIG, test x$with_default_pam_config = xopenembedded)
 +
  AC_ARG_ENABLE(console-helper,
  	      AS_HELP_STRING([--enable-console-helper],
                               [Enable PAM console helper @<:@default=auto@:>@]),,
+@@ -1550,6 +1571,7 @@ echo "
+ 
+         dbus-1 system.d dir:      ${DBUS_SYS_DIR}
+         PAM prefix:               ${PAM_PREFIX}
++        PAM config:               ${with_default_pam_config}
+         X server:                 ${X_SERVER}
+ "
+ 
 diff --git a/data/Makefile.am b/data/Makefile.am
-index f0d00bf..e940d71 100644
+index f0d00bf..9c8379b 100644
 --- a/data/Makefile.am
 +++ b/data/Makefile.am
 @@ -1,5 +1,6 @@
@@ -84,14 +100,14 @@ index f0d00bf..e940d71 100644
 -EXTRA_DIST =			\
 +pam_redhat_files = pam-redhat/gdm pam-redhat/gdm-autologin pam-redhat/gdm-welcome
 +EXTRA_DIST += $(pam_redhat_files)
-+pam_linux_files = pam-linux/gdm pam-linux/gdm-autologin pam-linux/gdm-welcome
-+EXTRA_DIST += $(pam_linux_files)
++pam_openembedded_files = pam-openembedded/gdm pam-openembedded/gdm-autologin pam-openembedded/gdm-welcome
++EXTRA_DIST += $(pam_openembedded_files)
 +
 +if ENABLE_REDHAT_PAM_CONFIG
 +pam_files = $(pam_redhat_files)
 +endif
-+if ENABLE_LINUX_PAM_CONFIG
-+pam_files = $(pam_linux_files)
++if ENABLE_OPENEMBEDDED_PAM_CONFIG
++pam_files = $(pam_openembedded_files)
 +endif
 +
 +EXTRA_DIST +=			\
@@ -179,11 +195,11 @@ index b301f4f..0000000
 -session    required    pam_loginuid.so
 -session    optional    pam_keyinit.so force revoke
 -session    include     system-auth
-diff --git a/data/pam-linux/gdm b/data/pam-linux/gdm
+diff --git a/data/pam-openembedded/gdm b/data/pam-openembedded/gdm
 new file mode 100644
 index 0000000..de223de
 --- /dev/null
-+++ b/data/pam-linux/gdm
++++ b/data/pam-openembedded/gdm
 @@ -0,0 +1,12 @@
 +#%PAM-1.0
 +auth       required    pam_env.so
@@ -197,11 +213,11 @@ index 0000000..de223de
 +session    include     common-session
 +session    required    pam_loginuid.so
 +session    optional    pam_console.so
-diff --git a/data/pam-linux/gdm-autologin b/data/pam-linux/gdm-autologin
+diff --git a/data/pam-openembedded/gdm-autologin b/data/pam-openembedded/gdm-autologin
 new file mode 100644
 index 0000000..32d5248
 --- /dev/null
-+++ b/data/pam-linux/gdm-autologin
++++ b/data/pam-openembedded/gdm-autologin
 @@ -0,0 +1,10 @@
 +#%PAM-1.0
 +auth       required    pam_env.so
@@ -213,11 +229,11 @@ index 0000000..32d5248
 +session    include     common-session
 +session    required    pam_loginuid.so
 +session    optional    pam_console.so
-diff --git a/data/pam-linux/gdm-welcome b/data/pam-linux/gdm-welcome
+diff --git a/data/pam-openembedded/gdm-welcome b/data/pam-openembedded/gdm-welcome
 new file mode 100644
 index 0000000..602217b
 --- /dev/null
-+++ b/data/pam-linux/gdm-welcome
++++ b/data/pam-openembedded/gdm-welcome
 @@ -0,0 +1,9 @@
 +#%PAM-1.0
 +auth       required    pam_env.so
