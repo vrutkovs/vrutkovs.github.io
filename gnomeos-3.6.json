@@ -1,4 +1,6 @@
 {
+  "00ostbuild-manifest-version": 0,
+
   "prefix": "gnomeos-3.6",
   "architectures": ["i686"],
   "base": {
