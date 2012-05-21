@@ -35,6 +35,10 @@
    		{"src": "cgwalters:ginitscripts",
 		 "noarch": true},
 
+   		{"src": "git:git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git",
+		 "patches": "linux-firmware-0001-build-Implement-minimal-GNOME-Build-API.patch",
+		 "noarch": true},
+
    		{"src": "gnome:gtk-doc-stub",
 		 "component": "devel",
 		 "noarch": true},
