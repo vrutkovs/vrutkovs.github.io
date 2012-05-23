@@ -449,8 +449,7 @@
 		{"src": "fd:ConsoleKit",
 		 "patches": ["ConsoleKit-builddir.patch"]},
 
-		{"src": "0pointer:libatasmart.git",
-		 "patches": ["libatasmart-autogen.patch"]},
+		{"src": "0pointer:libatasmart.git"},
 
 		{"src": "fd:udisks",
 		 "config-opts": ["--disable-documentation"],
