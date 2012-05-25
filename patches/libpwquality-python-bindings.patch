@@ -1,0 +1,47 @@
+From e353685e146b790ca6e83e39fb9bc46118cbbc3a Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Fri, 25 May 2012 18:27:58 -0400
+Subject: [PATCH] build: Add --disable-python-bindings option
+
+---
+ Makefile.am  |    5 ++++-
+ configure.in |    7 +++++++
+ 2 files changed, 11 insertions(+), 1 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 40aed1c..9a334f6 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -6,7 +6,10 @@
+ 
+ AUTOMAKE_OPTIONS = 1.9 gnu dist-bzip2 check-news
+ 
+-SUBDIRS = po src python doc
++SUBDIRS = po src doc
++if BUILD_PYTHON_BINDINGS
++SUBDIRS += python
++endif
+ 
+ CLEANFILES = *~
+ 
+diff --git a/configure.in b/configure.in
+index e43e16a..2f00a33 100644
+--- a/configure.in
++++ b/configure.in
+@@ -93,6 +93,13 @@ AC_ARG_WITH(sconfigdir,
+ 	SCONFIGDIR=$enableval, SCONFIGDIR=$sysconfdir/security)
+ AC_SUBST(SCONFIGDIR)
+ 
++AC_ARG_ENABLE([python-bindings],
++              AC_HELP_STRING([--enable-python-bindings],
++                             [enable Python bindings (default: yes)]),
++              [enable_python_bindings=$enableval],
++              enable_python_bindings=yes)
++AM_CONDITIONAL(BUILD_PYTHON_BINDINGS, test x"$enable_python_bindings" = xyes)
++
+ AC_ARG_WITH(python-rev,
+             [  --with-pythonrev=2.7    version of python for which modules should be built],
+             PYTHONREV=$withval,[
+-- 
+1.7.7.6
+

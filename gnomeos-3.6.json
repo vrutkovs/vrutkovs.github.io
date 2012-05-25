@@ -723,6 +723,12 @@
 
 		{"src": "gnome:clutter-gtk"},
 
+		{"src": "cgwalters:libpwquality-git",
+                 "config-opts": ["--disable-python-bindings"],
+                 "patches": ["libpwquality-builddir.patch",
+                             "libpwquality-python-bindings.patch"]
+                }, 
+
 		{"src": "gnome:gnome-control-center",
 		 "config-opts": ["--disable-cups"]},
 
