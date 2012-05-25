@@ -44,19 +44,19 @@
 		 "noarch": true},
 
 		{"src": "git:git://github.com/atgreen/libffi.git",
-		 "branch": "v3.0.10"},
+		 "tag": "v3.0.10"},
 
 		{"src": "gnome:glib"},
 
 		{"src": "savannah:attr",
-		 "branch": "v2.4.46",
+		 "tag": "v2.4.46",
 		 "patches": ["attr-add-autogen.patch",
 		             "attr-no-builddir.patch",
 			     "attr-2.4.32-build.patch",
 			     "attr-makeinstall.patch"]},
 
 		{"src": "savannah:acl",
-		 "branch": "v2.2.51",
+		 "tag": "v2.2.51",
 		 "patches": ["acl-add-autogen.patch",
 			     "acl-no-builddir.patch",
 			     "acl-2.2.39-build.patch",
@@ -71,11 +71,11 @@
    		{"src": "fd:pixman"},
 
    		{"src": "git:git://git.sv.nongnu.org/freetype/freetype2.git",
-		 "branch": "VER-2-4-8",
+		 "tag": "VER-2-4-8",
 		 "patches": ["freetype-autogen.patch"]},
 
    		{"src": "fd:fontconfig",
-		 "branch": "2.8.0",
+		 "tag": "2.8.0",
 		 "patches": ["fontconfig-autogen.patch"]},
 
 		{"src": "fd:xorg/util/macros",
@@ -286,10 +286,10 @@
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "git:git://libpng.git.sourceforge.net/gitroot/libpng/libpng",
-		 "branch": "v1.5.7"},
+		 "tag": "v1.5.7"},
 
 		{"src": "fd:cairo",
-		 "branch": "1.10.2",
+		 "tag": "1.10.2",
 		 "config-opts": ["--disable-interpreter"]},
 
 		{"src": "gnome:gnome-common",
@@ -301,11 +301,11 @@
 		{"src": "gnome:gobject-introspection"},
 
 		{"src": "git:git://git.libusb.org/libusb.git",
-		 "branch": "v1.0.8",
+		 "tag": "v1.0.8",
 		 "patches": ["libusb-autogen.patch"]},
 
 		{"src": "git:git://github.com/gregkh/usbutils.git",
-		 "branch": "v005",
+		 "tag": "v005",
 		 "patches": ["usbutils-autogen.patch"]},
 
 		{"src": "fedora:hwdata.git",
@@ -313,16 +313,16 @@
 		             "hwdata-no-spec-file.patch"]},
 
 		{"src": "cgwalters:texinfo-git-mirror",
-		 "branch": "TEXI2HTML_1_82",
+		 "tag": "TEXI2HTML_1_82",
 		 "config-opts": ["--disable-man-pages"],
 		 "patches": ["texinfo-disable-man.patch"]},
 
 		{"src": "savannah:gperf.git",
-		 "branch": "v3.0.4",
+		 "tag": "v3.0.4",
 		 "patches": ["gperf-autotools.patch"]},
 
 		{"src": "git:git://git.kernel.org/pub/scm/linux/hotplug/udev.git",
-		 "branch": "175",
+		 "tag": "175",
 		 "config-opts": ["--disable-documentation",
 		                 "--enable-udev_acl"],
 		 "patches": ["udev-autogen.patch", "udev-docs.patch",
@@ -412,6 +412,7 @@
 		                 "--disable-gtk-doc"]},
 
 		{"src": "git:git://git.infradead.org/users/tgr/libnl.git",
+		 "tag": "f8b4f9271b86c7294c7f87270e74b8c690798dd9",
 		 "name": "libnl3"},
 
 		{"src": "cgwalters:nspr-tarballs-as-git"},
@@ -419,7 +420,7 @@
 		{"src": "cgwalters:sqlite-tarballs-as-git"},
 
 		{"src": "cgwalters:nss-tarballs-as-git",
-		 "branch": "v3.13.4"},
+		 "tag": "v3.13.4"},
 
 		{"src": "git:git://ozlabs.org/~paulus/ppp.git",
 		 "patches": ["ppp-srcdir-builddir.patch", "ppp-destdir.patch"]},
@@ -428,14 +429,14 @@
 
 		{"src": "debian:pkg-dhcp/isc-dhcp.git",
 		 "name": "isc-dhcp",
-		 "branch": "upstream/4.2.2",
+		 "tag": "upstream/4.2.2",
 		 "patches": ["isc-dhcp-autogen.patch",
 		             "isc-dhcp-delete-configure.patch",
 			     "isc-dhcp-no-builddir.patch",
 		             "isc-dhcp-no-werror.patch"]},
 
 		{"src": "git:git://w1.fi/srv/git/hostap.git",
-		 "branch": "b80eb89d8e21eb699d847bec226d897d9e92e0b8",
+		 "tag": "b80eb89d8e21eb699d847bec226d897d9e92e0b8",
 		 "patches": ["hostap-0001-build-Implement-GNOME-Build-API-for-wpa_supplicant.patch",
 		             "hostap-0001-Add-config-file.patch",
 			     "hostap-0001-build-Use-libnl-3.0-pkg-config-file.patch"]},
@@ -501,7 +502,7 @@
 		{"src": "gnome:json-glib"},
 
 		{"src": "gnome:libcroco",
-		 "branch": "0.6.3"},
+		 "tag": "0.6.3"},
 
 		{"src": "gnome:librsvg",
 		 "config-opts": ["--disable-gtk-theme"]},
@@ -521,12 +522,12 @@
 
 		{"src": "fd:libxklavier",
 		 "patches": ["libxklavier-builddir.patch"],
-		 "branch": "v.5.2.1"},
+		 "tag": "v.5.2.1"},
 
 		{"src": "gnome:libgnomekbd"},
 
 		{"src": "fd-pulse:pulseaudio",
-		 "branch": "v0.9.23",
+		 "tag": "v0.9.23",
 		 "config-opts": ["--disable-openssl"],
 		 "patches": ["pulseaudio-autogen.patch"]},
 
@@ -541,7 +542,7 @@
 		 "config-opts": ["--disable-desktop-docs"]},
 
 		{"src": "git:git://github.com/mm2/Little-CMS.git",
-		 "branch": "lcms2.3"},
+		 "tag": "lcms2.3"},
 
 		{"src": "git:git://gitorious.org/colord/master.git",
 		 "name": "colord"},
@@ -578,7 +579,7 @@
 		{"src": "gnome:libgnome-keyring"},
 
 		{"src": "git:git://pkgs.fedoraproject.org/ca-certificates.git",
-		 "branch": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
+		 "tag": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
 		 "patches": ["ca-certs-build.patch"]},
 
 		{"src": "gnome:glib-networking"},
@@ -610,7 +611,7 @@
 				 "--disable-fatal-warnings"]},
 
 		{"src": "git:git://git.webkit.org/WebKit.git",
-		 "branch": "4e276ff268f3f3e97abb97f8e5a8cf6d8d97d2db",
+		 "tag": "4e276ff268f3f3e97abb97f8e5a8cf6d8d97d2db",
 		 "patches": ["WebKit-autogen.patch"]},
 
 		{"src": "gnome:librest"},
@@ -650,7 +651,7 @@
 		 "patches": ["gee-builddir.patch"]},
 
 		{"src": "fd-telepathy:telepathy-glib",
-		 "branch": "telepathy-glib-0.17.5",
+		 "tag": "telepathy-glib-0.17.5",
 		 "config-opts": ["--enable-vala-bindings",
                                  "--disable-compiler-warnings"],
 		 "patches": ["telepathy-glib-builddir.patch"]},
@@ -675,7 +676,7 @@
 		 "config-opts": ["--enable-eds-backend",
 		                 "--disable-Werror",
 		                 "--disable-fatal-warnings"],
-                 "branch": "932a2311c587013e726fbcecc52cde8eb13be6a9",
+                 "tag": "932a2311c587013e726fbcecc52cde8eb13be6a9",
 		 "patches": ["folks-builddir.patch"]},
 
 		{"src": "gnome:dconf",
@@ -708,7 +709,7 @@
 		             ]},
 
 		{"src": "fd-telepathy:telepathy-logger",
-		 "branch": "telepathy-logger-0.2.12",
+		 "tag": "telepathy-logger-0.2.12",
 		 "patches": ["telepathy-logger-autogen.patch"]},
 
 		{"src": "gnome:gnome-power-manager"},
