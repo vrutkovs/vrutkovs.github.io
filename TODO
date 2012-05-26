@@ -1,0 +1,38 @@
+Apps
+====
+
+Add glick runtime
+
+Networking
+==========
+
+* https://live.gnome.org/OSTree/EverythingInEtcIsABug
+  - patch glibc to have /lib/passwd and /lib/shadow
+  - This will allow us to have NetworkManager save
+    wireless networks to /etc
+* Make networking work
+
+Sync up with Fedora
+===================
+
+* Pull in systemd
+* Continue draining spec files into GNOME Build API that's
+  upstreamable
+
+Smoke, integration tests
+========================
+
+The main smoke test I want is "does the system show GDM".  Possibly
+redirect syslog to the qemu serial console, and check that way?
+
+Integration testing would be fantastic; we need some way to ship over
+test code, run it, and then get results.  Look at
+http://autotest.github.com/
+
+Build more things in ostbuild
+=============================
+
+We should turn the Yocto base into a bootstrap system, rather than a
+provider of core.  So for example, while Yocto may build udev, we
+should rpm -e it before committing to the base tree.
+
