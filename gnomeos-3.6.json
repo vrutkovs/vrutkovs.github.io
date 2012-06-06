@@ -36,6 +36,7 @@
 		 "noarch": true},
 
    		{"src": "git:git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git",
+		 "patches": ["linux-firmware-configure-Make-executable.patch"],
 		 "tag": "4c79292308ead42fc786c8e189921196ccc298ff",
 		 "noarch": true},
 
