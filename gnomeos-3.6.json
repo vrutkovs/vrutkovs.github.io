@@ -40,6 +40,8 @@
 		 "tag": "4c79292308ead42fc786c8e189921196ccc298ff",
 		 "noarch": true},
 
+   		{"src": "git:git://sourceware.org/git/lvm2.git"},
+
    		{"src": "gnome:gtk-doc-stub",
 		 "component": "devel",
 		 "noarch": true},
