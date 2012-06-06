@@ -485,8 +485,7 @@
 		                 "--disable-gtk",
 				 "--disable-documentation"]},
 
-		{"src": "gnome:pango",
-		 "patches": ["pango-querymodules-system.patch"]},
+		{"src": "gnome:pango"},
 
 		{"src": "gnome:atk"},
 
