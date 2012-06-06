@@ -455,8 +455,10 @@
 		                 "--with-system-nspr"]},
 
 		{"src": "fd:polkit",
-		 "patches": ["PolicyKit-libtool.patch"],
-		 "config-opts": ["--disable-man-pages"]},
+		 "config-opts": ["--disable-man-pages",
+		                 "--with-distro-type=suse"],
+		 "setuid": ["/runtime/usr/bin/pkexec",
+                            "/runtime/usr/libexec/polkit-agent-helper-1"]},
 
 		{"src": "fd:ConsoleKit",
 		 "patches": ["ConsoleKit-builddir.patch"]},
