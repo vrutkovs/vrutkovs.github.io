@@ -450,6 +450,10 @@
 				 "--enable-more-warnings=yes"],
 		 "patches": ["NetworkManager-config.patch"]},
 
+		{"src": "cgwalters:spidermonkey-tarballs-as-git",
+		 "config-opts": ["--enable-threadsafe",
+		                 "--with-system-nspr"]},
+
 		{"src": "fd:polkit",
 		 "patches": ["PolicyKit-libtool.patch"],
 		 "config-opts": ["--disable-man-pages"]},
@@ -630,10 +634,6 @@
 
 		{"src": "gnome:mutter",
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
-
-		{"src": "cgwalters:spidermonkey-tarballs-as-git",
-		 "config-opts": ["--enable-threadsafe",
-		                 "--with-system-nspr"]},
 
 		{"src": "gnome:gjs"},
 
