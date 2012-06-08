@@ -8,11 +8,11 @@
   <name>gnome-ostree</name>
   <shortname>gnome-ostree</shortname>
 
-  <shortdesc xml:lang="en">GNOME OSTree manifest and patches</shortdesc>
+  <shortdesc xml:lang="en">GNOME OSTree build tool, manifest, and patches</shortdesc>
 
-  <description xml:lang="en">GNOME OSTree manifest and patches</description>
+  <description xml:lang="en">GNOME OSTree build tool, manifest and patches</description>
 
-  <homepage rdf:resource="http://live.gnome.org/OSTree" />
+  <homepage rdf:resource="https://live.gnome.org/OSTree/GnomeOSTree" />
   <license rdf:resource="http://usefulinc.com/doap/licenses/lgpl" />
   <mailing-list rdf:resource="mailto:ostree-list@gnome.org" />
 
