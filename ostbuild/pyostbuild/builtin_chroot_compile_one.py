@@ -69,6 +69,8 @@ class OstbuildChrootCompileOne(builtins.Builtin):
                                                         prefix,
                                                         architecture)
 
+        log("Computing buildroot contents")
+
         arch_buildroot_rev = run_sync_get_output(['ostree', '--repo=' + self.repo, 'rev-parse',
                                                   arch_buildroot_name]).strip()
 

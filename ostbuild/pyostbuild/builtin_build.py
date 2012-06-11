@@ -272,7 +272,6 @@ class OstbuildBuild(builtins.Builtin):
         parser.add_argument('--no-skip-if-unchanged', action='store_true')
         parser.add_argument('--compose-only', action='store_true')
         parser.add_argument('--shell-on-failure', action='store_true')
-        parser.add_argument('--debug-shell', action='store_true')
         parser.add_argument('components', nargs='*')
         
         args = parser.parse_args(argv)
