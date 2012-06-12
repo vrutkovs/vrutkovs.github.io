@@ -597,6 +597,8 @@
 		 "config-opts": ["--disable-documentation",
 		                 "--with-soup-gnome"]},
 
+		{"src": "gnome:gnome-ostree"},
+
 		{"src": "fd-gstreamer:gstreamer",
 		 "branch": "0.10",
 		 "config-opts": ["--disable-tests",
