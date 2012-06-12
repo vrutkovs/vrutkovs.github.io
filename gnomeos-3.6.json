@@ -367,9 +367,7 @@
 				 "--enable-gles2",
 				 "--disable-gallium-egl",
 				 "--disable-gallium-llvm",
-                                 "--with-gallium-drivers=swrast"],
-	         "patches": ["mesa-no-builddir.patch",
-		             "mesa-minstall-pwd.patch"]},
+                                 "--with-gallium-drivers=swrast"]},
 
 		{"src": "fd:xorg/app/xkbcomp",
 		 "patches": ["xkbcomp-autogen.patch"]},
