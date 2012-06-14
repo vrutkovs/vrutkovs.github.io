@@ -1,0 +1,46 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <title>GNOME-OSTree</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+    <link rel="stylesheet" href="repoweb.css"/>
+    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+    <script src="repoweb.js"></script>
+  </head> 
+  <body onload="$(document).ready(function(){repoweb_index_init();})">
+
+    <div data-role="page" class="type-interior">
+      <div data-role="header">
+        <h1>GNOME-OSTree build server</h1>
+      </div>
+
+      <div data-role="content"> 
+        <div class="content-primary">
+          <p>This is
+            the <a href="https://live.gnome.org/OSTree/GnomeOSTree">GNOME-OSTree</a>
+            build server.  It builds from
+            the <a href="http://git.gnome.org/browse/gnome-ostree">gnome-ostree</a>
+            git module.</p>
+        
+          <h3>Summary</h3>
+          <div id="repoweb-summary">Loading...</div>
+        </div>
+        <div class="content-secondary">
+	  <ul data-role="listview" data-theme="c" data-dividertheme="d">
+	    <li data-role="list-divider">Tools</li>
+	    <li><a href="logs" rel="external">Build logs</a></li>
+	    <li><a href="src" rel="external">Source code</a></li>
+          </ul>
+        </div>
+      </div> <!-- content -->
+    </div>
+  </body>
+</html>
+
+<!-- 
+  Local Variables:
+  indent-tabs-mode: nil
+  End:
+-->
