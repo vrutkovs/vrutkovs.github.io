@@ -489,6 +489,10 @@
 
 		{"src": "gnome:atk"},
 
+		{"src": "gnome:at-spi2-core"},
+
+		{"src": "gnome:at-spi2-atk"},
+
 		{"src": "gnome:gdk-pixbuf"},
 
 		{"src": "gnome:gtk+",
