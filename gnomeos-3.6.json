@@ -680,13 +680,6 @@
 		 "patches": ["e-d-s-builddir.patch"],
 		 "config-opts": ["--enable-vala-bindings"]},
 
-		{"src": "gnome:folks",
-		 "config-opts": ["--enable-eds-backend",
-		                 "--disable-Werror",
-		                 "--disable-fatal-warnings"],
-                 "tag": "932a2311c587013e726fbcecc52cde8eb13be6a9",
-		 "patches": ["folks-builddir.patch"]},
-
 		{"src": "gnome:dconf",
 		 "patches": ["dconf-builddir.patch"]},
 
@@ -722,7 +715,8 @@
 		{"src": "gnome:gnome-power-manager"},
 
 		{"src": "gnome:gnome-shell",
-		 "config-opts": ["--enable-compile-warnings=maximum"]},
+		 "config-opts": ["--enable-compile-warnings=maximum",
+		                 "--without-folks"]},
 
 		{"src": "gnome:libgtop"},
 
