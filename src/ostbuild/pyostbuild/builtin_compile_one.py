@@ -30,6 +30,10 @@ from .subprocess_helpers import run_sync, run_sync_get_output
 
 PREFIX = '/usr'
 
+# Applied to filenames only
+_IGNORE_FILENAME_REGEXPS = map(re.compile,
+                               [r'.*\.py[co]$'])
+
 _DOC_DIRS = ['usr/share/doc',
              'usr/share/gtk-doc',
              'usr/share/man',
@@ -260,6 +264,16 @@ class OstbuildCompileOne(builtins.Builtin):
                 self._install_and_unlink(src_child, dest_child)
             os.rmdir(src)
         else:
+            basename = os.path.basename(src)
+            ignored = False
+            for r in _IGNORE_FILENAME_REGEXPS:
+                if r.match(basename):
+                    ignored = True
+                    break
+            if ignored:
+                log("Not installing %s" % (src, ))
+                os.unlink(src)
+                return
             try:
                 os.rename(src, dest)
             except OSError, e:
