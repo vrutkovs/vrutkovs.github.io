@@ -172,6 +172,8 @@ class OstbuildChrootCompileOne(builtins.Builtin):
 
         component = self.get_expanded_component(component_name)
 
+        log("Building component: %r" % (component, ))
+
         workdir = self.workdir
             
         log("Using working directory: %s" % (workdir, ))
