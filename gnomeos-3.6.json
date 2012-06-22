@@ -664,8 +664,7 @@
                                  "--disable-compiler-warnings"],
 		 "patches": ["telepathy-glib-builddir.patch"]},
 
-		{"src": "gnome:libgweather",
-		 "branch": "gnome-3-4"},
+		{"src": "gnome:libgweather"},
 
 		{"src": "cgwalters:liboauth-tarballs-as-git",
 		 "rm-configure": true,
@@ -678,7 +677,8 @@
 
 		{"src": "gnome:evolution-data-server",
 		 "patches": ["e-d-s-builddir.patch"],
-		 "config-opts": ["--enable-vala-bindings"]},
+		 "config-opts": ["--enable-vala-bindings",
+				 "--disable-weather"]},
 
 		{"src": "gnome:dconf",
 		 "patches": ["dconf-builddir.patch"]},
