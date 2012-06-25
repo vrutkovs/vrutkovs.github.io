@@ -628,6 +628,8 @@
 
 		{"src": "gnome:librest"},
 
+		{"src": "gnome:libsecret"},
+
 		{"src": "gnome:gnome-online-accounts",
 		 "config-opts": ["--disable-documentation"]},
 
