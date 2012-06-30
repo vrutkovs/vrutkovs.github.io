@@ -580,7 +580,8 @@
 		{"src": "gnome:gnome-icon-theme-extras"},
 
 		{"src": "gnome:gvfs",
-		 "config-opts": ["--disable-gphoto2"]},
+		 "config-opts": ["--disable-gphoto2",
+				 "--disable-documentation"]},
 
 		{"src": "gnome:gnome-screensaver"},
 
