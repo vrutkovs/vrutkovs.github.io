@@ -355,6 +355,7 @@
 		 "config-opts": ["--enable-nouveau-experimental-api"]},
 
 		{"src": "fd-mesa:mesa",
+                 "tag": "16e0ebccb61b65a58db4b3bb1a25a953515eab90",
 		 "config-opts": ["--disable-asm",
 		 		 "--disable-glw",
 		                 "--disable-glut",
