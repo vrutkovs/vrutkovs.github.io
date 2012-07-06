@@ -63,6 +63,18 @@ class OstbuildBuild(builtins.Builtin):
         run_sync(args, cwd=cwd, fatal_on_error=False, keep_stdin=True)
         fatal("Exiting after debug shell")
 
+    def _analyze_build_failure(self, architecture, component, component_srcdir,
+                               current_vcs_version, previous_vcs_version):
+        if previous_vcs_version is not None:
+            git_args = ['git', 'log', '--format=short']
+            git_args.append(previous_vcs_version + '...' + current_vcs_version)
+            subproc_env = dict(os.environ)
+            subproc_env['GIT_PAGER'] = 'cat'
+            run_sync(git_args, cwd=component_srcdir, stdin=open('/dev/null'),
+                     stdout=sys.stdout)
+        else:
+            log("No previous build; skipping source diff")
+
     def _build_one_component(self, component, architecture):
         basename = component['name']
 
@@ -81,16 +93,16 @@ class OstbuildBuild(builtins.Builtin):
         sha.update(current_metadata_text)
         current_meta_digest = sha.hexdigest()
 
-        if (self.buildopts.force_rebuild or
-            basename in self.force_build_components):
-            previous_build_version = None
-        else:
-            previous_build_version = run_sync_get_output(['ostree', '--repo=' + self.repo,
-                                                          'rev-parse', build_ref],
-                                                         stderr=open('/dev/null', 'w'),
-                                                         none_on_error=True)
-        if (current_vcs_version is not None
-            and previous_build_version is not None):
+        force_rebuild = (self.buildopts.force_rebuild or
+                         basename in self.force_build_components)
+
+        previous_build_version = run_sync_get_output(['ostree', '--repo=' + self.repo,
+                                                      'rev-parse', build_ref],
+                                                     stderr=open('/dev/null', 'w'),
+                                                     none_on_error=True)
+        previous_metadata = None
+
+        if previous_build_version is not None:
             log("Previous build of '%s' is %s" % (buildname, previous_build_version))
 
             previous_metadata_text = run_sync_get_output(['ostree', '--repo=' + self.repo,
@@ -101,22 +113,26 @@ class OstbuildBuild(builtins.Builtin):
             sha.update(previous_metadata_text)
             previous_meta_digest = sha.hexdigest()
 
+            previous_metadata = json.loads(previous_metadata_text)
+
             if current_meta_digest == previous_meta_digest:
-                log("Metadata is unchanged from previous")
-                return previous_build_version
+                if not force_rebuild:
+                    log("Metadata is unchanged from previous; skipping build")
+                    return previous_build_version
+                else:
+                    log("Metadata is unchanged from previous; build forced regardless")
             else:
-                previous_metadata = json.loads(previous_metadata_text)
                 previous_vcs_version = previous_metadata.get('revision')
                 if current_vcs_version == previous_vcs_version:
-                    log("Metadata differs; VCS version unchanged")
-                    if self.buildopts.skip_vcs_matches:
+                    if self.buildopts.skip_vcs_matches and not force_rebuild:
+                        log("Metadata differs; git revision %s unchanged" % (previous_vcs_version, ))
                         return previous_build_version
                     for k,v in expanded_component.iteritems():
                         previous_v = previous_metadata.get(k)
                         if v != previous_v:
                             log("Key %r differs: old: %r new: %r" % (k, previous_v, v))
                 else:
-                    log("Metadata differs; note vcs version is now '%s', was '%s'" % (current_vcs_version, previous_vcs_version))
+                    log("Metadata differs; git revision changed from '%s' to '%s'" % (previous_vcs_version, current_vcs_version))
         else:
             log("No previous build for '%s' found" % (buildname, ))
 
@@ -148,12 +164,13 @@ class OstbuildBuild(builtins.Builtin):
         log("Logging to %s" % (log_path, ))
         f = open(log_path, 'w')
         chroot_args = self._get_ostbuild_chroot_args(architecture, component, component_resultdir)
-        if self.buildopts.shell_on_failure:
-            ecode = run_sync_monitor_log_file(chroot_args, log_path, cwd=component_src, fatal_on_error=False)
-            if ecode != 0:
+        ecode = run_sync_monitor_log_file(chroot_args, log_path, cwd=component_src, fatal_on_error=False)
+        if ecode != 0:
+            if self.buildopts.shell_on_failure:
                 self._launch_debug_shell(architecture, component, component_resultdir, cwd=component_src)
-        else:
-            run_sync_monitor_log_file(chroot_args, log_path, cwd=component_src)
+            self._analyze_build_failure(architecture, component, component_src,
+                                        current_vcs_version, previous_vcs_version)
+            fatal("Exiting due to build failure in component:%s arch:%s" % (component, architecture))
 
         args = ['ostree', '--repo=' + self.repo,
                 'commit', '-b', build_ref, '-s', 'Build',
