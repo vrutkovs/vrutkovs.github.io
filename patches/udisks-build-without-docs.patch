@@ -1,22 +1,27 @@
-From da61dedfa523f3e6761ed0da91d8d95c6d4caebd Mon Sep 17 00:00:00 2001
+From ec563c6346f171689d91bedbe815788f10b66b27 Mon Sep 17 00:00:00 2001
 From: Colin Walters <walters@verbum.org>
-Date: Sat, 14 Jan 2012 16:33:56 -0500
-Subject: [PATCH] configure: Support building without documentation
+Date: Fri, 6 Jul 2012 13:33:48 -0400
+Subject: [PATCH] build: Add --disable-documentation option
 
-Docbook is the source of many dependency cycles; allow building
-without it for bootstrapping.
+Documentation is a source of many cyclical dependency loops; allow
+builders to avoid them for a first pass.  Also, some embedders may not
+want man pages on their devices.
+
+I want this patch for gnome-ostree because for now I don't have the
+Docbook schemas due to the fact they're only distributed in zip file
+format and don't have sane build systems.
 ---
  configure.ac        |   12 +++++++++---
  doc/man/Makefile.am |    6 +++++-
  2 files changed, 14 insertions(+), 4 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index a794bfc..d906d05 100644
+index cceb65a..c022d06 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -24,9 +24,15 @@ GNOME_DEBUG_CHECK
- GNOME_COMPILE_WARNINGS([maximum])
- GNOME_MAINTAINER_MODE_DEFINES
+@@ -53,9 +53,15 @@ CC_CHECK_CFLAGS_APPEND([                                        \
+   -Wno-missing-field-initializers -Wno-unused-parameter         \
+   -fno-common -Wno-switch-enum])
  
 -AC_PATH_PROG([XSLTPROC], [xsltproc])
 -if test -z "$XSLTPROC"; then
@@ -55,5 +60,5 @@ index 5e4946d..a03418f 100644
  udisksctl.1 : udisksctl.xml
  	$(XSLTPROC) -nonet http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
 -- 
-1.7.6.4
+1.7.10.4
 
