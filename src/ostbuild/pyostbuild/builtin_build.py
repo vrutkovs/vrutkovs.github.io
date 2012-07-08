@@ -71,7 +71,7 @@ class OstbuildBuild(builtins.Builtin):
             subproc_env = dict(os.environ)
             subproc_env['GIT_PAGER'] = 'cat'
             run_sync(git_args, cwd=component_srcdir, stdin=open('/dev/null'),
-                     stdout=sys.stdout)
+                     stdout=sys.stdout, env=subproc_env, log_success=False)
         else:
             log("No previous build; skipping source diff")
 
@@ -100,6 +100,7 @@ class OstbuildBuild(builtins.Builtin):
                                                       'rev-parse', build_ref],
                                                      stderr=open('/dev/null', 'w'),
                                                      none_on_error=True)
+        previous_vcs_version = None
         previous_metadata = None
 
         if previous_build_version is not None:
@@ -164,8 +165,8 @@ class OstbuildBuild(builtins.Builtin):
         log("Logging to %s" % (log_path, ))
         f = open(log_path, 'w')
         chroot_args = self._get_ostbuild_chroot_args(architecture, component, component_resultdir)
-        ecode = run_sync_monitor_log_file(chroot_args, log_path, cwd=component_src, fatal_on_error=False)
-        if ecode != 0:
+        success = run_sync_monitor_log_file(chroot_args, log_path, cwd=component_src, fatal_on_error=False)
+        if not success:
             if self.buildopts.shell_on_failure:
                 self._launch_debug_shell(architecture, component, component_resultdir, cwd=component_src)
             self._analyze_build_failure(architecture, component, component_src,

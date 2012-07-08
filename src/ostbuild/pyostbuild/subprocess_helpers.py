@@ -20,6 +20,7 @@
 import os
 import sys
 import subprocess
+import functools
 
 from .ostbuildlog import log, fatal
 from .warningfilter import WarningFilter
@@ -128,18 +129,20 @@ def run_sync_monitor_log_file(args, logfile, cwd=None, env=None,
     
     loop = Mainloop.get(None)
 
-    proc_estatus = None
+    # This lame bit is to avoid using global
+    succeeded = {'succeeded': None}
     def _on_pid_exited(pid, estatus):
-        global proc_estatus
-        proc_estatus = estatus
-        failed = estatus != 0
-        warnfilter.finish(not failed)
+        success = os.WIFEXITED(estatus) and os.WEXITSTATUS(estatus) == 0
+        succeeded['succeeded'] = success
+        warnfilter.finish(success)
         if fatal_on_error and failed:
             logfn = fatal
         else:
             logfn = log
-        logfn("pid %d exited with code %d" % (pid, estatus))
+        logfn("pid %d exited with STATUS %d" % (pid, estatus))
         loop.quit()
     loop.watch_pid(proc.pid, _on_pid_exited)
     loop.run()
-    return proc_estatus
+    success = succeeded['succeeded']
+    assert success is not None
+    return success
