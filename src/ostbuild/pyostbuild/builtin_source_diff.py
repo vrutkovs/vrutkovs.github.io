@@ -95,9 +95,8 @@ class OstbuildSourceDiff(builtins.Builtin):
 
     def execute(self, argv):
         parser = argparse.ArgumentParser(description=self.short_description)
-        parser.add_argument('--log', action='store_true')
-        parser.add_argument('--logp', action='store_true')
-        parser.add_argument('--diffstat', action='store_true')
+        parser.add_argument('--mode', default='names', action='store')
+
         parser.add_argument('--rev-from')
         parser.add_argument('--rev-to')
         parser.add_argument('--snapshot-from')
@@ -105,6 +104,10 @@ class OstbuildSourceDiff(builtins.Builtin):
 
         args = parser.parse_args(argv)
         self.parse_config()
+
+        valid_modes = ['names', 'log', 'logp', 'diff']
+        if args.mode not in valid_modes:
+            fatal("--mode must be one of %r" % (valid_modes, ))
 
         to_snap = None
         from_snap = None
@@ -151,12 +154,16 @@ class OstbuildSourceDiff(builtins.Builtin):
                 continue
 
             if from_revision != to_revision:
-                if args.log:
+                if args.mode == 'names':
+                    log("Component %s changed from %s to %s" % (name, from_revision, to_revision))
+                elif args.mode == 'log':
                     self._log([], name, mirrordir, from_revision, to_revision)
-                elif args.logp:
+                elif args.mode == 'logp':
                     self._log(['-p'], name, mirrordir, from_revision, to_revision)
-                else:
+                elif args.mode == 'diff':
                     self._diff(name, mirrordir, from_revision, to_revision,
                                diffstat=args.diffstat)
+                else:
+                    assert False
 
 builtins.register(OstbuildSourceDiff)
