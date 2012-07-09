@@ -1,0 +1,401 @@
+From ad0146a32f08ad240156eea108abb5d9080b8b60 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Sun, 8 Jul 2012 16:58:41 -0400
+Subject: [PATCH 1/2] Clean up PAM build/install rules; move to pam-redhat
+
+The build system was inconsistent in its handling of pam files.  The
+multistack files had names ending in .pam, which we copied to an
+unsuffixed file, and installed via pam_DATA.  The non-multistack files
+had unsuffixed filenames in the source, which we installed manually
+via install-data-local.
+
+Let's clean this up by naming every file with ".pam", and do the
+rename when we put them in the install root.  This is faster and
+requires less makefile boilerplate to copy the files during the build
+process.
+
+Note: This also drops the previous crappy implementation of a
+configuration management scheme where we only installed the files if
+they didn't already exist.  I'm not aware of anyone who actually uses
+'make install' for gdm and cares about that semantic.
+
+Finally, because all of these pam files are Red Hat specific, move
+them to a separate pam-redhat directory, to ease the addition of a
+future patch which adds PAM files for different systems.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=675085
+---
+ data/Makefile.am                    |   50 +++++++++++------------------------
+ data/gdm                            |   12 ---------
+ data/gdm-autologin                  |   10 -------
+ data/gdm-fingerprint.pam            |   17 ------------
+ data/gdm-password.pam               |   19 -------------
+ data/gdm-smartcard.pam              |   18 -------------
+ data/gdm-welcome                    |    9 -------
+ data/pam-redhat/gdm-autologin.pam   |   10 +++++++
+ data/pam-redhat/gdm-fingerprint.pam |   17 ++++++++++++
+ data/pam-redhat/gdm-password.pam    |   19 +++++++++++++
+ data/pam-redhat/gdm-smartcard.pam   |   18 +++++++++++++
+ data/pam-redhat/gdm-welcome.pam     |    9 +++++++
+ data/pam-redhat/gdm.pam             |   12 +++++++++
+ 13 files changed, 100 insertions(+), 120 deletions(-)
+ delete mode 100644 data/gdm
+ delete mode 100644 data/gdm-autologin
+ delete mode 100644 data/gdm-fingerprint.pam
+ delete mode 100644 data/gdm-password.pam
+ delete mode 100644 data/gdm-smartcard.pam
+ delete mode 100644 data/gdm-welcome
+ create mode 100644 data/pam-redhat/gdm-autologin.pam
+ create mode 100644 data/pam-redhat/gdm-fingerprint.pam
+ create mode 100644 data/pam-redhat/gdm-password.pam
+ create mode 100644 data/pam-redhat/gdm-smartcard.pam
+ create mode 100644 data/pam-redhat/gdm-welcome.pam
+ create mode 100644 data/pam-redhat/gdm.pam
+
+diff --git a/data/Makefile.am b/data/Makefile.am
+index 536d1a1..dc0301b 100644
+--- a/data/Makefile.am
++++ b/data/Makefile.am
+@@ -1,4 +1,5 @@
+ NULL =
++EXTRA_DIST =
+ 
+ SUBDIRS =			\
+ 	applications		\
+@@ -88,19 +89,16 @@ localealias_DATA = locale.alias
+ sessiondir = $(datadir)/gnome-session/sessions
+ session_DATA = gdm-fallback.session gdm-shell.session
+ 
+-gdm-password: gdm-password.pam
+-	cp $(srcdir)/gdm-password.pam $(builddir)/gdm-password
+-
+-gdm-fingerprint: gdm-fingerprint.pam
+-	cp $(srcdir)/gdm-fingerprint.pam $(builddir)/gdm-fingerprint
+-
+-gdm-smartcard: gdm-smartcard.pam
+-	cp $(srcdir)/gdm-smartcard.pam $(builddir)/gdm-smartcard
+-
+-pamdir = $(PAM_PREFIX)/pam.d
+-pam_DATA = gdm-fingerprint gdm-smartcard gdm-password
++pam_redhat_files = pam-redhat/gdm.pam		\
++	pam-redhat/gdm-autologin.pam		\
++	pam-redhat/gdm-welcome.pam		\
++	pam-redhat/gdm-fingerprint.pam		\
++	pam-redhat/gdm-smartcard.pam		\
++	pam-redhat/gdm-password.pam		\
++	$(NULL)
++EXTRA_DIST += $(pam_redhat_files)
+ 
+-EXTRA_DIST =			\
++EXTRA_DIST +=			\
+ 	$(schemas_in_files)	\
+ 	$(schemas_DATA)		\
+ 	$(dbusconf_in_files)	\
+@@ -108,12 +106,6 @@ EXTRA_DIST =			\
+ 	gdm.schemas.in.in	\
+ 	gdm.conf-custom.in 	\
+ 	Xsession.in 		\
+-	gdm 			\
+-	gdm-autologin 		\
+-	gdm-welcome 		\
+-	gdm-password.pam	\
+-	gdm-fingerprint.pam	\
+-	gdm-smartcard.pam	\
+ 	gdm-fallback.session	\
+ 	Init.in 		\
+ 	PreSession.in 		\
+@@ -133,9 +125,6 @@ CLEANFILES = 				\
+ 	PreSession			\
+ 	PostSession			\
+ 	$(gsettings_SCHEMAS)		\
+-	gdm-password			\
+-	gdm-fingerprint			\
+-	gdm-smartcard			\
+ 	$(NULL)
+ 
+ DISTCLEANFILES =			\
+@@ -146,9 +135,6 @@ DISTCLEANFILES =			\
+ 
+ MAINTAINERCLEANFILES =			\
+ 	*~				\
+-	gdm-password			\
+-	gdm-fingerprint			\
+-	gdm-smartcard			\
+ 	Makefile.in
+ 
+ uninstall-hook:
+@@ -159,9 +145,6 @@ uninstall-hook:
+ 	$(DESTDIR)$(postlogindir)/Default.sample \
+ 	$(DESTDIR)$(predir)/Default \
+ 	$(DESTDIR)$(postdir)/Default \
+-	$(DESTDIR)$(PAM_PREFIX)/pam.d/gdm \
+-	$(DESTDIR)$(PAM_PREFIX)/pam.d/gdm-autologin \
+-	$(DESTDIR)$(PAM_PREFIX)/pam.d/gdm-welcome \
+ 	$(DESTDIR)$(sysconfdir)/dconf/db/gdm \
+ 	$(DESTDIR)$(sysconfdir)/dconf/profile/gdm \
+ 	-rf \
+@@ -239,14 +222,11 @@ install-data-hook: gdm.conf-custom Xsession Init PostSession PreSession 00-upstr
+ 		$(mkinstalldirs) $(DESTDIR)$(PAM_PREFIX)/pam.d; \
+ 		chmod 755 $(DESTDIR)$(PAM_PREFIX)/pam.d; \
+ 	   fi; \
+-	   if test $$system = Linux && test '!' -f $(DESTDIR)$(PAM_PREFIX)/pam.d/gdm; then \
+-		$(INSTALL_DATA) $(srcdir)/gdm $(DESTDIR)$(PAM_PREFIX)/pam.d/gdm; \
+-	   fi; \
+-	   if test $$system = Linux && test '!' -f $(DESTDIR)$(PAM_PREFIX)/pam.d/gdm-autologin; then \
+-		$(INSTALL_DATA) $(srcdir)/gdm-autologin $(DESTDIR)$(PAM_PREFIX)/pam.d/gdm-autologin; \
+-	   fi; \
+-	   if test $$system = Linux && test '!' -f $(DESTDIR)$(PAM_PREFIX)/pam.d/gdm-welcome; then \
+-		$(INSTALL_DATA) $(srcdir)/gdm-welcome $(DESTDIR)$(PAM_PREFIX)/pam.d/gdm-welcome; \
++	   if test $$system = Linux; then \
++	     for pamfile in $(pam_redhat_files); do \
++	       bn=$$(basename $$pamfile .pam); \
++	       $(INSTALL_DATA) $(srcdir)/$$pamfile $(DESTDIR)$(PAM_PREFIX)/pam.d/$$bn; \
++	     done; \
+ 	   fi; \
+ 	   if test $$system = SunOS; then \
+ 		echo "Please add PAM authentication for gdm, gdm-autologin and gdm-welcome in $(PAM_PREFIX)/pam.conf!"; \
+diff --git a/data/gdm b/data/gdm
+deleted file mode 100644
+index 58c397d..0000000
+--- a/data/gdm
++++ /dev/null
+@@ -1,12 +0,0 @@
+-#%PAM-1.0
+-auth       required    pam_env.so
+-auth       required    pam_succeed_if.so user != root quiet
+-auth       sufficient  pam_succeed_if.so user ingroup nopasswdlogin
+-auth       include     system-auth
+-account    required    pam_nologin.so
+-account    include     system-auth
+-password   include     system-auth
+-session    optional    pam_keyinit.so force revoke
+-session    include     system-auth
+-session    required    pam_loginuid.so
+-session    optional    pam_console.so
+diff --git a/data/gdm-autologin b/data/gdm-autologin
+deleted file mode 100644
+index c4e598a..0000000
+--- a/data/gdm-autologin
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#%PAM-1.0
+-auth       required    pam_env.so
+-auth       required    pam_permit.so
+-account    required    pam_nologin.so
+-account    include     system-auth
+-password   include     system-auth
+-session    optional    pam_keyinit.so force revoke
+-session    include     system-auth
+-session    required    pam_loginuid.so
+-session    optional    pam_console.so
+diff --git a/data/gdm-fingerprint.pam b/data/gdm-fingerprint.pam
+deleted file mode 100644
+index 1a1c777..0000000
+--- a/data/gdm-fingerprint.pam
++++ /dev/null
+@@ -1,17 +0,0 @@
+-# Sample PAM file for doing fingerprint authentication.
+-# Distros should replace this with what makes sense for them.
+-auth        required      pam_env.so
+-auth        required      pam_fprintd.so
+-auth        sufficient    pam_succeed_if.so uid >= 500 quiet
+-auth        required      pam_deny.so
+-
+-account     required      pam_unix.so
+-account     sufficient    pam_localuser.so
+-account     sufficient    pam_succeed_if.so uid < 500 quiet
+-account     required      pam_permit.so
+-
+-password    required      pam_deny.so
+-
+-session     optional      pam_keyinit.so revoke
+-session     required      pam_limits.so
+-session     required      pam_unix.so
+diff --git a/data/gdm-password.pam b/data/gdm-password.pam
+deleted file mode 100644
+index bac431d..0000000
+--- a/data/gdm-password.pam
++++ /dev/null
+@@ -1,19 +0,0 @@
+-# Sample PAM file for doing password authentication.
+-# Distros should replace this with what makes sense for them.
+-auth        required      pam_env.so
+-auth        sufficient    pam_unix.so nullok try_first_pass
+-auth        requisite     pam_succeed_if.so uid >= 500 quiet
+-auth        required      pam_deny.so
+-
+-account     required      pam_unix.so
+-account     sufficient    pam_localuser.so
+-account     sufficient    pam_succeed_if.so uid < 500 quiet
+-account     required      pam_permit.so
+-
+-password    requisite     pam_cracklib.so try_first_pass retry=3 type=
+-password    sufficient    pam_unix.so nullok try_first_pass use_authtok
+-password    required      pam_deny.so
+-
+-session     optional      pam_keyinit.so revoke
+-session     required      pam_limits.so
+-session     required      pam_unix.so
+diff --git a/data/gdm-smartcard.pam b/data/gdm-smartcard.pam
+deleted file mode 100644
+index d5ac1fa..0000000
+--- a/data/gdm-smartcard.pam
++++ /dev/null
+@@ -1,18 +0,0 @@
+-# Sample PAM file for doing smartcard authentication.
+-# Distros should replace this with what makes sense for them.
+-auth        required      pam_env.so
+-auth        [success=done ignore=ignore default=die] pam_pkcs11.so wait_for_card card_only
+-auth        requisite     pam_succeed_if.so uid >= 500 quiet
+-auth        required      pam_deny.so
+-
+-account     required      pam_unix.so
+-account     sufficient    pam_localuser.so
+-account     sufficient    pam_succeed_if.so uid < 500 quiet
+-account     required      pam_permit.so
+-
+-password    optional      pam_pkcs11.so
+-password    requisite     pam_cracklib.so try_first_pass retry=3 type=
+-
+-session     optional      pam_keyinit.so revoke
+-session     required      pam_limits.so
+-session     required      pam_unix.so
+diff --git a/data/gdm-welcome b/data/gdm-welcome
+deleted file mode 100644
+index b301f4f..0000000
+--- a/data/gdm-welcome
++++ /dev/null
+@@ -1,9 +0,0 @@
+-#%PAM-1.0
+-auth       required    pam_env.so
+-auth       required    pam_permit.so
+-account    required    pam_nologin.so
+-account    include     system-auth
+-password   include     system-auth
+-session    required    pam_loginuid.so
+-session    optional    pam_keyinit.so force revoke
+-session    include     system-auth
+diff --git a/data/pam-redhat/gdm-autologin.pam b/data/pam-redhat/gdm-autologin.pam
+new file mode 100644
+index 0000000..c4e598a
+--- /dev/null
++++ b/data/pam-redhat/gdm-autologin.pam
+@@ -0,0 +1,10 @@
++#%PAM-1.0
++auth       required    pam_env.so
++auth       required    pam_permit.so
++account    required    pam_nologin.so
++account    include     system-auth
++password   include     system-auth
++session    optional    pam_keyinit.so force revoke
++session    include     system-auth
++session    required    pam_loginuid.so
++session    optional    pam_console.so
+diff --git a/data/pam-redhat/gdm-fingerprint.pam b/data/pam-redhat/gdm-fingerprint.pam
+new file mode 100644
+index 0000000..1a1c777
+--- /dev/null
++++ b/data/pam-redhat/gdm-fingerprint.pam
+@@ -0,0 +1,17 @@
++# Sample PAM file for doing fingerprint authentication.
++# Distros should replace this with what makes sense for them.
++auth        required      pam_env.so
++auth        required      pam_fprintd.so
++auth        sufficient    pam_succeed_if.so uid >= 500 quiet
++auth        required      pam_deny.so
++
++account     required      pam_unix.so
++account     sufficient    pam_localuser.so
++account     sufficient    pam_succeed_if.so uid < 500 quiet
++account     required      pam_permit.so
++
++password    required      pam_deny.so
++
++session     optional      pam_keyinit.so revoke
++session     required      pam_limits.so
++session     required      pam_unix.so
+diff --git a/data/pam-redhat/gdm-password.pam b/data/pam-redhat/gdm-password.pam
+new file mode 100644
+index 0000000..bac431d
+--- /dev/null
++++ b/data/pam-redhat/gdm-password.pam
+@@ -0,0 +1,19 @@
++# Sample PAM file for doing password authentication.
++# Distros should replace this with what makes sense for them.
++auth        required      pam_env.so
++auth        sufficient    pam_unix.so nullok try_first_pass
++auth        requisite     pam_succeed_if.so uid >= 500 quiet
++auth        required      pam_deny.so
++
++account     required      pam_unix.so
++account     sufficient    pam_localuser.so
++account     sufficient    pam_succeed_if.so uid < 500 quiet
++account     required      pam_permit.so
++
++password    requisite     pam_cracklib.so try_first_pass retry=3 type=
++password    sufficient    pam_unix.so nullok try_first_pass use_authtok
++password    required      pam_deny.so
++
++session     optional      pam_keyinit.so revoke
++session     required      pam_limits.so
++session     required      pam_unix.so
+diff --git a/data/pam-redhat/gdm-smartcard.pam b/data/pam-redhat/gdm-smartcard.pam
+new file mode 100644
+index 0000000..d5ac1fa
+--- /dev/null
++++ b/data/pam-redhat/gdm-smartcard.pam
+@@ -0,0 +1,18 @@
++# Sample PAM file for doing smartcard authentication.
++# Distros should replace this with what makes sense for them.
++auth        required      pam_env.so
++auth        [success=done ignore=ignore default=die] pam_pkcs11.so wait_for_card card_only
++auth        requisite     pam_succeed_if.so uid >= 500 quiet
++auth        required      pam_deny.so
++
++account     required      pam_unix.so
++account     sufficient    pam_localuser.so
++account     sufficient    pam_succeed_if.so uid < 500 quiet
++account     required      pam_permit.so
++
++password    optional      pam_pkcs11.so
++password    requisite     pam_cracklib.so try_first_pass retry=3 type=
++
++session     optional      pam_keyinit.so revoke
++session     required      pam_limits.so
++session     required      pam_unix.so
+diff --git a/data/pam-redhat/gdm-welcome.pam b/data/pam-redhat/gdm-welcome.pam
+new file mode 100644
+index 0000000..b301f4f
+--- /dev/null
++++ b/data/pam-redhat/gdm-welcome.pam
+@@ -0,0 +1,9 @@
++#%PAM-1.0
++auth       required    pam_env.so
++auth       required    pam_permit.so
++account    required    pam_nologin.so
++account    include     system-auth
++password   include     system-auth
++session    required    pam_loginuid.so
++session    optional    pam_keyinit.so force revoke
++session    include     system-auth
+diff --git a/data/pam-redhat/gdm.pam b/data/pam-redhat/gdm.pam
+new file mode 100644
+index 0000000..58c397d
+--- /dev/null
++++ b/data/pam-redhat/gdm.pam
+@@ -0,0 +1,12 @@
++#%PAM-1.0
++auth       required    pam_env.so
++auth       required    pam_succeed_if.so user != root quiet
++auth       sufficient  pam_succeed_if.so user ingroup nopasswdlogin
++auth       include     system-auth
++account    required    pam_nologin.so
++account    include     system-auth
++password   include     system-auth
++session    optional    pam_keyinit.so force revoke
++session    include     system-auth
++session    required    pam_loginuid.so
++session    optional    pam_console.so
+-- 
+1.7.10.4
+

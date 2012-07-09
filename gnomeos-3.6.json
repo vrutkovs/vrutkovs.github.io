@@ -701,15 +701,10 @@
 		{"src": "gnome:gdm",
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-split-authentication",
-                		 "--enable-internal-pam-console", 
 		                 "--with-default-pam-config=openembedded",
 		                 "--with-consolekit"],
-		 "patches": ["gdm-0001-Add-with-default-pam-config-option-autodetect-from-e.patch",
-		 	     "gdm-0002-Move-gdm-fingerprint-gdm-smartcard-into-pam-redhat.patch",
-			     "gdm-0003-Respect-split-authentication-build-setting-for-Red-H.patch",
-			     "gdm-0004-Delete-gdm-password-from-simple-greeter-extensions.patch",
-			     "gdm-0005-Merge-in-PAM-files-from-Fedora-git-into-pam-redhat.patch",
-			     "gdm-0006-Add-enable-internal-pam-console-option.patch"
+		 "patches": ["gdm-0001-Clean-up-PAM-build-install-rules-move-to-pam-redhat.patch",
+			     "gdm-0002-Add-with-default-pam-config-option-autodetect-from-e.patch"
 		             ]},
 
 		{"src": "fd-telepathy:telepathy-logger",
