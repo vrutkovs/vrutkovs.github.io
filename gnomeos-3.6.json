@@ -702,10 +702,8 @@
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-split-authentication",
 		                 "--with-default-pam-config=openembedded",
-		                 "--with-consolekit"],
-		 "patches": ["gdm-0001-Clean-up-PAM-build-install-rules-move-to-pam-redhat.patch",
-			     "gdm-0002-Add-with-default-pam-config-option-autodetect-from-e.patch"
-		             ]},
+		                 "--with-consolekit"]
+                },
 
 		{"src": "fd-telepathy:telepathy-logger",
 		 "tag": "telepathy-logger-0.2.12",
