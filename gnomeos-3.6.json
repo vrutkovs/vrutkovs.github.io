@@ -537,8 +537,12 @@
 
 		{"src": "gnome:libgnomekbd"},
 
+		{"src": "git:git://github.com/json-c/json-c.git",
+		 "tag": "381f77c5bccf20234a2bddae2b6ac43997faf0a2",
+		 "patches": ["json-c-autogen.patch"]},
+
 		{"src": "fd-pulse:pulseaudio",
-		 "tag": "v0.9.23",
+		 "branch": "stable-2.x",
 		 "config-opts": ["--disable-openssl"],
 		 "patches": ["pulseaudio-autogen.patch"]},
 
