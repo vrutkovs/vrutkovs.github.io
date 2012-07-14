@@ -552,8 +552,6 @@
 
 		{"src": "gnome:gsettings-desktop-schemas"},
 
-		{"src": "gnome:gnome-session"},
-
 		{"src": "gnome:gnome-desktop",
 		 "config-opts": ["--disable-desktop-docs"]},
 
@@ -568,10 +566,6 @@
 
 		{"src": "linuxwacom:xf86-input-wacom",
 		 "patches": ["libwacom-autogen.patch"]},
-
-		{"src": "gnome:gnome-settings-daemon",
-		 "config-opts": ["--disable-packagekit",
-		                 "--disable-cups"]},
 
 		{"src": "git:git://github.com/stephenc/tango-icon-naming.git",
 		 "patches": ["tango-icon-naming-python.patch"],
@@ -588,8 +582,6 @@
 		{"src": "gnome:gvfs",
 		 "config-opts": ["--disable-gphoto2",
 				 "--disable-documentation"]},
-
-		{"src": "gnome:gnome-screensaver"},
 
 		{"src": "gnome:gnome-menus"},
 
@@ -741,6 +733,14 @@
 		{"src": "fd-telepathy:telepathy-logger",
 		 "tag": "telepathy-logger-0.2.12",
 		 "patches": ["telepathy-logger-autogen.patch"]},
+
+		{"src": "gnome:gnome-screensaver"},
+
+		{"src": "gnome:gnome-session"},
+
+		{"src": "gnome:gnome-settings-daemon",
+		 "config-opts": ["--disable-packagekit",
+		                 "--disable-cups"]},
 
 		{"src": "gnome:gnome-power-manager"},
 
