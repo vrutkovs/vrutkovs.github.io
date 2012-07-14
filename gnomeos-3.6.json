@@ -21,6 +21,7 @@
                 "fd-gstreamer": "git:git://anongit.freedesktop.org/gstreamer/",
                 "fd-telepathy": "git:git://anongit.freedesktop.org/telepathy/",
                 "0pointer": "git:git://git.0pointer.de/",
+                "ibus": "git:git://github.com/ibus/",
                 "linuxwacom": "git:git://linuxwacom.git.sourceforge.net/gitroot/linuxwacom/",
                 "fedora": "git:git://git.fedorahosted.org/",
                 "savannah": "git:git://git.savannah.gnu.org/",
@@ -684,6 +685,15 @@
 		{"src": "gnome:libgee",
 		 "branch": "0.6",
 		 "patches": ["gee-builddir.patch"]},
+
+                {"src": "ibus:ibus.git",
+		 "patches": ["ibus-builddir.patch"],
+		 "config-opts": ["--disable-tests", 
+				 "--disable-gconf",
+				 "--enable-dconf",
+				 "--enable-introspection",
+				 "--enable-vala",
+				 "--disable-ui"]},
 
 		{"src": "fd-telepathy:telepathy-glib",
 		 "tag": "telepathy-glib-0.17.5",
