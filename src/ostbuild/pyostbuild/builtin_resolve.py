@@ -48,6 +48,8 @@ class OstbuildResolve(builtins.Builtin):
                             help="Git fetch the patches")
         parser.add_argument('--fetch', action='store_true',
                             help="Also perform a git fetch")
+        parser.add_argument('--stamp-file',
+                            help="If manifest changes, create this file")
         parser.add_argument('components', nargs='*',
                             help="List of component names to git fetch")
 
@@ -100,7 +102,14 @@ class OstbuildResolve(builtins.Builtin):
             component['revision'] = revision
 
         src_db = self.get_src_snapshot_db()
-        path = src_db.store(self.snapshot)
-        log("Source snapshot: %s" % (path, ))
+        (path, modified) = src_db.store(self.snapshot)
+        if modified:
+            log("New source snapshot: %s" % (path, ))
+            if args.stamp_file:
+                f = open(args.stamp_file, 'w')
+                f.write(path)
+                f.close()
+        else:
+            log("Source snapshot unchanged: %s" % (path, ))
         
 builtins.register(OstbuildResolve)

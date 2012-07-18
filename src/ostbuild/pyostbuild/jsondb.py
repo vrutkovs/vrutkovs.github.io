@@ -98,7 +98,7 @@ class JsonDB(object):
         if latest is not None:
             if digest == latest[2]:
                 os.unlink(tmppath)
-                return latest[3]
+                return (latest[3], False)
             latest_version = (latest[0], latest[1])
         else:
             latest_version = (current_time.tm_year, 0)
@@ -106,7 +106,7 @@ class JsonDB(object):
                                             latest_version[1] + 1, digest)
         target_path = os.path.join(self._dirpath, target_name)
         os.rename(tmppath, target_path)
-        return target_path
+        return (target_path, True)
                 
                 
         

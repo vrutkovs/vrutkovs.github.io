@@ -87,7 +87,10 @@ class OstbuildImportTree(builtins.Builtin):
         self.prefix = target_prefix
 
         db = self.get_src_snapshot_db()
-        path = db.store(self.snapshot)
-        log("Source snapshot: %s" % (path, ))
+        (path, modified) = db.store(self.snapshot)
+        if modified:
+            log("New source snapshot: %s" % (path, ))
+        else:
+            log("Source snapshot unchanged: %s" % (path, ))
 
 builtins.register(OstbuildImportTree)
