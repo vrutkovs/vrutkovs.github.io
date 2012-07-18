@@ -25,6 +25,11 @@ function repoweb_index_init() {
     $(repoDataSignal).on("loaded", function () {
 	$("#repoweb-summary").empty();
 	var summary = $("#repoweb-summary").get(0);
+
+        var load = document.createElement('div');
+        load.appendChild(document.createTextNode('System load: ' + repoData['load']));
+        summary.appendChild(load);
+        
 	var targets = repoData['targets'];
 	for (var name in targets) {
 	    var elt;

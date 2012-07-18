@@ -49,6 +49,11 @@ class OstbuildRepoWebJson(builtins.Builtin):
 
         output = {'00ostbuild-repoweb-json-version': 0}
 
+        f = open('/proc/loadavg')
+        loadavg = f.read().strip()
+        f.close()
+        output['load'] = loadavg
+
         targets_list = []
         for target_component_type in ['runtime', 'devel']:
             for architecture in self.snapshot['architectures']:
