@@ -104,24 +104,24 @@ class OstbuildBuild(builtins.Builtin):
         previous_metadata = None
 
         if previous_build_version is not None:
-            log("Previous build of '%s' is %s" % (buildname, previous_build_version))
-
             previous_metadata_text = run_sync_get_output(['ostree', '--repo=' + self.repo,
                                                           'cat', previous_build_version,
-                                                          '/_ostbuild-meta.json'],
-                                                         log_initiation=True)
+                                                          '/_ostbuild-meta.json'])
             sha = hashlib.sha256()
             sha.update(previous_metadata_text)
             previous_meta_digest = sha.hexdigest()
 
             previous_metadata = json.loads(previous_metadata_text)
+            previous_vcs_version = previous_metadata.get('revision')
+
+            log("Previous build of %s is ostree:%s " % (buildname, previous_build_version))
 
             if current_meta_digest == previous_meta_digest:
                 if not force_rebuild:
-                    log("Metadata is unchanged from previous; skipping build")
+                    log("Reusing cached build at %s" % (previous_vcs_version)) 
                     return previous_build_version
                 else:
-                    log("Metadata is unchanged from previous; build forced regardless")
+                    log("Build forced regardless") 
             else:
                 previous_vcs_version = previous_metadata.get('revision')
                 if current_vcs_version == previous_vcs_version:
