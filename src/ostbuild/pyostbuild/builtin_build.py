@@ -381,6 +381,9 @@ class OstbuildBuild(builtins.Builtin):
                     
                 contents = []
                 for component in target_components:
+                    if component.get('bootstrap'):
+                        log("Skipping bootstrap component %r" % (component['name'], ))
+                        continue
                     builds_for_component = component_to_arches[component['name']]
                     if architecture not in builds_for_component:
                         continue

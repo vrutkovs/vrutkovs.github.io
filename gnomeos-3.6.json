@@ -665,6 +665,7 @@
 		{"src": "gnome:gjs"},
 
 		{"src": "cgwalters:vala-tarballs-as-git",
+		 "bootstrap": true,
 		 "config-opts": ["--disable-build-from-vala",
 		                 "--disable-vapigen"],
 		 "rm-configure": true,
