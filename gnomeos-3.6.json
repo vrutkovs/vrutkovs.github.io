@@ -463,7 +463,8 @@
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
 
 		{"src": "fd:ConsoleKit",
-		 "patches": ["ConsoleKit-builddir.patch"]},
+		 "patches": ["ConsoleKit-builddir.patch",
+			     "ConsoleKit-Add-legacy-pam-foreground-compat.ck-to-enable-var-ru.patch"]},
 
 		{"src": "0pointer:libatasmart.git"},
 
