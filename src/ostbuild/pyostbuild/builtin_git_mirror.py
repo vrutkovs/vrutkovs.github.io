@@ -80,13 +80,9 @@ class OstbuildGitMirror(builtins.Builtin):
             branch = component.get('branch')
             tag = component.get('tag')
             branch_or_tag = branch or tag
-            mirrordir = vcs.ensure_vcs_mirror(self.mirrordir, keytype, uri, branch_or_tag)
 
-            if not args.fetch:
-                continue
-
-            if tag is not None:
-                log("Skipping fetch for %s at tag %s" % (name, tag))
+            if (not args.fetch) or (tag is not None):
+                vcs.ensure_vcs_mirror(self.mirrordir, keytype, uri, branch_or_tag)
                 continue
 
             curtime = time.time()

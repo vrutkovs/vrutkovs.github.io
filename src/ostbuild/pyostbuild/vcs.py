@@ -94,18 +94,49 @@ def get_lastfetch_path(mirrordir, keytype, uri, branch):
     branch_safename = branch.replace('/','_').replace('.', '_')
     return mirror + '.lastfetch-%s' % (branch_safename, )
 
-def ensure_vcs_mirror(mirrordir, keytype, uri, branch):
+def _list_submodules(mirrordir, mirror, keytype, uri, branch):
+    current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
+    tmp_checkout = buildutil.get_mirrordir(mirrordir, keytype, uri, prefix='_tmp-checkouts')
+    if os.path.isdir(tmp_checkout):
+        shutil.rmtree(tmp_checkout)
+    parent = os.path.dirname(tmp_checkout)
+    if not os.path.isdir(parent):
+        os.makedirs(parent)
+    run_sync(['git', 'clone', '-q', '--no-checkout', mirror, tmp_checkout])
+    run_sync(['git', 'checkout', '-q', '-f', current_vcs_version], cwd=tmp_checkout)
+    submodules = []
+    submodules_status_text = run_sync_get_output(['git', 'submodule', 'status'], cwd=tmp_checkout)
+    submodule_status_lines = submodules_status_text.split('\n')
+    for line in submodule_status_lines:
+        if line == '': continue
+        line = line[1:]
+        (sub_checksum, sub_name) = line.split(' ', 1)
+        sub_url = run_sync_get_output(['git', 'config', '-f', '.gitmodules',
+                                       'submodule.%s.url' % (sub_name, )], cwd=tmp_checkout)
+        submodules.append((sub_checksum, sub_name, sub_url))
+    shutil.rmtree(tmp_checkout)
+    return submodules
+
+def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False):
     mirror = buildutil.get_mirrordir(mirrordir, keytype, uri)
     tmp_mirror = mirror + '.tmp'
+    last_fetch_path = get_lastfetch_path(mirrordir, keytype, uri, branch)
     if os.path.isdir(tmp_mirror):
         shutil.rmtree(tmp_mirror)
     if not os.path.isdir(mirror):
         run_sync(['git', 'clone', '--mirror', uri, tmp_mirror])
         run_sync(['git', 'config', 'gc.auto', '0'], cwd=tmp_mirror)
         os.rename(tmp_mirror, mirror)
+    elif fetch:
+        run_sync(['git', 'fetch'], cwd=mirror, log_initiation=False) 
+        current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
+        if current_vcs_version is not None:
+            current_vcs_version = current_vcs_version.strip()
+            f = open(last_fetch_path, 'w')
+            f.write(current_vcs_version + '\n')
+            f.close()
     if branch is None:
         return mirror
-    last_fetch_path = get_lastfetch_path(mirrordir, keytype, uri, branch)
     if os.path.exists(last_fetch_path):
         f = open(last_fetch_path)
         last_fetch_contents = f.read()
@@ -117,39 +148,13 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch):
     current_vcs_version = current_vcs_version.strip()
     if current_vcs_version != last_fetch_contents:
         log("last fetch %r differs from branch %r" % (last_fetch_contents, current_vcs_version))
-        tmp_checkout = buildutil.get_mirrordir(mirrordir, keytype, uri, prefix='_tmp-checkouts')
-        if os.path.isdir(tmp_checkout):
-            shutil.rmtree(tmp_checkout)
-        parent = os.path.dirname(tmp_checkout)
-        if not os.path.isdir(parent):
-            os.makedirs(parent)
-        run_sync(['git', 'clone', '-q', '--no-checkout', mirror, tmp_checkout])
-        run_sync(['git', 'checkout', '-q', '-f', current_vcs_version], cwd=tmp_checkout)
-        submodules = []
-        submodules_status_text = run_sync_get_output(['git', 'submodule', 'status'], cwd=tmp_checkout)
-        submodule_status_lines = submodules_status_text.split('\n')
-        for line in submodule_status_lines:
-            if line == '': continue
-            line = line[1:]
-            (sub_checksum, sub_name) = line.split(' ', 1)
-            sub_url = run_sync_get_output(['git', 'config', '-f', '.gitmodules',
-                                           'submodule.%s.url' % (sub_name, )], cwd=tmp_checkout)
-            ensure_vcs_mirror(mirrordir, keytype, sub_url, sub_checksum)
-        shutil.rmtree(tmp_checkout)
+        for (sub_checksum, sub_name, sub_url) in _list_submodules(mirrordir, mirror, keytype, uri, branch):
+            ensure_vcs_mirror(mirrordir, keytype, sub_url, sub_checksum, fetch=fetch)
         f = open(last_fetch_path, 'w')
         f.write(current_vcs_version + '\n')
         f.close()
     return mirror
 
 def fetch(mirrordir, keytype, uri, branch, keep_going=False):
-    mirror = buildutil.get_mirrordir(mirrordir, keytype, uri)
-    last_fetch_path = get_lastfetch_path(mirrordir, keytype, uri, branch)
-    run_sync(['git', 'fetch'], cwd=mirror, log_initiation=False,
-             fatal_on_error=not keep_going) 
-    current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
-    if current_vcs_version is not None:
-        current_vcs_version = current_vcs_version.strip()
-        f = open(last_fetch_path, 'w')
-        f.write(current_vcs_version + '\n')
-        f.close()
+    ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=True)
     
