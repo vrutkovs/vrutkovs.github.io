@@ -33,19 +33,37 @@
               "subdir": "patches"},
 
   "components": [
-   		{"src": "cgwalters:ginitscripts",
-		 "noarch": true},
-
-   		{"src": "git:git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git",
-		 "patches": ["linux-firmware-configure-Make-executable.patch"],
-		 "tag": "4c79292308ead42fc786c8e189921196ccc298ff",
-		 "noarch": true},
-
-   		{"src": "git:git://sourceware.org/git/lvm2.git"},
-
    		{"src": "gnome:gtk-doc-stub",
 		 "component": "devel",
 		 "noarch": true},
+
+		{"src": "gnome:gnome-common",
+		 "component": "devel"},
+
+		{"src": "cgwalters:intltool-git-mirror",
+		 "component": "devel"},
+
+		{"src": "savannah:gperf.git",
+		 "tag": "v3.0.4",
+		 "patches": ["gperf-autotools.patch"]},
+
+		{"src": "fd-dbus:dbus",
+		 "config-opts": ["--with-dbus-user=dbus",
+		                 "--enable-inotify",
+				 "--disable-xml-docs",
+				 "--disable-doxygen-docs",
+				 "--disable-tests",
+				 "--with-system-pid-file=/run/dbus.pid"],
+                 "patches": ["dbus-xmlto-docs.patch"],
+		 "setuid": ["/runtime/usr/libexec/dbus-daemon-launch-helper"]},
+
+		{"src": "git:git://git.libusb.org/libusb.git",
+		 "tag": "v1.0.8",
+		 "patches": ["libusb-autogen.patch"]},
+
+		{"src": "git:git://github.com/gregkh/usbutils.git",
+		 "tag": "v005",
+		 "patches": ["usbutils-autogen.patch"]},
 
 		{"src": "git:git://github.com/atgreen/libffi.git",
 		 "tag": "v3.0.10"},
@@ -65,6 +83,20 @@
 			     "acl-no-builddir.patch",
 			     "acl-2.2.39-build.patch",
 		 	     "attr-makeinstall.patch"]},
+
+		{"src": "fedora:hwdata.git",
+		 "patches": ["hwdata-buildapi.patch",
+		             "hwdata-no-spec-file.patch"]},
+
+   		{"src": "cgwalters:ginitscripts",
+		 "noarch": true},
+
+   		{"src": "git:git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git",
+		 "patches": ["linux-firmware-configure-Make-executable.patch"],
+		 "tag": "4c79292308ead42fc786c8e189921196ccc298ff",
+		 "noarch": true},
+
+   		{"src": "git:git://sourceware.org/git/lvm2.git"},
 
    		{"src": "gnome:linux-user-chroot"},
 
@@ -297,54 +329,15 @@
 		 "tag": "1.10.2",
 		 "config-opts": ["--disable-interpreter"]},
 
-		{"src": "gnome:gnome-common",
-		 "component": "devel"},
-
-		{"src": "cgwalters:intltool-git-mirror",
-		 "component": "devel"},
-
 		{"src": "gnome:gobject-introspection"},
-
-		{"src": "git:git://git.libusb.org/libusb.git",
-		 "tag": "v1.0.8",
-		 "patches": ["libusb-autogen.patch"]},
-
-		{"src": "git:git://github.com/gregkh/usbutils.git",
-		 "tag": "v005",
-		 "patches": ["usbutils-autogen.patch"]},
-
-		{"src": "fedora:hwdata.git",
-		 "patches": ["hwdata-buildapi.patch",
-		             "hwdata-no-spec-file.patch"]},
 
 		{"src": "cgwalters:texinfo-git-mirror",
 		 "tag": "TEXI2HTML_1_82",
 		 "config-opts": ["--disable-man-pages"],
 		 "patches": ["texinfo-disable-man.patch"]},
 
-		{"src": "savannah:gperf.git",
-		 "tag": "v3.0.4",
-		 "patches": ["gperf-autotools.patch"]},
-
-		{"src": "git:git://git.kernel.org/pub/scm/linux/hotplug/udev.git",
-		 "tag": "175",
-		 "config-opts": ["--disable-documentation",
-		                 "--enable-udev_acl"],
-		 "patches": ["udev-autogen.patch", "udev-docs.patch",
-		             "udev-gudev-libtool.patch"]},
-
 		{"src": "cgwalters:expat-git-mirror.git",
 		 "patches": ["expat-autogen.patch"]},
-
-		{"src": "fd-dbus:dbus",
-		 "config-opts": ["--with-dbus-user=dbus",
-		                 "--enable-inotify",
-				 "--disable-xml-docs",
-				 "--disable-doxygen-docs",
-				 "--disable-tests",
-				 "--with-system-pid-file=/run/dbus.pid"],
-                 "patches": ["dbus-xmlto-docs.patch"],
-		 "setuid": ["/runtime/usr/libexec/dbus-daemon-launch-helper"]},
 
 		{"src": "fd:xorg/util/makedepend",
 		 "component": "devel",
