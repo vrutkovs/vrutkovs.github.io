@@ -74,7 +74,7 @@ class OstbuildPrivhelperDeployQemu(builtins.Builtin):
         parser.add_argument('--rootdir',
                             help="Directory containing OSTree data (default: /ostree)")
         parser.add_argument('srcrepo')
-        parser.add_argument('targets', nargs='+')
+        parser.add_argument('target')
 
         args = parser.parse_args(argv)
 
@@ -94,19 +94,17 @@ class OstbuildPrivhelperDeployQemu(builtins.Builtin):
             self._create_qemu_disk()
 
         subprocess.call(['umount', self.mountpoint], stderr=open('/dev/null', 'w'))
-        repo_path = os.path.join(self.mountpoint, 'ostree', 'repo')
+        ostree_dir = os.path.join(self.mountpoint, 'ostree')
+        repo_path = os.path.join(ostree_dir, 'repo')
         try:
             subprocess.check_call(['mount', '-o', 'loop', self.qemu_path, self.mountpoint])
-            child_args = ['ostree', '--repo=' + repo_path, 'pull-local', args.srcrepo]
-            child_args.extend(['trees/' + x for x in args.targets])
+            child_args = ['ostree', '--repo=' + repo_path, 'pull-local', args.srcrepo, args.target]
             run_sync(child_args)
 
-            first_target = args.targets[0]
-            for target in args.targets:
-                run_sync(['ostree', '--repo=' + repo_path, 'checkout', '--atomic-retarget', 'trees/'+ target, target],
-                         cwd=os.path.join(self.mountpoint, 'ostree'))
-            current_link_path = os.path.join(self.mountpoint, 'ostree', 'current')
-            os.symlink(first_target, current_link_path + '.tmp')
+            run_sync(['ostadmin', 'deploy', '--ostree-dir=' + ostree_dir, '--no-initramfs', '--no-bootloader', args.target, args.target],
+                     cwd=ostree_dir)
+            current_link_path = os.path.join(ostree_dir, 'current')
+            os.symlink(args.target, current_link_path + '.tmp')
             os.rename(current_link_path + '.tmp', current_link_path)
         finally:
             subprocess.call(['umount', self.mountpoint])
