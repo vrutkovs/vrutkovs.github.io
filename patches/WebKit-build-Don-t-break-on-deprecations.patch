@@ -1,0 +1,33 @@
+From c38d9ad29fbb769f1e76c5360ffbf3b6f80021c5 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Sat, 4 Aug 2012 10:53:44 -0400
+Subject: [PATCH] build: Don't break on deprecations
+
+Since GDK deprecated the thread wrappers.
+---
+ GNUmakefile.am | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/GNUmakefile.am b/GNUmakefile.am
+index c97ef32..0991ca9 100644
+--- a/GNUmakefile.am
++++ b/GNUmakefile.am
+@@ -201,15 +201,6 @@ endif
+ 
+ if !ENABLE_DEBUG
+ global_cppflags += -DNDEBUG
+-else
+-global_cppflags += \
+-	-DGDK_PIXBUF_DISABLE_DEPRECATED \
+-	-DGDK_DISABLE_DEPRECATED \
+-	-DGTK_DISABLE_DEPRECATED \
+-	-DPANGO_DISABLE_DEPRECATED
+-# Might be useful in the future
+-#	-DGDK_MULTIHEAD_SAFE \
+-#	-DGTK_MULTIHEAD_SAFE
+ endif
+ 
+ if ENABLE_COVERAGE
+-- 
+1.7.11.2
+

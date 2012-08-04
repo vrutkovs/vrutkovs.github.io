@@ -644,7 +644,8 @@
 
 		{"src": "git:git://git.webkit.org/WebKit.git",
 		 "tag": "4e276ff268f3f3e97abb97f8e5a8cf6d8d97d2db",
-		 "patches": ["WebKit-autogen.patch"]},
+		 "patches": ["WebKit-autogen.patch",
+			     "WebKit-build-Don-t-break-on-deprecations.patch"]},
 
 		{"src": "gnome:librest"},
 
