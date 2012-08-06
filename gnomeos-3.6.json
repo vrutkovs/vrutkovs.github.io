@@ -68,6 +68,13 @@
 		 "tag": "v005",
 		 "patches": ["usbutils-autogen.patch"]},
 
+               {"src": "git:git://git.kernel.org/pub/scm/linux/hotplug/udev.git",
+                "tag": "175",
+                "config-opts": ["--disable-documentation",
+                                "--enable-udev_acl"],
+                "patches": ["udev-autogen.patch", "udev-docs.patch",
+                            "udev-gudev-libtool.patch"]},
+
 		{"src": "git:git://github.com/atgreen/libffi.git",
 		 "tag": "v3.0.10"},
 
