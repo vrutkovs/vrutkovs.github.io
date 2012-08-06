@@ -1,0 +1,72 @@
+From 1e905a2332dfc96615354cd983c664769655f1a4 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Mon, 6 Aug 2012 07:08:40 -0400
+Subject: [PATCH] gtk2xtbin: Don't use deprecated GDK_THREADS_ENTER macro
+
+See https://bugzilla.gnome.org/show_bug.cgi?id=680754
+
+The function calls have existed for the same amount of time, so we
+might as well use them.  This also lets us take advantage of the new
+GCC annotation for versioned deprecation on function calls, instead of
+the all-or-nothing macro GDK_DISABLE_DEPRECATED.
+---
+ Source/WebCore/plugins/gtk/gtk2xtbin.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/Source/WebCore/plugins/gtk/gtk2xtbin.c b/Source/WebCore/plugins/gtk/gtk2xtbin.c
+index 605e42c..fd93f3b 100644
+--- a/Source/WebCore/plugins/gtk/gtk2xtbin.c
++++ b/Source/WebCore/plugins/gtk/gtk2xtbin.c
+@@ -132,9 +132,9 @@ xt_event_prepare (GSource*  source_data,
+ {   
+   int mask;
+ 
+-  GDK_THREADS_ENTER();
++  gdk_threads_enter();
+   mask = XPending(xtdisplay);
+-  GDK_THREADS_LEAVE();
++  gdk_threads_leave();
+ 
+   return (gboolean)mask;
+ }
+@@ -142,16 +142,16 @@ xt_event_prepare (GSource*  source_data,
+ static gboolean
+ xt_event_check (GSource*  source_data)
+ {
+-  GDK_THREADS_ENTER ();
++  gdk_threads_enter ();
+ 
+   if (xt_event_poll_fd.revents & G_IO_IN) {
+     int mask;
+     mask = XPending(xtdisplay);
+-    GDK_THREADS_LEAVE ();
++    gdk_threads_leave ();
+     return (gboolean)mask;
+   }
+ 
+-  GDK_THREADS_LEAVE ();
++  gdk_threads_leave ();
+   return FALSE;
+ }   
+ 
+@@ -165,7 +165,7 @@ xt_event_dispatch (GSource*  source_data,
+ 
+   ac = XtDisplayToApplicationContext(xtdisplay);
+ 
+-  GDK_THREADS_ENTER ();
++  gdk_threads_enter ();
+ 
+   /* Process only real X traffic here.  We only look for data on the
+    * pipe, limit it to XTBIN_MAX_EVENTS and only call
+@@ -176,7 +176,7 @@ xt_event_dispatch (GSource*  source_data,
+     XtAppProcessEvent(ac, XtIMXEvent);
+   }
+ 
+-  GDK_THREADS_LEAVE ();
++  gdk_threads_leave ();
+ 
+   return TRUE;  
+ }
+-- 
+1.7.11.2
+
