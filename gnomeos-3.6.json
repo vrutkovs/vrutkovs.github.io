@@ -91,6 +91,8 @@
 
 		{"src": "gnome:glib"},
 
+		{"src": "gnome:gobject-introspection"},
+
                {"src": "git:git://git.kernel.org/pub/scm/linux/hotplug/udev.git",
                 "tag": "175",
                 "config-opts": ["--disable-documentation",
@@ -338,8 +340,6 @@
 		{"src": "fd:cairo",
 		 "tag": "1.10.2",
 		 "config-opts": ["--disable-interpreter"]},
-
-		{"src": "gnome:gobject-introspection"},
 
 		{"src": "cgwalters:texinfo-git-mirror",
 		 "tag": "TEXI2HTML_1_82",
