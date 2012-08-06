@@ -47,6 +47,9 @@
 		 "tag": "v3.0.4",
 		 "patches": ["gperf-autotools.patch"]},
 
+		{"src": "cgwalters:expat-git-mirror.git",
+		 "patches": ["expat-autogen.patch"]},
+
 		{"src": "fd-dbus:dbus",
 		 "config-opts": ["--with-dbus-user=dbus",
 		                 "--enable-inotify",
@@ -335,9 +338,6 @@
 		 "tag": "TEXI2HTML_1_82",
 		 "config-opts": ["--disable-man-pages"],
 		 "patches": ["texinfo-disable-man.patch"]},
-
-		{"src": "cgwalters:expat-git-mirror.git",
-		 "patches": ["expat-autogen.patch"]},
 
 		{"src": "fd:xorg/util/makedepend",
 		 "component": "devel",
