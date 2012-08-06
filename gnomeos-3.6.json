@@ -772,7 +772,8 @@
                 }, 
 
 		{"src": "gnome:gnome-control-center",
-		 "config-opts": ["--disable-cups"]},
+		 "config-opts": ["--disable-documentation",
+				 "--disable-cups"]},
 
 		{"src": "gnome:notification-daemon"},
 
