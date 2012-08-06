@@ -552,6 +552,13 @@
 		{"src": "0pointer:libcanberra",
 		 "patches": ["libcanberra-no-lynx.patch"]},
 
+                {"src": "git:git://gitorious.org/itstool/itstool.git"},
+
+		{"src": "gnome:yelp-xsl",
+		 "config-opts": ["--disable-doc"]},
+
+		{"src": "gnome:yelp-tools"},
+
 		{"src": "gnome:gsettings-desktop-schemas"},
 
 		{"src": "gnome:gnome-desktop",
