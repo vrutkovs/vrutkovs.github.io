@@ -713,7 +713,6 @@
 		{"src": "cgwalters:libical-tarballs-as-git"},
 
 		{"src": "gnome:evolution-data-server",
-		 "patches": ["e-d-s-builddir.patch"],
 		 "config-opts": ["--enable-vala-bindings",
 				 "--disable-weather"]},
 
