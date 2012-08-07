@@ -716,7 +716,8 @@
 		 "config-opts": ["--enable-vala-bindings",
 				 "--disable-weather"]},
 
-		{"src": "gnome:dconf"},
+		{"src": "gnome:dconf",
+		 "tag": "b5de278590da16e13b1b8a53e0fee2e57b017d54"},
 
 		{"src": "fd-xdg:default-icon-theme",
 		 "patches": ["default-icon-theme-autogen.patch",
