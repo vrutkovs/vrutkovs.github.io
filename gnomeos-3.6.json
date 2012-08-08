@@ -747,7 +747,8 @@
 
 		{"src": "gnome:gnome-settings-daemon",
 		 "config-opts": ["--disable-packagekit",
-		                 "--disable-cups"]},
+		                 "--disable-cups",
+				 "--disable-man"]},
 
 		{"src": "gnome:gnome-power-manager"},
 
