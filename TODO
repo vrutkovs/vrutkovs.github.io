@@ -1,29 +1,55 @@
+Use a well-known CI tool
+========================
+
+Right now the CI on the server is two scripts:
+
+while true; do ostbulid resolve --fetch > /srv/public_html/log_files/resolve.log; done
+while true; do ostbuild build --skip-vcs-matches > /srv/public_html/log_files/build.log; done
+
+This is pretty lame...we should use BuildBot or something.
+
+Formalize scripts for creating a build server
+=============================================
+
+Basically make it trivial to spin up an EC2 instance with all this
+stuff.  This would be incredibly useful for a lot of reasons - it'd
+help people install stuff on their local computer, and even cooler, we
+could implement "Try Servers" where we spin up a build server on
+demand when builders want to test their own code.
+
 Apps
 ====
 
-Add glick runtime
+Add glick runtime?  But we need to have a story for how they're built
+too.
+
+jhbuild moduleset
+====
+
+Right now the 3.6 moduleset mostly follows jhbuild; we should ensure
+that whenever something is added to jhbuild, we also update the
+gnomeos-3.6.json manifest.
 
 Networking
 ==========
 
-* https://live.gnome.org/OSTree/EverythingInEtcIsABug
-  - patch glibc to have /lib/passwd and /lib/shadow
-  - This will allow us to have NetworkManager save
-    wireless networks to /etc
-* Make networking work
+* Colin is working on writable /etc
+* Complete glibc patch to have /lib/passwd and /lib/shadow
 
-Sync up with Fedora
+Update to a more modern system
 ===================
 
-* Pull in systemd
-* Continue draining spec files into GNOME Build API that's
-  upstreamable
+* Pull in systemd, drop ConsoleKit
+* Sync up with Fedora more - drain spec files into GNOME Build API that's upstreamable
+* Upstream the patch sets we already have
 
 Smoke, integration tests
 ========================
 
 The main smoke test I want is "does the system show GDM".  Possibly
-redirect syslog to the qemu serial console, and check that way?
+redirect syslog to the qemu serial console, and check that way?  Or
+have a flag to tell systemd to write status to the serial console when
+it's started all targets (including GDM) successfully?
 
 Integration testing would be fantastic; we need some way to ship over
 test code, run it, and then get results.  Look at
