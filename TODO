@@ -17,6 +17,26 @@ help people install stuff on their local computer, and even cooler, we
 could implement "Try Servers" where we spin up a build server on
 demand when builders want to test their own code.
 
+Improve QA web page
+===================
+
+Right now there's a really basic, lame web page that lives in
+gnome-ostree/qa/repoweb.  We should extend this - for example, have it
+show the recent commits, be able to browse filesystem diffs.
+
+Note I hate running code in response to a HTTP request - I much prefer
+generating cached data.  Hence the model where we generate a data.json
+files that are rendered by the browser.
+
+3 different builders
+====================
+
+We should have 3 different builds:
+
+* fastbuild - when a module changes, only rebuild it.
+* reverse-dependencies - when a module changes, rebuild everything that depends on it (jhbuild default)
+* scratch - periodically rebuild *everything* from source
+
 Apps
 ====
 
@@ -62,3 +82,8 @@ We should turn the Yocto base into a bootstrap system, rather than a
 provider of core.  So for example, while Yocto may build udev, we
 should rpm -e it before committing to the base tree.
 
+Move more stuff into GNOME git
+==============================
+
+We should move the poky repository.  Ideally we wouldn't need patches
+on top of core, and we could just be an additional layer.
