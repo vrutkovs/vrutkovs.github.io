@@ -1,0 +1,39 @@
+From 34a1ce1ba3a72ec989ac0c01a37c9c9aa33a0c2d Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Mon, 13 Aug 2012 15:06:23 -0400
+Subject: [PATCH] c_client: Fix parallel-make issue creating 'man' directory
+
+With make -j, it was possible to hit a race condition in the code to
+make the 'man' directory.
+---
+ src/c_client.py | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/c_client.py b/src/c_client.py
+index d006d30..31ed3b5 100644
+--- a/src/c_client.py
++++ b/src/c_client.py
+@@ -5,6 +5,7 @@ from functools import reduce
+ import getopt
+ import os
+ import sys
++import errno
+ import time
+ import re
+ 
+@@ -2902,8 +2903,11 @@ Refer to the README file in xcb/proto for more info.
+     raise
+ 
+ # Ensure the man subdirectory exists
+-if not os.path.exists('man'):
++try:
+     os.mkdir('man')
++except OSError, e:
++    if e.errno != errno.EEXIST:
++        raise
+ 
+ today = time.strftime('%Y-%m-%d', time.gmtime(os.path.getmtime(args[0])))
+ 
+-- 
+1.7.11.2
+
