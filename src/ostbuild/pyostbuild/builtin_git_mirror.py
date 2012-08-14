@@ -81,7 +81,7 @@ class OstbuildGitMirror(builtins.Builtin):
             tag = component.get('tag')
             branch_or_tag = branch or tag
 
-            if (not args.fetch) or (tag is not None):
+            if (not args.fetch):
                 vcs.ensure_vcs_mirror(self.mirrordir, keytype, uri, branch_or_tag)
                 continue
 
