@@ -46,6 +46,7 @@ cd ~/src
 test -d poky || git clone --depth=1 -b gnomeos-3.6 git://github.com/cgwalters/poky poky
 mkdir -p ~/build
 cd ~/build
+(
 . ~/src/poky/oe-init-build-env gnomeos-build
 cat > conf/bblayers.conf << END
 LCONF_VERSION = "4"
@@ -56,3 +57,14 @@ BBLAYERS = " \
   ${HOME}/src/poky/meta-gnomeos \
   "
 END
+)
+
+ln -s ~/build/gnomeos-build/tmp/deploy/images/repo ~/build/gnomeos-build
+
+mkdir -p ~/public_html
+cd ~/public_html
+ln -s ~/build/gnomeos-build/repo .
+ln -s ~/build/ostbuild/work/logs logs
+
+cp ~/src/gnome-ostree/qa/repoweb/* .
+

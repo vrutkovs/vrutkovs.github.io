@@ -20,10 +20,20 @@
 
 set -e
 
-exec 1>/var/log/cloud-init.log
-exec 2>&1
+# Note: I'm not entirely sure why, but when allocating a larger
+# instance store, the filesystem is still the default 8G.  Resizing
+# here works.
+resize2fs /dev/xvda1
+
+cat > /etc/yum.repos.d/cdn-verbum-org.repo <<EOF
+[cdn-verbum-org]
+name=cdn.verbum.org/rpms
+baseurl=http://cdn.verbum.org/rpms
+gpgcheck=0
+EOF
 
 PACKAGES="
+linux-user-chroot
 git
 make
 gcc
@@ -37,20 +47,37 @@ docbook-style-xsl docbook-utils doxygen elfutils flex gcc gcc-c++ gettext git
 gzip hg intltool libtool make patch pkgconfig sed subversion tar unzip
 
 diffstat texinfo texi2html chrpath
+
+httpd
 "
 
 yum -y install $PACKAGES
 
-cat > /etc/yum.repos.d/cdn-verbum-org.repo <<EOF
-[cdn-verbum-org]
-name=cdn.verbum.org/rpms
-baseurl=http://cdn.verbum.org/rpms
-gpgcheck=0
+mkdir /var/log/httpd/
+
+cat > /etc/httpd/conf.d/ostree.conf <<EOF
+<VirtualHost *:80>
+        DocumentRoot /home/ostree/public_html/
+
+        ErrorLog /var/log/httpd/ostree-error_log
+        ScriptLog /var/log/httpd/ostree-error_log
+        CustomLog /var/log/httpd/ostree-access_log combined
+
+        KeepAlive On
+</VirtualHost>
+
+<Directory "/home/ostree/public_html/">
+     AllowOverride None
+     Options Indexes MultiViews FollowSymLinks
+     order allow,deny
+     allow from all
+</Directory>
 EOF
 
-yum -y install linux-user-chroot
+service httpd start
 
 adduser ostree
+chmod a+x /home/ostree  # for httpd access
 
 su - ostree -c 'set -e ; mkdir -p ~/src; cd ~/src;
 test -d gnome-ostree || git clone --depth=1 git://git.gnome.org/gnome-ostree;
