@@ -75,6 +75,42 @@ class OstbuildBuild(builtins.Builtin):
         else:
             log("No previous build; skipping source diff")
 
+    def _needs_rebuild(self, previous_metadata, new_metadata):
+        build_keys = ['config-opts', 'src', 'revision']
+        for k in build_keys:
+            if (k not in new_metadata) or (previous_metadata[k] != new_metadata[k]):
+                return 'key %r differs' % (k, )
+            
+        if 'patches' in previous_metadata:
+            if 'patches' not in new_metadata:
+                return 'patches differ'
+            old_patches = previous_metadata['patches']
+            new_patches = new_metadata['patches']
+            old_files = old_patches['files']
+            new_files = new_patches['files']
+            if len(old_files) != len(new_files):
+                return 'patches differ'
+            old_sha256sums = old_patches.get('files_sha256sums')
+            new_sha256sums = new_patches.get('files_sha256sums')
+            if ((old_sha256sums is None or new_sha256sums is None) or
+                len(old_sha256sums) != len(new_sha256sums) or
+                old_sha256sums != new_sha256sums):
+                return 'patch sha256sums differ'
+        return None
+
+    def _compute_sha256sums_for_patches(self, patchdir, component):
+        patches = buildutil.get_patch_paths_for_component(patchdir, component)
+        result = []
+
+        for patch in patches:
+            csum = hashlib.sha256()
+            f = open(patch)
+            patchdata = f.read()
+            csum.update(patchdata)
+            f.close()
+            result.append(csum.hexdigest())
+        return result
+
     def _build_one_component(self, component, architecture):
         basename = component['name']
 
@@ -84,14 +120,16 @@ class OstbuildBuild(builtins.Builtin):
         current_vcs_version = component.get('revision')
 
         expanded_component = self.expand_component(component)
-
-        # TODO - deduplicate this with chroot_compile_one
-        current_meta_io = StringIO()
-        json.dump(expanded_component, current_meta_io, indent=4, sort_keys=True)
-        current_metadata_text = current_meta_io.getvalue()
-        sha = hashlib.sha256()
-        sha.update(current_metadata_text)
-        current_meta_digest = sha.hexdigest()
+        
+        if 'patches' in expanded_component:
+            patchdir = vcs.checkout_patches(self.mirrordir,
+                                            self.patchdir,
+                                            expanded_component,
+                                            patches_path=self.args.patches_path)
+            patches_sha256sums = self._compute_sha256sums_for_patches(patchdir, expanded_component)
+            expanded_component['patches']['files_sha256sums'] = patches_sha256sums
+        else:
+            patchdir = None
 
         force_rebuild = (self.buildopts.force_rebuild or
                          basename in self.force_build_components)
@@ -109,43 +147,44 @@ class OstbuildBuild(builtins.Builtin):
                                                           '/_ostbuild-meta.json'])
             sha = hashlib.sha256()
             sha.update(previous_metadata_text)
-            previous_meta_digest = sha.hexdigest()
 
             previous_metadata = json.loads(previous_metadata_text)
             previous_vcs_version = previous_metadata.get('revision')
 
             log("Previous build of %s is ostree:%s " % (buildname, previous_build_version))
 
-            if current_meta_digest == previous_meta_digest:
+            rebuild_reason = self._needs_rebuild(previous_metadata, expanded_component)
+            if rebuild_reason is None:
                 if not force_rebuild:
                     log("Reusing cached build at %s" % (previous_vcs_version)) 
                     return previous_build_version
                 else:
                     log("Build forced regardless") 
             else:
-                previous_vcs_version = previous_metadata.get('revision')
-                if current_vcs_version == previous_vcs_version:
-                    if self.buildopts.skip_vcs_matches and not force_rebuild:
-                        log("Metadata differs; git revision %s unchanged" % (previous_vcs_version, ))
-                        return previous_build_version
-                    for k,v in expanded_component.iteritems():
-                        previous_v = previous_metadata.get(k)
-                        if v != previous_v:
-                            log("Key %r differs: old: %r new: %r" % (k, previous_v, v))
-                else:
-                    log("Metadata differs; git revision changed from '%s' to '%s'" % (previous_vcs_version, current_vcs_version))
+                    log("Need rebuild of %s: %s" % (buildname, rebuild_reason, ) )
         else:
             log("No previous build for '%s' found" % (buildname, ))
+
+        (fd, temp_metadata_path) = tempfile.mkstemp(suffix='.json', prefix='ostbuild-metadata-')
+        os.close(fd)
+        f = open(temp_metadata_path, 'w')
+        json.dump(expanded_component, f, indent=4, sort_keys=True)
+        f.close()
 
         checkoutdir = os.path.join(self.workdir, 'checkouts')
         component_src = os.path.join(checkoutdir, buildname)
         fileutil.ensure_parent_dir(component_src)
         child_args = ['ostbuild', 'checkout', '--snapshot=' + self.snapshot_path,
                       '--checkoutdir=' + component_src,
+                      '--metadata-path=' + temp_metadata_path,
                       '--clean', '--overwrite', basename]
         if self.args.patches_path:
             child_args.append('--patches-path=' + self.args.patches_path)
+        elif patchdir is not None:
+            child_args.append('--patches-path=' + patchdir)
         run_sync(child_args)
+
+        os.unlink(temp_metadata_path)
 
         artifact_meta = dict(component)
 

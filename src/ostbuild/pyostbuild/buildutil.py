@@ -185,3 +185,15 @@ def resolve_component_meta(snapshot, component_meta):
         result['branch'] = 'master'
 
     return result
+
+def get_patch_paths_for_component(patchdir, component):
+    patches = component.get('patches')
+    patch_subdir = patches.get('subdir', None)
+    if patch_subdir is not None:
+        patchdir = os.path.join(patchdir, patch_subdir)
+    else:
+        patchdir = self.patchdir
+    result = []
+    for patch in patches['files']:
+        result.append(os.path.join(patchdir, patch))
+    return result

@@ -170,7 +170,9 @@ class OstbuildChrootCompileOne(builtins.Builtin):
         else:
             component_name = self.get_component_from_cwd()
 
-        component = self.get_expanded_component(component_name)
+        f = open('_ostbuild-meta.json')
+        component = json.load(f)
+        f.close()
 
         log("Building component: %r" % (component, ))
 

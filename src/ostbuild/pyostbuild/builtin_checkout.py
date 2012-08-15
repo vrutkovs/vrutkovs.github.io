@@ -42,6 +42,7 @@ class OstbuildCheckout(builtins.Builtin):
         parser.add_argument('--overwrite', action='store_true')
         parser.add_argument('--prefix')
         parser.add_argument('--patches-path')
+        parser.add_argument('--metadata-path')
         parser.add_argument('--snapshot')
         parser.add_argument('--checkoutdir')
         parser.add_argument('-a', '--active-tree', action='store_true')
@@ -61,7 +62,12 @@ class OstbuildCheckout(builtins.Builtin):
         component_name = args.component
 
         found = False
-        component = self.get_expanded_component(component_name)
+        if args.metadata_path is not None:
+            f = open(args.metadata_path)
+            component = json.load(f)
+            f.close()
+        else:
+            component = self.get_expanded_component(component_name)
         (keytype, uri) = buildutil.parse_src_key(component['src'])
 
         is_local = (keytype == 'local')
@@ -93,29 +99,16 @@ class OstbuildCheckout(builtins.Builtin):
             else:
                 vcs.clean(keytype, checkoutdir)
 
-        patches = component.get('patches')
-        if patches is not None:
-            if self.args.patches_path:
-                (patches_keytype, patches_uri) = ('local', self.args.patches_path)
+        if 'patches' in component:
+            if args.patches_path is None:
+                patchdir = vcs.checkout_patches(self.mirrordir,
+                                                self.patchdir,
+                                                component)
             else:
-                (patches_keytype, patches_uri) = buildutil.parse_src_key(patches['src'])
-            if patches_keytype == 'git':
-                patches_mirror = buildutil.get_mirrordir(self.mirrordir, patches_keytype, patches_uri)
-                vcs.get_vcs_checkout(self.mirrordir, patches_keytype, patches_uri,
-                                     self.patchdir, patches['branch'],
-                                     overwrite=True)
-                patchdir = self.patchdir
-            else:
-                patchdir = patches_uri
-
-            patch_subdir = patches.get('subdir', None)
-            if patch_subdir is not None:
-                patchdir = os.path.join(patchdir, patch_subdir)
-            else:
-                patchdir = self.patchdir
-            for patch in patches['files']:
-                patch_path = os.path.join(patchdir, patch)
-                run_sync(['git', 'am', '--ignore-date', '-3', patch_path], cwd=checkoutdir)
+                patchdir = args.patches_path
+            patches = buildutil.get_patch_paths_for_component(patchdir, component)
+            for patch in patches:
+                run_sync(['git', 'am', '--ignore-date', '-3', patch], cwd=checkoutdir)
 
         metadata_path = os.path.join(checkoutdir, '_ostbuild-meta.json')
         f = open(metadata_path, 'w')
