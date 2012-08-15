@@ -48,6 +48,8 @@ class OstbuildResolve(builtins.Builtin):
                             help="Git fetch the patches")
         parser.add_argument('--fetch', action='store_true',
                             help="Also perform a git fetch")
+        parser.add_argument('--fetch-keep-going', action='store_true',
+                            help="Don't exit on fetch failures")
         parser.add_argument('--stamp-file',
                             help="If manifest changes, create this file")
         parser.add_argument('components', nargs='*',
@@ -85,6 +87,8 @@ class OstbuildResolve(builtins.Builtin):
         git_mirror_args = ['ostbuild', 'git-mirror', '--manifest=' + args.manifest]
         if args.fetch:
             git_mirror_args.append('--fetch')
+            if args.fetch_keep_going:
+                git_mirror_args.append('-k')
             git_mirror_args.extend(args.components)
         run_sync(git_mirror_args)
 

@@ -117,7 +117,8 @@ def _list_submodules(mirrordir, mirror, keytype, uri, branch):
     shutil.rmtree(tmp_checkout)
     return submodules
 
-def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False):
+def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False,
+                      fetch_keep_going=False):
     mirror = buildutil.get_mirrordir(mirrordir, keytype, uri)
     tmp_mirror = mirror + '.tmp'
     last_fetch_path = get_lastfetch_path(mirrordir, keytype, uri, branch)
@@ -128,7 +129,8 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False):
         run_sync(['git', 'config', 'gc.auto', '0'], cwd=tmp_mirror)
         os.rename(tmp_mirror, mirror)
     elif fetch:
-        run_sync(['git', 'fetch'], cwd=mirror, log_initiation=False) 
+        run_sync(['git', 'fetch'], cwd=mirror, log_initiation=False,
+                 fatal_on_error=(not fetch_keep_going)) 
         current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
         if current_vcs_version is not None:
             current_vcs_version = current_vcs_version.strip()
@@ -156,5 +158,6 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False):
     return mirror
 
 def fetch(mirrordir, keytype, uri, branch, keep_going=False):
-    ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=True)
+    ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=True,
+                      fetch_keep_going=keep_going)
     
