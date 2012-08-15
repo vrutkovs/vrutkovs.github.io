@@ -57,9 +57,14 @@ BBLAYERS = " \
   ${HOME}/src/poky/meta-gnomeos \
   "
 END
+cat >> conf/local.conf <<EOF 
+DISTRO=gnomeosdistro
+PARALLEL_MAKE = "-j $(getconf _NPROCESSORS_ONLN)"
+BB_NUMBER_THREADS = "$(getconf _NPROCESSORS_ONLN)"
+EOF
 )
 
-ln -s ~/build/gnomeos-build/tmp/deploy/images/repo ~/build/gnomeos-build
+ln -s ~/build/gnomeos-build/tmp-eglibc/deploy/images/repo ~/build/gnomeos-build
 
 mkdir -p ~/public_html
 cd ~/public_html
@@ -68,3 +73,14 @@ ln -s ~/build/ostbuild/work/logs logs
 
 cp ~/src/gnome-ostree/qa/repoweb/* .
 
+mkdir -p ~/.config
+cat > ~/.config/ostbuild.cfg <<EOF
+[global]
+repo=~/build/gnomeos-build/repo
+mirrordir=~/build/src-mirror
+workdir=~/build/ostbuild
+EOF
+
+ostbuild init
+
+ostbuild prefix gnomeos-3.6
