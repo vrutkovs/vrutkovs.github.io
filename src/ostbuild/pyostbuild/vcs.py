@@ -121,6 +121,7 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False,
                       fetch_keep_going=False):
     mirror = buildutil.get_mirrordir(mirrordir, keytype, uri)
     tmp_mirror = mirror + '.tmp'
+    did_update = False
     last_fetch_path = get_lastfetch_path(mirrordir, keytype, uri, branch)
     if os.path.isdir(tmp_mirror):
         shutil.rmtree(tmp_mirror)
@@ -133,12 +134,11 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False,
                  fatal_on_error=(not fetch_keep_going)) 
         current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
         if current_vcs_version is not None:
+            did_update = True
             current_vcs_version = current_vcs_version.strip()
             f = open(last_fetch_path, 'w')
             f.write(current_vcs_version + '\n')
             f.close()
-    if branch is None:
-        return mirror
     if os.path.exists(last_fetch_path):
         f = open(last_fetch_path)
         last_fetch_contents = f.read()
@@ -148,7 +148,7 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False,
         last_fetch_contents = None
     current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
     current_vcs_version = current_vcs_version.strip()
-    if current_vcs_version != last_fetch_contents:
+    if did_update or current_vcs_version != last_fetch_contents:
         log("last fetch %r differs from branch %r" % (last_fetch_contents, current_vcs_version))
         for (sub_checksum, sub_name, sub_url) in _list_submodules(mirrordir, mirror, keytype, uri, branch):
             ensure_vcs_mirror(mirrordir, keytype, sub_url, sub_checksum, fetch=fetch)
