@@ -21,6 +21,9 @@
 set -e
 set -x
 
+git config --global user.name "GNOME-OSTree builder"
+git config --global user.email "gnome-ostree@internal"
+
 cd ${HOME}
 mkdir -p src
 cd src
