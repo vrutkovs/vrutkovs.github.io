@@ -114,6 +114,9 @@ class OstbuildBuild(builtins.Builtin):
     def _build_one_component(self, component, architecture):
         basename = component['name']
 
+        self._write_status({'status': 'building',
+                            'target': basename})
+
         buildname = '%s/%s/%s' % (self.snapshot['prefix'], basename, architecture)
         build_ref = 'components/%s' % (buildname, )
 
@@ -318,11 +321,24 @@ class OstbuildBuild(builtins.Builtin):
         os.unlink(related_tmppath)
         shutil.rmtree(compose_rootdir)
 
+    def _write_status(self, data):
+        if not self.args.status_json_path:
+            return
+        (fd, temppath) = tempfile.mkstemp(suffix='.tmp', prefix='status-json-',
+                                          dir=os.path.dirname(self.args.status_json_path))
+        os.close(fd)
+        f = open(temppath, 'w')
+        json.dump(data, f, indent=4, sort_keys=True)
+        f.close()
+        os.rename(temppath, self.args.status_json_path)
+
     def execute(self, argv):
         parser = argparse.ArgumentParser(description=self.short_description)
         parser.add_argument('--prefix')
         parser.add_argument('--src-snapshot')
         parser.add_argument('--patches-path')
+        parser.add_argument('--status-json-path',
+                            help="Write data to this JSON file as build progresses")
         parser.add_argument('--force-rebuild', action='store_true')
         parser.add_argument('--skip-vcs-matches', action='store_true')
         parser.add_argument('--no-compose', action='store_true')
@@ -338,6 +354,8 @@ class OstbuildBuild(builtins.Builtin):
         self.parse_snapshot(args.prefix, args.src_snapshot)
 
         log("Using source snapshot: %s" % (os.path.basename(self.snapshot_path), ))
+
+        self._write_status({'state': 'build-starting'})
 
         self.buildopts = BuildOptions()
         self.buildopts.shell_on_failure = args.shell_on_failure
@@ -413,6 +431,9 @@ class OstbuildBuild(builtins.Builtin):
                                   'runtime': runtime_ref,
                                   'devel': buildroot_ref}
 
+                self._write_status({'status': 'composing',
+                                    'target': target['name']})
+
                 if target_component_type == 'runtime':
                     target_components = runtime_components
                 else:
@@ -437,5 +458,7 @@ class OstbuildBuild(builtins.Builtin):
 
         for target in targets_list:
             self._compose_one_target(target, component_build_revs)
+
+        self._write_status({'status': 'complete'})
 
 builtins.register(OstbuildBuild)
