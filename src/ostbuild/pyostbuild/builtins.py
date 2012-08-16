@@ -178,7 +178,7 @@ class Builtin(object):
     def init_repo(self):
         if self.repo is not None:
             return self.repo
-        repo = ostbuildrc.get_key('repo', default=None)
+        repo = os.path.expanduser(ostbuildrc.get_key('repo', default=None))
         if repo is not None:
             self.repo = repo
         else:
