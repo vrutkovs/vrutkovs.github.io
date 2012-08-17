@@ -114,9 +114,6 @@ class OstbuildBuild(builtins.Builtin):
     def _build_one_component(self, component, architecture):
         basename = component['name']
 
-        self._write_status({'status': 'building',
-                            'target': basename})
-
         buildname = '%s/%s/%s' % (self.snapshot['prefix'], basename, architecture)
         build_ref = 'components/%s' % (buildname, )
 
@@ -214,6 +211,9 @@ class OstbuildBuild(builtins.Builtin):
             shutil.rmtree(component_resultdir)
         fileutil.ensure_dir(component_resultdir)
 
+        self._write_status({'status': 'building',
+                            'target': build_ref})
+
         log("Logging to %s" % (log_path, ))
         f = open(log_path, 'w')
         chroot_args = self._get_ostbuild_chroot_args(architecture, component, component_resultdir)
@@ -223,6 +223,8 @@ class OstbuildBuild(builtins.Builtin):
                 self._launch_debug_shell(architecture, component, component_resultdir, cwd=component_src)
             self._analyze_build_failure(architecture, component, component_src,
                                         current_vcs_version, previous_vcs_version)
+            self._write_status({'status': 'failed',
+                                'target': build_ref})
             fatal("Exiting due to build failure in component:%s arch:%s" % (component, architecture))
 
         args = ['ostree', '--repo=' + self.repo,
@@ -421,6 +423,7 @@ class OstbuildBuild(builtins.Builtin):
         for (component, architecture) in components_to_build:
             archname = '%s/%s' % (component['name'], architecture)
             build_rev = self._build_one_component(component, architecture)
+            self._write_status({'status': 'scanning'})
             component_build_revs[archname] = build_rev
 
         targets_list = []
