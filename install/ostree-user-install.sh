@@ -84,6 +84,8 @@ mirrordir=~/build/src-mirror
 workdir=~/build/ostbuild
 EOF
 
-ostbuild init
+PATH=~/.local/bin:$PATH
 
-ostbuild prefix gnomeos-3.6
+jhbuild run ostbuild init
+
+jhbuild run ostbuild prefix gnomeos-3.6
