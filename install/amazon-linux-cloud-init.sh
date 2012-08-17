@@ -55,8 +55,6 @@ yum -y install $PACKAGES
 
 yum --enablerepo=epel -y install python-argparse
 
-mkdir /var/log/httpd/
-
 cat > /etc/httpd/conf.d/ostree.conf <<EOF
 <VirtualHost *:80>
         DocumentRoot /home/ostree/public_html/
