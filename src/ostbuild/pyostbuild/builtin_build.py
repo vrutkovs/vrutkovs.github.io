@@ -123,19 +123,24 @@ class OstbuildBuild(builtins.Builtin):
         current_vcs_version = component.get('revision')
 
         expanded_component = self.expand_component(component)
-        
-        if 'patches' in expanded_component:
-            patchdir = vcs.checkout_patches(self.mirrordir,
-                                            self.patchdir,
-                                            expanded_component,
-                                            patches_path=self.args.patches_path)
-            patches_sha256sums = self._compute_sha256sums_for_patches(patchdir, expanded_component)
-            expanded_component['patches']['files_sha256sums'] = patches_sha256sums
-        else:
-            patchdir = None
 
-        force_rebuild = (self.buildopts.force_rebuild or
-                         basename in self.force_build_components)
+        skip_rebuild = self.args.compose_only
+        
+        if not skip_rebuild:
+            if 'patches' in expanded_component:
+                patchdir = vcs.checkout_patches(self.mirrordir,
+                                                self.patchdir,
+                                                expanded_component,
+                                                patches_path=self.args.patches_path)
+                patches_sha256sums = self._compute_sha256sums_for_patches(patchdir, expanded_component)
+                expanded_component['patches']['files_sha256sums'] = patches_sha256sums
+            else:
+                patchdir = None
+
+            force_rebuild = (self.buildopts.force_rebuild or
+                             basename in self.force_build_components)
+        else:
+            force_rebuild = False
 
         previous_build_version = run_sync_get_output(['ostree', '--repo=' + self.repo,
                                                       'rev-parse', build_ref],
@@ -156,6 +161,9 @@ class OstbuildBuild(builtins.Builtin):
 
             log("Previous build of %s is ostree:%s " % (buildname, previous_build_version))
 
+            if skip_rebuild:
+                return previous_build_version
+
             rebuild_reason = self._needs_rebuild(previous_metadata, expanded_component)
             if rebuild_reason is None:
                 if not force_rebuild:
@@ -167,6 +175,8 @@ class OstbuildBuild(builtins.Builtin):
                     log("Need rebuild of %s: %s" % (buildname, rebuild_reason, ) )
         else:
             log("No previous build for '%s' found" % (buildname, ))
+            if skip_rebuild:
+                fatal("--compose-only specified but no previous build found")
 
         (fd, temp_metadata_path) = tempfile.mkstemp(suffix='.json', prefix='ostbuild-metadata-')
         os.close(fd)
@@ -403,16 +413,15 @@ class OstbuildBuild(builtins.Builtin):
 
         component_build_revs = {}
 
-        if not args.compose_only:
-            for component in components:
-                for architecture in architectures:
-                    components_to_build.append((component, architecture))
+        for component in components:
+            for architecture in architectures:
+                components_to_build.append((component, architecture))
 
-            log("%d components to build" % (len(components_to_build), ))
-            for (component, architecture) in components_to_build:
-                archname = '%s/%s' % (component['name'], architecture)
-                build_rev = self._build_one_component(component, architecture)
-                component_build_revs[archname] = build_rev
+        log("%d components to build" % (len(components_to_build), ))
+        for (component, architecture) in components_to_build:
+            archname = '%s/%s' % (component['name'], architecture)
+            build_rev = self._build_one_component(component, architecture)
+            component_build_revs[archname] = build_rev
 
         targets_list = []
         for target_component_type in ['runtime', 'devel']:
