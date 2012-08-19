@@ -491,6 +491,8 @@
 		                 "--disable-gtk",
 				 "--disable-documentation"]},
 
+                {"src": "git:git://anongit.freedesktop.org/harfbuzz"},
+
 		{"src": "gnome:pango"},
 
 		{"src": "gnome:atk"},
