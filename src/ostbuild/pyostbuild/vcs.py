@@ -44,7 +44,8 @@ def _fixup_submodule_references(mirrordir, cwd):
         run_sync(['git', 'config', 'submodule.%s.url' % (sub_name, ), 'file://' + mirrordir], cwd=cwd)
     return have_submodules
 
-def get_vcs_checkout(mirrordir, keytype, uri, dest, branch, overwrite=True):
+def get_vcs_checkout(mirrordir, keytype, uri, dest, branch, overwrite=True,
+                     quiet=False):
     module_mirror = get_mirrordir(mirrordir, keytype, uri)
     assert keytype == 'git'
     checkoutdir_parent=os.path.dirname(dest)
@@ -62,15 +63,27 @@ def get_vcs_checkout(mirrordir, keytype, uri, dest, branch, overwrite=True):
             tmp_dest = dest
     if not os.path.isdir(tmp_dest):
         run_sync(['git', 'clone', '-q', '--origin', 'localmirror',
-                  '--no-checkout', module_mirror, tmp_dest])
-        run_sync(['git', 'remote', 'add', 'upstream', uri], cwd=tmp_dest)
+                  '--no-checkout', module_mirror, tmp_dest],
+                 log_initiation=(not quiet),
+                 log_success=(not quiet))
+        run_sync(['git', 'remote', 'add', 'upstream', uri], cwd=tmp_dest,
+                 log_initiation=(not quiet),
+                 log_success=(not quiet))
     else:
-        run_sync(['git', 'fetch', 'localmirror'], cwd=tmp_dest)
-    run_sync(['git', 'checkout', '-q', branch], cwd=tmp_dest)
-    run_sync(['git', 'submodule', 'init'], cwd=tmp_dest)
+        run_sync(['git', 'fetch', 'localmirror'], cwd=tmp_dest,
+                 log_initiation=(not quiet),
+                 log_success=(not quiet))
+    run_sync(['git', 'checkout', '-q', branch], cwd=tmp_dest,
+             log_initiation=(not quiet),
+             log_success=(not quiet))
+    run_sync(['git', 'submodule', 'init'], cwd=tmp_dest,
+             log_initiation=(not quiet),
+             log_success=(not quiet))
     have_submodules = _fixup_submodule_references(mirrordir, tmp_dest)
     if have_submodules:
-        run_sync(['git', 'submodule', 'update'], cwd=tmp_dest)
+        run_sync(['git', 'submodule', 'update'], cwd=tmp_dest,
+                 log_initiation=(not quiet),
+                 log_success=(not quiet))
     if tmp_dest != dest:
         os.rename(tmp_dest, dest)
     return dest
@@ -175,7 +188,8 @@ def checkout_patches(mirrordir, patchdir, component, patches_path=None):
         patches_mirror = get_mirrordir(mirrordir, patches_keytype, patches_uri)
         get_vcs_checkout(mirrordir, patches_keytype, patches_uri,
                          patchdir, patches['revision'],
-                         overwrite=True)
+                         overwrite=True,
+                         quiet=True)
 
     return patchdir
 
