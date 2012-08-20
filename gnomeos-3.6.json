@@ -491,6 +491,14 @@
 		                 "--disable-gtk",
 				 "--disable-documentation"]},
 
+                {"src": "cgwalters:ragel-tarballs-as-git",
+		 "tag": "0b17ee79bf5237ffdc3a2a7480023a7d61063788",
+		 "bootstrap": true},
+
+                {"src": "git:git://git.complang.org/ragel.git",
+		 "tag": "37e4b8d1c277672ed948fb5638154bf3c057c2cc",
+		 "component": "devel"},
+
                 {"src": "git:git://anongit.freedesktop.org/harfbuzz"},
 
 		{"src": "gnome:pango"},
