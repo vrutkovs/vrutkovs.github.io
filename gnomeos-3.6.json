@@ -587,6 +587,11 @@
 		 "patches": ["tango-icon-naming-python.patch"],
 		 "component": "devel"},
 
+		{"src": "gnome:libsecret",
+		 "config-opts": ["--disable-manpages"]},
+
+		{"src": "gnome:libgnome-keyring"},
+
 		{"src": "gnome:gnome-themes-standard"},
 
 		{"src": "gnome:gnome-icon-theme"},
@@ -600,8 +605,6 @@
 				 "--disable-documentation"]},
 
 		{"src": "gnome:gnome-menus"},
-
-		{"src": "gnome:libgnome-keyring"},
 
 		{"src": "git:git://pkgs.fedoraproject.org/ca-certificates.git",
 		 "tag": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
@@ -663,9 +666,6 @@
 			     "WebKit-gtk2xtbin-Don-t-use-deprecated-GDK_THREADS_ENTER-mac.patch"]},
 
 		{"src": "gnome:librest"},
-
-		{"src": "gnome:libsecret",
-		 "config-opts": ["--disable-manpages"]},
 
 		{"src": "gnome:gnome-online-accounts",
 		 "config-opts": ["--disable-documentation"]},
