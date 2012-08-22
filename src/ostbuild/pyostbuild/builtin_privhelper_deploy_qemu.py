@@ -101,7 +101,7 @@ class OstbuildPrivhelperDeployQemu(builtins.Builtin):
             child_args = ['ostree', '--repo=' + repo_path, 'pull-local', args.srcrepo, args.target]
             run_sync(child_args)
 
-            run_sync(['ostadmin', 'deploy', '--ostree-dir=' + ostree_dir, '--no-initramfs', '--no-bootloader', args.target, args.target],
+            run_sync(['ostadmin', 'deploy', '--ostree-dir=' + ostree_dir, '--no-kernel', args.target, args.target],
                      cwd=ostree_dir)
             current_link_path = os.path.join(ostree_dir, 'current')
             os.symlink(args.target, current_link_path + '.tmp')
