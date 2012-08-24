@@ -8,31 +8,6 @@ AM_INIT_AUTOMAKE([1.11 -Wno-portability foreign no-define tar-ustar no-dist-gzip
 AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
 
-AC_PROG_CC
-AM_PROG_CC_C_O
-
-changequote(,)dnl
-if test "x$GCC" = "xyes"; then
-  WARN_CFLAGS="-Wall -Wstrict-prototypes -Werror=missing-prototypes \
-		-Werror=implicit-function-declaration \
-		-Werror=pointer-arith -Werror=init-self -Werror=format=2 \
-		-Werror=format-security \
-		-Werror=missing-include-dirs -Werror=aggregate-return \
-		-Werror=declaration-after-statement"
-fi
-changequote([,])dnl
-AC_SUBST(WARN_CFLAGS)
-
-# Initialize libtool
-LT_PREREQ([2.2.4])
-LT_INIT([disable-static])
-
-PKG_PROG_PKG_CONFIG
-
-GIO_DEPENDENCY="gio-unix-2.0 >= 2.28"
-
-PKG_CHECK_MODULES(OT_DEP_GIO_UNIX, $GIO_DEPENDENCY)
-
 AM_PATH_PYTHON([2.6])
 
 AC_CONFIG_FILES([
