@@ -65,7 +65,7 @@ class OstbuildBuild(builtins.Builtin):
 
     def _analyze_build_failure(self, architecture, component, component_srcdir,
                                current_vcs_version, previous_vcs_version):
-        if previous_vcs_version is not None:
+        if (current_vcs_version is not None and previous_vcs_version is not None):
             git_args = ['git', 'log', '--format=short']
             git_args.append(previous_vcs_version + '...' + current_vcs_version)
             subproc_env = dict(os.environ)
