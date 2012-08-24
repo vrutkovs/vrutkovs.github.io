@@ -86,6 +86,7 @@
 		 	     "attr-makeinstall.patch"]},
 
 		{"src": "fedora:hwdata.git",
+		 "tag": "hwdata-0.225-1-40-g22495d9f53e572fdafd999dcfb0cb35166b232ab",
 		 "patches": ["hwdata-buildapi.patch",
 		             "hwdata-no-spec-file.patch"]},
 
