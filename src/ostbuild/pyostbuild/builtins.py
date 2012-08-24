@@ -56,18 +56,8 @@ class Builtin(object):
     def _find_active_branch(self):
         if self.ostree_dir is None:
             return (None, None)
-        current_path = os.path.join(self.ostree_dir, 'current')
-        while True:
-            try:
-                target = os.path.join(self.ostree_dir, current_path)
-                stbuf = os.lstat(target)
-            except OSError, e:
-                current_path = None
-                break
-            if not stat.S_ISLNK(stbuf.st_mode):
-                break
-            current_path = os.readlink(target)
-        if current_path is not None:
+        current_path = os.path.realpath(os.path.join(self.ostree_dir, 'current'))
+        if os.path.isdir(current_path):
             basename = os.path.basename(current_path)
             return basename.rsplit('-', 1)
         else:
@@ -218,7 +208,7 @@ class Builtin(object):
             fatal("Repository '%s' doesn't exist" % (repo_path, ))
         if self.active_branch is None:
             fatal("No \"current\" link found")
-        tree_path = os.path.join(self.ostree_dir, self.active_branch)
+        tree_path = os.path.join(self.ostree_dir, "trees/", self.active_branch)
         self.parse_snapshot(None, os.path.join(tree_path, 'contents.json'))
 
     def execute(self, args):
