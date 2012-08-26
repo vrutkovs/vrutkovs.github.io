@@ -62,14 +62,16 @@
 		 "patches": ["expat-autogen.patch"]},
 
 		{"src": "fd-dbus:dbus",
+		 "name": "dbus-bootstrap",
+		 "bootstrap": true,
 		 "config-opts": ["--with-dbus-user=dbus",
 		                 "--enable-inotify",
 				 "--disable-xml-docs",
 				 "--disable-doxygen-docs",
 				 "--disable-tests",
+				 "--disable-systemd",
 				 "--with-system-pid-file=/run/dbus.pid"],
-                 "patches": ["dbus-xmlto-docs.patch"],
-		 "setuid": ["/runtime/usr/libexec/dbus-daemon-launch-helper"]},
+                 "patches": ["dbus-xmlto-docs.patch"]},
 
 		{"src": "git:git://git.libusb.org/libusb.git",
 		 "tag": "v1.0.8",
@@ -78,6 +80,12 @@
 		{"src": "git:git://github.com/gregkh/usbutils.git",
 		 "tag": "v005",
 		 "patches": ["usbutils-autogen.patch"]},
+
+                {"src": "git:git://git.profusion.mobi/kmod.git",
+		 "config-opts": ["--disable-manpages"]},
+
+   		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "config-opts": ["--disable-manpages"]},
 
 		{"src": "fedora:hwdata.git",
 		 "tag": "hwdata-0.225-1-40-g22495d9f53e572fdafd999dcfb0cb35166b232ab",
@@ -93,9 +101,6 @@
                                 "--enable-udev_acl"],
                 "patches": ["udev-autogen.patch", "udev-docs.patch",
                             "udev-gudev-libtool.patch"]},
-
-   		{"src": "cgwalters:ginitscripts",
-		 "noarch": true},
 
    		{"src": "git:git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git",
 		 "patches": ["linux-firmware-configure-Make-executable.patch"],
@@ -329,6 +334,17 @@
 		{"src": "fd:xorg/lib/libFS",
 		 "patches": ["xorg-autogen.patch"]},
 
+		{"src": "fd-dbus:dbus",
+		 "config-opts": ["--with-dbus-user=dbus",
+		                 "--enable-inotify",
+				 "--disable-xml-docs",
+				 "--disable-doxygen-docs",
+				 "--disable-tests",
+				 "--with-systemdsystemunitdir=/usr/lib/systemd/system",
+				 "--with-system-pid-file=/run/dbus.pid"],
+                 "patches": ["dbus-xmlto-docs.patch"],
+		 "setuid": ["/runtime/usr/libexec/dbus-daemon-launch-helper"]},
+
 		{"src": "git:git://libpng.git.sourceforge.net/gitroot/libpng/libpng",
 		 "tag": "v1.5.7"},
 
@@ -458,10 +474,6 @@
 		 "setuid": ["/runtime/usr/bin/pkexec",
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
 
-		{"src": "fd:ConsoleKit",
-		 "patches": ["ConsoleKit-builddir.patch",
-			     "ConsoleKit-Add-legacy-pam-foreground-compat.ck-to-enable-var-ru.patch"]},
-
 		{"src": "0pointer:libatasmart.git"},
 
 		{"src": "fd:udisks",
@@ -505,6 +517,16 @@
 
 		{"src": "gnome:gtk+",
 		 "name": "gtk3"},
+
+	        {"src": "fd:plymouth",
+		 "config-opts": ["--enable-pango",
+		                 "--enable-gdm-transition",
+		                 "--disable-libdrm_nouveau",
+				 "--enable-systemd-integration",
+				 "--with-system-root-install=yes"]},
+
+                {"src": "gnome:PolicyKit-gnome",
+		 "config-opts": ["--with-gtk=3.0"]},
 
 		{"src": "fd-p11:p11-kit"},
 
@@ -731,8 +753,7 @@
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-split-authentication",
 		                 "--with-default-pam-config=openembedded",
-		                 "--with-consolekit"]
-                },
+		                 "--with-systemd"]},
 
 		{"src": "fd-telepathy:telepathy-logger",
 		 "tag": "telepathy-logger-0.2.12",
@@ -745,6 +766,7 @@
 		{"src": "gnome:gnome-settings-daemon",
 		 "config-opts": ["--disable-packagekit",
 		                 "--disable-cups",
+		                 "--enable-systemd",
 				 "--disable-man"]},
 
 		{"src": "gnome:gnome-power-manager"},
