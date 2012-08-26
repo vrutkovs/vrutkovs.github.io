@@ -254,6 +254,17 @@ class OstbuildCompileOne(builtins.Builtin):
         if not os.path.isdir(dirname):
             os.makedirs(dirname)
 
+        # Ensure that all installed files are at least rw-rw-r--;
+        # we don't support private/hidden files.
+        # Directories also need u+x, i.e. they're rwxrw-r--
+        if not stat.S_ISLNK(statsrc.st_mode):
+            minimal_mode = (stat.S_IRUSR | stat.S_IWUSR |
+                            stat.S_IRGRP | stat.S_IWGRP |
+                            stat.S_IROTH)
+            if stat.S_ISDIR(statsrc.st_mode):
+                minimal_mode |= stat.S_IXUSR
+            os.chmod(src, statsrc.st_mode | minimal_mode)
+
         if stat.S_ISDIR(statsrc.st_mode):
             if not os.path.isdir(dest):
                 os.mkdir(dest)
