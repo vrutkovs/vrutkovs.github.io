@@ -55,14 +55,10 @@ class OstbuildPrivhelperDeployQemu(builtins.Builtin):
             os.chmod(os.path.join(self.mountpoint, 'root'), 0700)
             os.chmod(os.path.join(self.mountpoint, 'tmp'), 01777)
 
-            varpath = os.path.join(self.mountpoint, 'ostree', 'var')
-            fileutil.ensure_dir(varpath)
-            modulespath = os.path.join(self.mountpoint, 'ostree', 'modules')
-            fileutil.ensure_dir(modulespath)
-            
-            repo_path = os.path.join(self.mountpoint, 'ostree', 'repo')
-            fileutil.ensure_dir(repo_path)
-            subprocess.check_call(['ostree', '--repo=' + repo_path, 'init'])
+            ostree_dir = os.path.join(self.mountpoint, 'ostree')
+            if not os.path.isdir(os.path.join(ostree_dir, 'repo')):
+                run_sync(['ostadmin', 'init', '--ostree-dir=' + ostree_dir])
+
             success = True
         finally:
             subprocess.call(['umount', self.mountpoint])
@@ -101,11 +97,8 @@ class OstbuildPrivhelperDeployQemu(builtins.Builtin):
             child_args = ['ostree', '--repo=' + repo_path, 'pull-local', args.srcrepo, args.target]
             run_sync(child_args)
 
-            run_sync(['ostadmin', 'deploy', '--ostree-dir=' + ostree_dir, '--no-kernel', args.target, args.target],
+            run_sync(['ostadmin', 'deploy', '--ostree-dir=' + ostree_dir, '--no-kernel', args.target],
                      cwd=ostree_dir)
-            current_link_path = os.path.join(ostree_dir, 'current')
-            os.symlink(args.target, current_link_path + '.tmp')
-            os.rename(current_link_path + '.tmp', current_link_path)
         finally:
             subprocess.call(['umount', self.mountpoint])
 
