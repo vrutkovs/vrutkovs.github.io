@@ -247,11 +247,12 @@ class OstbuildBuild(builtins.Builtin):
         if statoverride_path is not None:
             os.unlink(statoverride_path)
 
-        if os.path.islink(component_src):
-            os.unlink(component_src)
-        else:
-            shutil.rmtree(component_src)
-        shutil.rmtree(component_resultdir)
+        if not self.args.no_clean_results:
+            if os.path.islink(component_src):
+                os.unlink(component_src)
+            else:
+                shutil.rmtree(component_src)
+            shutil.rmtree(component_resultdir)
 
         return run_sync_get_output(['ostree', '--repo=' + self.repo,
                                     'rev-parse', build_ref])
@@ -354,6 +355,7 @@ class OstbuildBuild(builtins.Builtin):
         parser.add_argument('--force-rebuild', action='store_true')
         parser.add_argument('--skip-vcs-matches', action='store_true')
         parser.add_argument('--no-compose', action='store_true')
+        parser.add_argument('--no-clean-results', action='store_true')
         parser.add_argument('--no-skip-if-unchanged', action='store_true')
         parser.add_argument('--compose-only', action='store_true')
         parser.add_argument('--shell-on-failure', action='store_true')
