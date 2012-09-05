@@ -465,10 +465,7 @@
 		{"src": "0pointer:libatasmart.git"},
 
 		{"src": "fd:udisks",
-		 "config-opts": ["--disable-documentation"],
-		 "patches": ["udisks-autogen-no-gtk-doc.patch",
-		             "udisks-no-builddir.patch",
-			     "udisks-build-without-docs.patch"]},
+		 "config-opts": ["--disable-man"]},
 
 	        {"src": "fd:upower",
 		 "config-opts": ["--disable-man-pages",
