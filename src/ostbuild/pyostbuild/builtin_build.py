@@ -122,22 +122,6 @@ class OstbuildBuild(builtins.Builtin):
         expanded_component = self.expand_component(component)
 
         skip_rebuild = self.args.compose_only
-        
-        if not skip_rebuild:
-            if 'patches' in expanded_component:
-                patchdir = vcs.checkout_patches(self.mirrordir,
-                                                self.patchdir,
-                                                expanded_component,
-                                                patches_path=self.args.patches_path)
-                patches_sha256sums = self._compute_sha256sums_for_patches(patchdir, expanded_component)
-                expanded_component['patches']['files_sha256sums'] = patches_sha256sums
-            else:
-                patchdir = None
-
-            force_rebuild = (self.buildopts.force_rebuild or
-                             basename in self.force_build_components)
-        else:
-            force_rebuild = False
 
         previous_build_version = run_sync_get_output(['ostree', '--repo=' + self.repo,
                                                       'rev-parse', build_ref],
@@ -150,30 +134,50 @@ class OstbuildBuild(builtins.Builtin):
             previous_metadata_text = run_sync_get_output(['ostree', '--repo=' + self.repo,
                                                           'cat', previous_build_version,
                                                           '/_ostbuild-meta.json'])
-            sha = hashlib.sha256()
-            sha.update(previous_metadata_text)
-
             previous_metadata = json.loads(previous_metadata_text)
             previous_vcs_version = previous_metadata.get('revision')
 
             log("Previous build of %s is ostree:%s " % (buildname, previous_build_version))
-
-            if skip_rebuild:
-                return previous_build_version
-
-            rebuild_reason = self._needs_rebuild(previous_metadata, expanded_component)
-            if rebuild_reason is None:
-                if not force_rebuild:
-                    log("Reusing cached build at %s" % (previous_vcs_version)) 
-                    return previous_build_version
-                else:
-                    log("Build forced regardless") 
-            else:
-                    log("Need rebuild of %s: %s" % (buildname, rebuild_reason, ) )
         else:
             log("No previous build for '%s' found" % (buildname, ))
             if skip_rebuild:
-                fatal("--compose-only specified but no previous build found")
+                fatal("--compose-only specified but no previous build of %s found" % (buildname, ))
+            else:
+                return previous_build_version
+
+        if 'patches' in expanded_component:
+            patches_revision = expanded_component['patches']['revision']
+            if self.cached_patchdir_revision == patches_revision:
+                patchdir = self.patchdir
+            else:
+                patchdir = vcs.checkout_patches(self.mirrordir,
+                                                self.patchdir,
+                                                expanded_component,
+                                                patches_path=self.args.patches_path)
+                self.cached_patchdir_revision = patches_revision
+            if ((previous_metadata is not None) and
+                'patches' in previous_metadata and
+                previous_metadata['patches']['revision'] == patches_revision):
+                # Copy over the sha256sums
+                expanded_component['patches'] = previous_metadata['patches']
+            else:
+                patches_sha256sums = self._compute_sha256sums_for_patches(patchdir, expanded_component)
+                expanded_component['patches']['files_sha256sums'] = patches_sha256sums
+        else:
+            patchdir = None
+
+        force_rebuild = (self.buildopts.force_rebuild or
+                         basename in self.force_build_components)
+
+        rebuild_reason = self._needs_rebuild(previous_metadata, expanded_component)
+        if rebuild_reason is None:
+            if not force_rebuild:
+                log("Reusing cached build at %s" % (previous_vcs_version)) 
+                return previous_build_version
+            else:
+                log("Build forced regardless") 
+        else:
+                log("Need rebuild of %s: %s" % (buildname, rebuild_reason, ) )
 
         (fd, temp_metadata_path) = tempfile.mkstemp(suffix='.json', prefix='ostbuild-metadata-')
         os.close(fd)
@@ -378,6 +382,8 @@ class OstbuildBuild(builtins.Builtin):
         self.buildopts.no_skip_if_unchanged = args.no_skip_if_unchanged
 
         self.force_build_components = set()
+
+        self.cached_patchdir_revision = None
 
         components = self.snapshot['components']
 
