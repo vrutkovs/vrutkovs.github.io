@@ -462,7 +462,6 @@ class OstbuildBuild(builtins.Builtin):
                 contents = []
                 for component in target_components:
                     if component.get('bootstrap'):
-                        log("Skipping bootstrap component %r" % (component['name'], ))
                         continue
                     builds_for_component = component_to_arches[component['name']]
                     if architecture not in builds_for_component:
@@ -477,6 +476,7 @@ class OstbuildBuild(builtins.Builtin):
                 target['contents'] = contents
 
         for target in targets_list:
+            log("Composing %r from %d components" % (target['name'], len(target['contents'])))
             self._compose_one_target(target, component_build_revs)
 
         self._write_status({'status': 'complete'})
