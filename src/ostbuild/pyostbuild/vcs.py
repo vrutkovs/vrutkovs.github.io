@@ -136,6 +136,13 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False,
     tmp_mirror = mirror + '.tmp'
     did_update = False
     last_fetch_path = get_lastfetch_path(mirrordir, keytype, uri, branch)
+    if os.path.exists(last_fetch_path):
+        f = open(last_fetch_path)
+        last_fetch_contents = f.read()
+        f.close()
+        last_fetch_contents = last_fetch_contents.strip()
+    else:
+        last_fetch_contents = None
     if os.path.isdir(tmp_mirror):
         shutil.rmtree(tmp_mirror)
     if not os.path.isdir(mirror):
@@ -145,24 +152,21 @@ def ensure_vcs_mirror(mirrordir, keytype, uri, branch, fetch=False,
     elif fetch:
         run_sync(['git', 'fetch'], cwd=mirror, log_initiation=False,
                  fatal_on_error=(not fetch_keep_going)) 
-        current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
-        if current_vcs_version is not None:
-            did_update = True
-            current_vcs_version = current_vcs_version.strip()
-            f = open(last_fetch_path, 'w')
-            f.write(current_vcs_version + '\n')
-            f.close()
-    if os.path.exists(last_fetch_path):
-        f = open(last_fetch_path)
-        last_fetch_contents = f.read()
-        f.close()
-        last_fetch_contents = last_fetch_contents.strip()
-    else:
-        last_fetch_contents = None
+
     current_vcs_version = run_sync_get_output(['git', 'rev-parse', branch], cwd=mirror)
     current_vcs_version = current_vcs_version.strip()
-    if did_update or current_vcs_version != last_fetch_contents:
+
+    if fetch:
+        f = open(last_fetch_path, 'w')
+        f.write(current_vcs_version + '\n')
+        f.close()
+
+    if current_vcs_version != last_fetch_contents:
         log("last fetch %r differs from branch %r" % (last_fetch_contents, current_vcs_version))
+        check_submodules = True
+    else:
+        check_submodules = did_update
+    if check_submodules:
         for (sub_checksum, sub_name, sub_url) in _list_submodules(mirrordir, mirror, keytype, uri, branch):
             ensure_vcs_mirror(mirrordir, keytype, sub_url, sub_checksum, fetch=fetch)
         f = open(last_fetch_path, 'w')
