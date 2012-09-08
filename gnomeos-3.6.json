@@ -672,6 +672,7 @@
 		{"src": "gnome:gjs"},
 
 		{"src": "gnome:vala-bootstrap",
+		 "bootstrap": true,
 		 "config-opts": ["--disable-build-from-vala",
 		                 "--disable-vapigen"]},
 
