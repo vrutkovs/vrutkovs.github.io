@@ -57,7 +57,7 @@ class OstbuildPrivhelperDeployQemu(builtins.Builtin):
 
             ostree_dir = os.path.join(self.mountpoint, 'ostree')
             if not os.path.isdir(os.path.join(ostree_dir, 'repo')):
-                run_sync(['ostadmin', 'init', '--ostree-dir=' + ostree_dir])
+                run_sync(['ostree', 'admin', '--ostree-dir=' + ostree_dir, 'init'])
 
             success = True
         finally:
@@ -97,7 +97,7 @@ class OstbuildPrivhelperDeployQemu(builtins.Builtin):
             child_args = ['ostree', '--repo=' + repo_path, 'pull-local', args.srcrepo, args.target]
             run_sync(child_args)
 
-            run_sync(['ostadmin', 'deploy', '--ostree-dir=' + ostree_dir, '--no-kernel', args.target],
+            run_sync(['ostree', 'admin', '--ostree-dir=' + ostree_dir, 'deploy', '--no-kernel', args.target],
                      cwd=ostree_dir)
         finally:
             subprocess.call(['umount', self.mountpoint])
