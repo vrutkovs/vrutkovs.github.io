@@ -142,8 +142,6 @@ class OstbuildBuild(builtins.Builtin):
             log("No previous build for '%s' found" % (buildname, ))
             if skip_rebuild:
                 fatal("--compose-only specified but no previous build of %s found" % (buildname, ))
-            else:
-                return previous_build_version
 
         if 'patches' in expanded_component:
             patches_revision = expanded_component['patches']['revision']
@@ -169,14 +167,15 @@ class OstbuildBuild(builtins.Builtin):
         force_rebuild = (self.buildopts.force_rebuild or
                          basename in self.force_build_components)
 
-        rebuild_reason = self._needs_rebuild(previous_metadata, expanded_component)
-        if rebuild_reason is None:
-            if not force_rebuild:
-                log("Reusing cached build at %s" % (previous_vcs_version)) 
-                return previous_build_version
+        if previous_metadata is not None:
+            rebuild_reason = self._needs_rebuild(previous_metadata, expanded_component)
+            if rebuild_reason is None:
+                if not force_rebuild:
+                    log("Reusing cached build at %s" % (previous_vcs_version)) 
+                    return previous_build_version
+                else:
+                    log("Build forced regardless") 
             else:
-                log("Build forced regardless") 
-        else:
                 log("Need rebuild of %s: %s" % (buildname, rebuild_reason, ) )
 
         (fd, temp_metadata_path) = tempfile.mkstemp(suffix='.json', prefix='ostbuild-metadata-')
