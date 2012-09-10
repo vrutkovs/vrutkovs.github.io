@@ -17,8 +17,10 @@
 
 ostbuild: src/ostbuild/ostbuild.in Makefile
 	sed -e s,@libdir\@,$(libdir), -e s,@datarootdir\@,$(datarootdir), -e s,@PYTHON\@,$(PYTHON), $< > $@.tmp && mv $@.tmp $@
-bin_SCRIPTS += ostbuild 
 EXTRA_DIST += ostbuild/ostbuild.in
+
+if BUILDSYSTEM
+bin_SCRIPTS += ostbuild 
 
 pyostbuilddir=$(libdir)/ostbuild/pyostbuild
 pyostbuild_PYTHON =					\
@@ -55,4 +57,4 @@ pyostbuild_PYTHON =					\
 	src/ostbuild/pyostbuild/subprocess_helpers.py	\
 	src/ostbuild/pyostbuild/vcs.py			\
 	$(NULL)
-
+endif

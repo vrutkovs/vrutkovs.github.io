@@ -10,6 +10,16 @@ AM_SILENT_RULES([yes])
 
 AM_PATH_PYTHON([2.6])
 
+AC_ARG_ENABLE(buildsystem,
+	    AS_HELP_STRING([--disable-buildsystem], [Don't install buildsystem]),,
+	    enable_buildsystem=yes)
+AM_CONDITIONAL(BUILDSYSTEM, test x$enable_buildsystem != xno)
+
+AC_ARG_ENABLE(system-integration,
+	    AS_HELP_STRING([--enable-system-integration], [Install integration for target system]),,
+	    enable_system_integration=no)
+AM_CONDITIONAL(SYSTEM_INTEGRATION, test x$enable_system_integration != xno)
+
 AC_CONFIG_FILES([
 Makefile
 ])

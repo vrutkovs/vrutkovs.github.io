@@ -625,6 +625,10 @@
 		 "config-opts": ["--disable-documentation",
 		                 "--with-soup-gnome"]},
 
+		{"src": "gnome:gnome-ostree",
+		 "config-opts": ["--disable-buildsystem",
+		                 "--enable-system-integration"]},
+
 		{"src": "fd-gstreamer:gstreamer",
 		 "name": "gstreamer-0.10",
 		 "branch": "0.10",
