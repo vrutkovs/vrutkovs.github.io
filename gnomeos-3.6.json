@@ -84,10 +84,6 @@
                 {"src": "git:git://git.profusion.mobi/kmod.git",
 		 "config-opts": ["--disable-manpages"]},
 
-   		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "88fae6e0441d4195e089434f07d3e7fd811d6297",
-		 "config-opts": ["--disable-manpages"]},
-
 		{"src": "fedora:hwdata.git",
 		 "tag": "hwdata-0.225-1-40-g22495d9f53e572fdafd999dcfb0cb35166b232ab",
 		 "patches": ["hwdata-buildapi.patch",
@@ -96,12 +92,9 @@
                 {"src": "gnome:gobject-introspection",
 		 "config-opts": ["--disable-tests"]},
 
-               {"src": "git:git://git.kernel.org/pub/scm/linux/hotplug/udev.git",
-                "tag": "175",
-                "config-opts": ["--disable-documentation",
-                                "--enable-udev_acl"],
-                "patches": ["udev-autogen.patch", "udev-docs.patch",
-                            "udev-gudev-libtool.patch"]},
+   		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "tag": "88fae6e0441d4195e089434f07d3e7fd811d6297",
+		 "config-opts": ["--disable-manpages"]},
 
    		{"src": "git:git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git",
 		 "patches": ["linux-firmware-configure-Make-executable.patch"],
