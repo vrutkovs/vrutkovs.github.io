@@ -191,6 +191,11 @@ class OstbuildChrootCompileOne(builtins.Builtin):
         rootdir = self._compose_buildroot(component_name, args.arch)
 
         log("Checked out buildroot: %s" % (rootdir, ))
+
+        src_compile_one_path = os.path.join(LIBDIR, 'ostbuild', 'ostree-build-compile-one')
+        dest_compile_one_path = os.path.join(rootdir, 'ostree-build-compile-one')
+        shutil.copy(src_compile_one_path, dest_compile_one_path)
+        os.chmod(dest_compile_one_path, 0755)
         
         sourcedir=os.path.join(rootdir, 'ostbuild', 'source', component_name)
         fileutil.ensure_dir(sourcedir)
@@ -213,8 +218,7 @@ class OstbuildChrootCompileOne(builtins.Builtin):
         if args.debug_shell:
             child_args.extend([rootdir, '/bin/sh'])
         else:
-            child_args.extend([rootdir, '/usr/bin/ostbuild',
-                               'compile-one',
+            child_args.extend([rootdir, '/ostree-build-compile-one',
                                '--ostbuild-resultdir=/ostbuild/results',
                                '--ostbuild-meta=_ostbuild-meta.json'])
         env_copy = dict(buildutil.BUILD_ENV)

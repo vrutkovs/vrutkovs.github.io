@@ -25,7 +25,6 @@ from . import builtins
 from . import builtin_build
 from . import builtin_checkout
 from . import builtin_chroot_compile_one
-from . import builtin_compile_one
 from . import builtin_deploy_root
 from . import builtin_deploy_qemu
 from . import builtin_git_mirror
