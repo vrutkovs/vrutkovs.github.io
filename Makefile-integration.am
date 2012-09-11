@@ -23,3 +23,5 @@ integration-install-data-hook:
 	mkdir -p $(DESTDIR)$(prefix)/lib/systemd/system
 	ln -sf gdm.service $(DESTDIR)$(prefix)/lib/systemd/system/display-manager.service
 	install -D $(srcdir)/src/integration/os-release $(DESTDIR)$(sysconfdir)/os-release
+	install -D $(srcdir)/src/integration/lib-passwd $(DESTDIR)$(prefix)/lib/passwd
+	install -D $(srcdir)/src/integration/lib-group $(DESTDIR)$(prefix)/lib/group
