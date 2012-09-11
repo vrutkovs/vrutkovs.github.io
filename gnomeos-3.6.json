@@ -526,6 +526,11 @@
 
 		{"src": "gnome:gcr"},
 
+		{"src": "gnome:libsecret",
+		 "config-opts": ["--disable-manpages"]},
+
+		{"src": "gnome:libgnome-keyring"},
+
 		{"src": "gnome:json-glib"},
 
 		{"src": "gnome:libcroco",
@@ -556,6 +561,11 @@
 		{"src": "git:git://github.com/json-c/json-c.git",
 		 "tag": "381f77c5bccf20234a2bddae2b6ac43997faf0a2",
 		 "patches": ["json-c-autogen.patch"]},
+
+		{"src": "gnome:mobile-broadband-provider-info"},
+
+		{"src": "gnome:network-manager-applet",
+		 "config-opts": ["--enable-more-warnings=no"]},
 
 		{"src": "fd-pulse:pulseaudio",
 		 "branch": "stable-2.x",
@@ -592,11 +602,6 @@
 		{"src": "git:git://github.com/stephenc/tango-icon-naming.git",
 		 "patches": ["tango-icon-naming-python.patch"],
 		 "component": "devel"},
-
-		{"src": "gnome:libsecret",
-		 "config-opts": ["--disable-manpages"]},
-
-		{"src": "gnome:libgnome-keyring"},
 
 		{"src": "gnome:gnome-themes-standard"},
 
