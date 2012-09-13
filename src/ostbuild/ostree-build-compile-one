@@ -333,4 +333,4 @@ def _install_and_unlink(src, dest):
                 shutil.copy2(src, dest)
             os.unlink(src)
 
-main(sys.argv)
+main(sys.argv[1:])
