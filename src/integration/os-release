@@ -1,5 +1,0 @@
-NAME="GNOME-OSTree"
-ID=gnome-ostree
-PRETTY_NAME="GNOME-OSTree (3.6, OE-Core edison)"
-VERSION=3.6
-HOME_URL=https://live.gnome.org/OSTree/GnomeOSTree
