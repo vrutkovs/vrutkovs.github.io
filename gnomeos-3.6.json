@@ -757,7 +757,8 @@
 		{"src": "fd-xdg:shared-mime-info",
 		 "config-opts": ["--disable-default-make-check"]},
 
-		{"src": "gnome:cantarell-fonts"},
+		{"src": "gnome:cantarell-fonts",
+		 "config-opts": ["--disable-source-rebuild"]},
 
 		{"src": "fd:accountsservice"},
 
