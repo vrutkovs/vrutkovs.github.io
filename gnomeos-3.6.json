@@ -450,7 +450,8 @@
 		 "tag": "b80eb89d8e21eb699d847bec226d897d9e92e0b8",
 		 "patches": ["hostap-0001-build-Implement-GNOME-Build-API-for-wpa_supplicant.patch",
 		             "hostap-0001-Add-config-file.patch",
-			     "hostap-0001-build-Use-libnl-3.0-pkg-config-file.patch"]},
+			     "hostap-0001-build-Use-libnl-3.0-pkg-config-file.patch",
+			     "hostap-supplicant-Install-systemd-units-if-configured-to-do.patch"]},
 
 		{"src": "fd-NM:NetworkManager",
 		 "config-opts": ["--with-distro=generic",
