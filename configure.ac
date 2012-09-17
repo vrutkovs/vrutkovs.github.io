@@ -31,7 +31,6 @@ AC_ARG_ENABLE(system-integration,
 AM_CONDITIONAL(SYSTEM_INTEGRATION, test x$enable_system_integration != xno)
 
 AC_CONFIG_FILES([
-src/integration/os-release
 Makefile
 ])
 AC_OUTPUT
