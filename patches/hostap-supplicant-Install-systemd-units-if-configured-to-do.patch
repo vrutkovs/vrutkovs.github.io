@@ -38,7 +38,7 @@ index 540909e..da826b4 100644
 +
 +install-data::
 +	for sv in $(SYSTEMD_SYSTEM_UNITS); do \
-+	  install -D $${sv} $(DESTDIR)$(SYSTEMD_SYSTEM_UNITDIR)/$${sv}; \
++	  install -D $${sv} $(DESTDIR)$(SYSTEMD_SYSTEM_UNITDIR)/$$(basename $${sv}); \
 +	done
 +endif
 +
