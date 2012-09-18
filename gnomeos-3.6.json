@@ -468,7 +468,7 @@
 
 		{"src": "fd:polkit",
 		 "config-opts": ["--disable-man-pages",
-		                 "--with-distro-type=suse"],
+		                 "--with-os-type=suse"],
 		 "setuid": ["/runtime/usr/bin/pkexec",
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
 
