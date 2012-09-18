@@ -476,6 +476,8 @@
 		{"src": "fd:udisks",
 		 "config-opts": ["--disable-man"]},
 
+                {"src": "fd:pm-utils"},
+
 	        {"src": "fd:upower",
 		 "config-opts": ["--disable-man-pages",
 		                 "--disable-strict"],
