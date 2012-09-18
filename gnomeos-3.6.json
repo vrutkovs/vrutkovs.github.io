@@ -766,6 +766,7 @@
 		{"src": "fd:accountsservice"},
 
 		{"src": "gnome:gdm",
+		 "branch": "wip/walters-3.7",
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-split-authentication",
 		                 "--with-default-pam-config=openembedded",
