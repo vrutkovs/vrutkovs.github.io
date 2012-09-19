@@ -537,6 +537,12 @@
 
 		{"src": "gnome:libgnome-keyring"},
 
+		{"src": "git:git://pkgs.fedoraproject.org/ca-certificates.git",
+		 "tag": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
+		 "patches": ["ca-certs-build.patch"]},
+
+		{"src": "gnome:gnome-keyring"},
+
 		{"src": "gnome:json-glib"},
 
 		{"src": "gnome:libcroco",
@@ -622,10 +628,6 @@
 				 "--disable-documentation"]},
 
 		{"src": "gnome:gnome-menus"},
-
-		{"src": "git:git://pkgs.fedoraproject.org/ca-certificates.git",
-		 "tag": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
-		 "patches": ["ca-certs-build.patch"]},
 
 		{"src": "gnome:glib-networking"},
 
