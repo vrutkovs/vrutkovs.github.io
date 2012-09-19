@@ -453,15 +453,6 @@
 			     "hostap-0001-build-Use-libnl-3.0-pkg-config-file.patch",
 			     "hostap-supplicant-Install-systemd-units-if-configured-to-do.patch"]},
 
-		{"src": "fd-NM:NetworkManager",
-		 "config-opts": ["--with-distro=generic",
-		                 "--with-dhclient=yes",
-		                 "--with-session-tracking=systemd",
-				 "--with-crypto=nss",
-				 "--with-docs=no",
-				 "--enable-more-warnings=yes"],
-		 "patches": ["NetworkManager-config.patch"]},
-
 		{"src": "cgwalters:spidermonkey-tarballs-as-git",
 		 "config-opts": ["--enable-threadsafe",
 		                 "--with-system-nspr"]},
@@ -471,6 +462,15 @@
 		                 "--with-os-type=suse"],
 		 "setuid": ["/runtime/usr/bin/pkexec",
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
+
+		{"src": "fd-NM:NetworkManager",
+		 "config-opts": ["--with-distro=generic",
+		                 "--with-dhclient=yes",
+		                 "--with-session-tracking=systemd",
+				 "--with-crypto=nss",
+				 "--with-docs=no",
+				 "--enable-more-warnings=yes"],
+		 "patches": ["NetworkManager-config.patch"]},
 
 		{"src": "0pointer:libatasmart.git"},
 
