@@ -5,7 +5,8 @@
   "architectures": ["i686"],
   "base": {
             "name": "yocto",
-	    "src": "cgwalters:poky"
+	    "src": "cgwalters:poky",
+            "branch": "gnomeos-3.6"
           },
 
   "config-opts": ["--disable-static", "--disable-silent-rules"],
