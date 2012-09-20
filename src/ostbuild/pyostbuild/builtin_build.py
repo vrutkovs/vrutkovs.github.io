@@ -145,7 +145,9 @@ class OstbuildBuild(builtins.Builtin):
 
         if 'patches' in expanded_component:
             patches_revision = expanded_component['patches']['revision']
-            if self.cached_patchdir_revision == patches_revision:
+            if self.args.patches_path:
+                patchdir = self.args.patches_path
+            elif self.cached_patchdir_revision == patches_revision:
                 patchdir = self.patchdir
             else:
                 patchdir = vcs.checkout_patches(self.mirrordir,
