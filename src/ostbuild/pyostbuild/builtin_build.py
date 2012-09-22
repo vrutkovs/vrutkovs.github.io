@@ -149,6 +149,7 @@ class OstbuildBuild(builtins.Builtin):
         builddir_tmp = os.path.join(rootdir_tmp, 'ostbuild')
         os.mkdir(builddir_tmp)
         os.mkdir(os.path.join(builddir_tmp, 'source'))
+        os.mkdir(os.path.join(builddir_tmp, 'source', component_name))
         os.mkdir(os.path.join(builddir_tmp, 'results'))
         os.rename(rootdir_tmp, rootdir)
 
