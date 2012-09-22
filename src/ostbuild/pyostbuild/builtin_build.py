@@ -300,8 +300,6 @@ class OstbuildBuild(builtins.Builtin):
 
         os.unlink(temp_metadata_path)
 
-        artifact_meta = dict(component)
-
         logdir = os.path.join(self.workdir, 'logs', buildname)
         fileutil.ensure_dir(logdir)
         log_path = os.path.join(logdir, 'compile.log')
@@ -366,7 +364,7 @@ class OstbuildBuild(builtins.Builtin):
 
         recorded_meta_path = os.path.join(component_resultdir, '_ostbuild-meta.json')
         recorded_meta_f = open(recorded_meta_path, 'w')
-        json.dump(component, recorded_meta_f, indent=4, sort_keys=True)
+        json.dump(expanded_component, recorded_meta_f, indent=4, sort_keys=True)
         recorded_meta_f.close()
 
         args = ['ostree', '--repo=' + self.repo,
@@ -374,7 +372,7 @@ class OstbuildBuild(builtins.Builtin):
                 '--owner-uid=0', '--owner-gid=0', '--no-xattrs', 
                 '--skip-if-unchanged']
 
-        setuid_files = artifact_meta.get('setuid', [])
+        setuid_files = expanded_component.get('setuid', [])
         statoverride_path = None
         if len(setuid_files) > 0:
             (fd, statoverride_path) = tempfile.mkstemp(suffix='.txt', prefix='ostbuild-statoverride-')
