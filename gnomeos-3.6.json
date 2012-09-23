@@ -705,11 +705,13 @@
 				 "--disable-examples",
 				 "--disable-fatal-warnings"]},
 
-		{"src": "git:git://git.webkit.org/WebKit.git",
-		 "tag": "4e276ff268f3f3e97abb97f8e5a8cf6d8d97d2db",
-		 "patches": ["WebKit-autogen.patch",
-			     "WebKit-build-Don-t-break-on-deprecations.patch",
-			     "WebKit-gtk2xtbin-Don-t-use-deprecated-GDK_THREADS_ENTER-mac.patch"]},
+		{"src": "fd:geoclue",
+		 "patches": ["geoclue-autogen-Honor-NOCONFIGURE-1.patch"]},
+
+		{"src": "gnome:webkitgtk-tarball-releases",
+		 "config-opts": ["--enable-introspection",
+				 "--with-gstreamer=1.0"],
+		 "patches": ["webkitgtk-disable-parallel.patch"]},
 
 		{"src": "gnome:librest"},
 
