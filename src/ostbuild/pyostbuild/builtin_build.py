@@ -355,7 +355,8 @@ class OstbuildBuild(builtins.Builtin):
         log("Logging to %s" % (log_path, ))
         f = open(log_path, 'w')
         
-        success = run_sync_monitor_log_file(child_args, log_path, fatal_on_error=False)
+        success = run_sync_monitor_log_file(child_args, log_path, env=env_copy,
+                                            fatal_on_error=False)
         if not success:
             self._analyze_build_failure(architecture, component, component_src,
                                         current_vcs_version, previous_vcs_version)
