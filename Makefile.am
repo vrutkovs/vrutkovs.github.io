@@ -35,7 +35,6 @@ privlib_LTLIBRARIES =
 INSTALL_DATA_HOOKS =
 
 include Makefile-ostbuild.am
-include Makefile-integration.am
 
 install-data-hook: $(INSTALL_DATA_HOOKS)
 

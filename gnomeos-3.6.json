@@ -656,16 +656,7 @@
 		 "config-opts": ["--disable-documentation",
 		                 "--with-soup-gnome"]},
 
-		{"src": "gnome:gnome-ostree",
-		 "name": "gnome-ostree-integration",
-		 "config-opts": ["--disable-buildsystem",
-		                 "--enable-system-integration"]},
-
-		{"src": "gnome:gnome-ostree",
-		 "name": "gnome-ostree-buildsystem",
-		 "component": "devel",
-		 "config-opts": ["--enable-buildsystem",
-		                 "--disable-system-integration"]},
+		{"src": "gnome:gnome-ostree-integration"},
 
 		{"src": "fd-gstreamer:gstreamer",
 		 "name": "gstreamer-0.10",
