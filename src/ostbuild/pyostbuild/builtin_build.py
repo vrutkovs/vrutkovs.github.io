@@ -291,8 +291,10 @@ class OstbuildBuild(builtins.Builtin):
         fileutil.ensure_parent_dir(component_src)
         child_args = ['ostbuild', 'checkout', '--snapshot=' + self.snapshot_path,
                       '--checkoutdir=' + component_src,
-                      '--metadata-path=' + temp_metadata_path,
-                      '--clean', '--overwrite', basename]
+                      '--metadata-path=' + temp_metadata_path]
+        if not self.buildopts.no_clean:
+            child_args.append('--clean')
+        child_args.extend(['--overwrite', basename])
         if self.args.patches_path:
             child_args.append('--patches-path=' + self.args.patches_path)
         elif patchdir is not None:
@@ -496,6 +498,7 @@ class OstbuildBuild(builtins.Builtin):
                             help="Write data to this JSON file as build progresses")
         parser.add_argument('--force-rebuild', action='store_true')
         parser.add_argument('--skip-vcs-matches', action='store_true')
+        parser.add_argument('--no-clean', action='store_true')
         parser.add_argument('--no-compose', action='store_true')
         parser.add_argument('--no-clean-results', action='store_true')
         parser.add_argument('--no-skip-if-unchanged', action='store_true')
@@ -514,6 +517,7 @@ class OstbuildBuild(builtins.Builtin):
 
         self.buildopts = BuildOptions()
         self.buildopts.force_rebuild = args.force_rebuild
+        self.buildopts.no_clean = args.no_clean
         self.buildopts.skip_vcs_matches = args.skip_vcs_matches
         self.buildopts.no_skip_if_unchanged = args.no_skip_if_unchanged
 
