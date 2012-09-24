@@ -327,7 +327,7 @@ class OstbuildBuild(builtins.Builtin):
         os.chmod(dest_compile_one_path, 0755)
         
         output_metadata = open(os.path.join(component_src, '_ostbuild-meta.json'), 'w')
-        json.dump(component, output_metadata, indent=4, sort_keys=True)
+        json.dump(expanded_component, output_metadata, indent=4, sort_keys=True)
         output_metadata.close()
         
         chroot_sourcedir = os.path.join('/ostbuild', 'source', basename)
