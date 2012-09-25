@@ -405,7 +405,8 @@
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd:xorg/driver/xf86-video-intel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "patches": ["xorg-autogen.patch",
+			     "xorg-driver-xf86-video-intel-Drop-use-of-mibstore.h-which-is-now-gone-from-X-serv.patch"]},
 
 		{"src": "fd:xorg/driver/xf86-video-vesa",
 		 "patches": ["xorg-autogen.patch"]},

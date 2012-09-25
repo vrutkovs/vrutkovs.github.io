@@ -1,0 +1,64 @@
+From 16ef7058c647cd8c77922b16a981bb1632daaf33 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Mon, 24 Sep 2012 20:27:48 -0400
+Subject: [PATCH] Drop use of mibstore.h, removed from X server
+
+See this X commit: 1cb0261ef54b7dd6a7ef84e1c3959e424706228b
+---
+ src/intel_driver.c            | 1 -
+ src/legacy/i810/i810_driver.c | 1 -
+ src/sna/sna_driver.c          | 1 -
+ uxa/uxa-priv.h                | 1 -
+ 4 files changed, 4 deletions(-)
+
+diff --git a/src/intel_driver.c b/src/intel_driver.c
+index 41f0311..ec887aa 100644
+--- a/src/intel_driver.c
++++ b/src/intel_driver.c
+@@ -50,7 +50,6 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #include "xf86cmap.h"
+ #include "xf86drm.h"
+ #include "compiler.h"
+-#include "mibstore.h"
+ #include "mipointer.h"
+ #include "micmap.h"
+ #include "shadowfb.h"
+diff --git a/src/legacy/i810/i810_driver.c b/src/legacy/i810/i810_driver.c
+index fc6369e..8b2a470 100644
+--- a/src/legacy/i810/i810_driver.c
++++ b/src/legacy/i810/i810_driver.c
+@@ -58,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #include "xf86cmap.h"
+ 
+ #include "compiler.h"
+-#include "mibstore.h"
+ #include "vgaHW.h"
+ #include "mipointer.h"
+ #include "micmap.h"
+diff --git a/src/sna/sna_driver.c b/src/sna/sna_driver.c
+index aa4031c..223387d 100644
+--- a/src/sna/sna_driver.c
++++ b/src/sna/sna_driver.c
+@@ -51,7 +51,6 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #include <mi.h>
+ #include <micmap.h>
+ #include <mipict.h>
+-#include <mibstore.h>
+ 
+ #include "compiler.h"
+ #include "sna.h"
+diff --git a/uxa/uxa-priv.h b/uxa/uxa-priv.h
+index 91ef4e0..3f639e7 100644
+--- a/uxa/uxa-priv.h
++++ b/uxa/uxa-priv.h
+@@ -44,7 +44,6 @@
+ #include "pixmapstr.h"
+ #include "windowstr.h"
+ #include "servermd.h"
+-#include "mibstore.h"
+ #include "colormapst.h"
+ #include "gcstruct.h"
+ #include "input.h"
+-- 
+1.7.11.4
+
