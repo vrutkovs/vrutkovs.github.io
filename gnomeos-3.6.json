@@ -633,6 +633,8 @@
 		 "patches": ["tango-icon-naming-python.patch"],
 		 "component": "devel"},
 
+		{"src": "fd:sound-theme-freedesktop"},
+
 		{"src": "gnome:gnome-themes-standard"},
 
 		{"src": "gnome:gnome-icon-theme"},
