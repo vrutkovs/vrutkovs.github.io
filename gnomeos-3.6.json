@@ -706,6 +706,18 @@
 				 "--with-gstreamer=1.0"],
 		 "patches": ["webkitgtk-disable-parallel.patch"]},
 
+		{"src": "gnome:vala-bootstrap",
+		 "bootstrap": true,
+		 "config-opts": ["--disable-build-from-vala",
+		                 "--disable-vapigen"]},
+
+		{"src": "gnome:vala",
+		 "config-opts": ["--enable-vapigen"]},
+
+		{"src": "gnome:libgee",
+		 "branch": "0.6",
+		 "patches": ["gee-builddir.patch"]},
+
 		{"src": "gnome:librest"},
 
 		{"src": "gnome:gnome-online-accounts",
@@ -723,18 +735,6 @@
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
 
 		{"src": "gnome:gjs"},
-
-		{"src": "gnome:vala-bootstrap",
-		 "bootstrap": true,
-		 "config-opts": ["--disable-build-from-vala",
-		                 "--disable-vapigen"]},
-
-		{"src": "gnome:vala",
-		 "config-opts": ["--enable-vapigen"]},
-
-		{"src": "gnome:libgee",
-		 "branch": "0.6",
-		 "patches": ["gee-builddir.patch"]},
 
                 {"src": "ibus:ibus.git",
 		 "patches": ["ibus-builddir.patch"],
@@ -846,7 +846,7 @@
 		{"src": "git:git://git.kernel.org/pub/scm/utils/dash/dash.git"},
 
                 {"src": "cgwalters:dracut",
-                 "branch": "ostree4",
+                 "branch": "ostree5",
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "git:git://git.cairographics.org/git/py2cairo",
