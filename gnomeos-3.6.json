@@ -722,6 +722,9 @@
 		{"src": "gnome:libgee",
 		 "patches": ["gee-builddir.patch"]},
 
+                {"src": "gnome:gtksourceview",
+		 "config-opts": ["--enable-compile-warnings=maximum"]},
+
 		{"src": "gnome:librest"},
 
 		{"src": "gnome:gnome-online-accounts",
