@@ -860,7 +860,7 @@
 		{"src": "git:git://git.kernel.org/pub/scm/utils/dash/dash.git"},
 
                 {"src": "cgwalters:dracut",
-                 "branch": "ostree5",
+                 "branch": "ostree4",
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "git:git://git.cairographics.org/git/py2cairo",
