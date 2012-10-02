@@ -70,8 +70,7 @@
 				 "--disable-doxygen-docs",
 				 "--disable-tests",
 				 "--disable-systemd",
-				 "--with-system-pid-file=/run/dbus.pid"],
-                 "patches": ["dbus-xmlto-docs.patch"]},
+				 "--with-system-pid-file=/run/dbus.pid"]},
 
 		{"src": "git:git://git.libusb.org/libusb.git",
 		 "tag": "v1.0.8",
@@ -337,7 +336,6 @@
 				 "--disable-tests",
 				 "--with-systemdsystemunitdir=/usr/lib/systemd/system",
 				 "--with-system-pid-file=/run/dbus.pid"],
-                 "patches": ["dbus-xmlto-docs.patch"],
 		 "setuid": ["/runtime/usr/libexec/dbus-daemon-launch-helper"]},
 
 		{"src": "git:git://libpng.git.sourceforge.net/gitroot/libpng/libpng",
