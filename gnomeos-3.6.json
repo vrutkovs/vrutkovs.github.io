@@ -618,6 +618,8 @@
 		{"src": "git:git://github.com/mm2/Little-CMS.git",
 		 "tag": "lcms2.3"},
 
+                {"src": "git:git://gitorious.org/gusb/gusb.git"},
+
 		{"src": "git:git://gitorious.org/colord/master.git",
 		 "name": "colord"},
 
