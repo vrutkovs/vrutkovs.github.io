@@ -467,8 +467,8 @@
 		                 "--with-session-tracking=systemd",
 				 "--with-crypto=nss",
 				 "--with-docs=no",
-				 "--enable-more-warnings=yes"],
-		 "patches": ["NetworkManager-config.patch"]},
+				 "--enable-more-warnings=yes",
+				 "--enable-modify-system"]},
 
 		{"src": "0pointer:libatasmart.git"},
 
