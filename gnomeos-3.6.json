@@ -389,7 +389,7 @@
 		 "patches": ["xkeyboard-config-autogen.patch"]},
 
 		{"src": "fd:xorg/xserver",
-		 "patches": ["xorg-autogen.patch"]},
+		 "patches": ["xorg-xserver-autogen.patch"]},
 
 		{"src": "fd:xorg/driver/xf86-input-keyboard",
 		 "patches": ["xorg-autogen.patch"]},

@@ -1,0 +1,31 @@
+From 2e1de5a8e272554d134d9866c8e9362c2be2b0b7 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Wed, 4 Jan 2012 17:37:06 -0500
+Subject: [PATCH] autogen.sh: Honor NOCONFIGURE=1
+
+(Also while we have the patient open, use exec instead of hanging
+ around uselessly in waitpid)
+
+http://people.gnome.org/~walters/docs/build-api.txt
+
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Colin Walters <walters@verbum.org>
+---
+ autogen.sh | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/autogen.sh b/autogen.sh
+index 8b6f58f..dd0731a 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -9,4 +9,6 @@ cd $srcdir
+ autoreconf --force -v --install || exit 1
+ cd $ORIGDIR || exit $?
+ 
+-$srcdir/configure "$@"
++if test -z "$NOCONFIGURE"; then
++    exec $srcdir/configure "$@"
++fi
+-- 
+1.7.11.4
+
