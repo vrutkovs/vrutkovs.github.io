@@ -1,12 +1,12 @@
 {
   "00ostbuild-manifest-version": 0,
 
-  "prefix": "gnomeos-3.6",
+  "prefix": "gnomeos-3.8",
   "architectures": ["i686"],
   "base": {
             "name": "yocto",
 	    "src": "cgwalters:poky",
-            "branch": "gnomeos-3.6"
+            "branch": "gnomeos-3.8"
           },
 
   "config-opts": ["--disable-static", "--disable-silent-rules"],
