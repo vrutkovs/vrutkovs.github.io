@@ -252,8 +252,7 @@
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd:xcb/libxcb",
-		 "patches": ["xorg-autogen.patch",
-			     "xcb-libxcb-c_client-Fix-parallel-make-issue-creating-man-direct.patch"]},
+		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd:xorg/lib/libX11",
 		 "patches": ["xorg-autogen.patch"]},
@@ -412,7 +411,6 @@
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd:xcb/util",
-		 "component": "devel",
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd:startup-notification",
