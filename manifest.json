@@ -561,8 +561,7 @@
 
 		{"src": "gnome:json-glib"},
 
-		{"src": "gnome:libcroco",
-		 "tag": "0.6.3"},
+		{"src": "gnome:libcroco"},
 
 		{"src": "gnome:librsvg",
 		 "config-opts": ["--disable-gtk-theme"]},
