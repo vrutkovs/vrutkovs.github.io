@@ -626,7 +626,7 @@
 		 "patches": ["libwacom-autogen.patch"]},
 
 		{"src": "linuxwacom:xf86-input-wacom",
-		 "patches": ["xorg-autogen.patch"]},
+		 "patches": ["libwacom-autogen.patch"]},
 
 		{"src": "git:git://github.com/stephenc/tango-icon-naming.git",
 		 "patches": ["tango-icon-naming-python.patch"],
