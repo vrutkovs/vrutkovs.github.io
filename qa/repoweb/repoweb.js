@@ -27,15 +27,19 @@ function get_page_arg(key) {
 
 var repoDataSignal = {};
 var repoData = null;
+var prefix = null;
 
 function repoweb_on_data_loaded(data) {
     console.log("data loaded");
     repoData = data;
+    prefix = repoData['prefix'];
     $(repoDataSignal).trigger("loaded");
 }
 
 function repoweb_init() {
     var id = get_page_arg("prefix");
+    if (id == null)
+        id = "default";
     var url = "work/autobuilder-" + id + ".json";
     $.getJSON(url, repoweb_on_data_loaded);
 }
@@ -58,8 +62,6 @@ function timeago(d, now) {
 }
 
 function renderBuild(container, build) {
-    var prefix = get_page_arg("prefix");
-
     var now = new Date();
 
     var div = document.createElement('div');
@@ -90,7 +92,6 @@ function renderBuild(container, build) {
 }
 
 function repoweb_index_init() {
-    var prefix = get_page_arg("prefix");
     repoweb_init();
     $(repoDataSignal).on("loaded", function () {
 	$("#resolve-summary").empty();
