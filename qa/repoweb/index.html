@@ -3,10 +3,10 @@
   <head> 
     <title>GNOME-OSTree</title> 
     <meta name="viewport" content="width=device-width, initial-scale=1"> 
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+    <link rel="stylesheet" href="jquery.mobile-1.1.0.css" />
     <link rel="stylesheet" href="repoweb.css"/>
-    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-    <script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+    <script src="jquery-1.7.1.js"></script>
+    <script src="jquery.mobile-1.1.0.js"></script>
     <script src="repoweb.js"></script>
   </head> 
   <body onload="$(document).ready(function(){repoweb_index_init();})">
@@ -24,14 +24,17 @@
             the <a href="http://git.gnome.org/browse/gnome-ostree">gnome-ostree</a>
             git module.</p>
         
-          <h3>Summary</h3>
-          <div id="repoweb-summary">Loading...</div>
+          <h3>Resolve</h3>
+          <div id="resolve-summary">Loading...</div>
+
+          <h3>Build</h3>
+          <div id="build-summary">Loading...</div>
         </div>
         <div class="content-secondary">
 	  <ul data-role="listview" data-theme="c" data-dividertheme="d">
 	    <li data-role="list-divider">Tools</li>
-	    <li><a href="logs" rel="external">Build logs</a></li>
-	    <li><a href="src" rel="external">Source code</a></li>
+	    <li><a href="work/tasks" rel="external">Build logs</a></li>
+	    <li><a href="work/src" rel="external">Source code</a></li>
           </ul>
         </div>
       </div> <!-- content -->

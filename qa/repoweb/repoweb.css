@@ -1,4 +1,13 @@
 /* taken from  http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.css */
+
+.repoweb-build-failed {
+    color: red;
+}
+
+.repoweb-build-success {
+    color: green;
+}
+
 /* jqm docs css
 
 Beware: lots of last-minute CSS going on in here 
