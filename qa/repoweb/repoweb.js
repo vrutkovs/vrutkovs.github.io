@@ -47,7 +47,7 @@ function repoweb_init() {
 function timeago(d, now) {
     var diffSeconds = (now.getTime() - d.getTime()) / 1000;
     if (diffSeconds < 0)
-        return "(time format error)";
+        return "a moment ago";
     var units = [["seconds", 60],
                  ["minutes", 60*60],
                  ["hours", 60*60*24],
