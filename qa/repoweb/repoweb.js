@@ -61,57 +61,114 @@ function timeago(d, now) {
     }
 }
 
+function buildDiffComponentAppend(container, description, a) {
+    var additional = 0;
+    if (a.length > 10) {
+        a = a.slice(0, 10); 
+        additional = a.length - 10;
+    }
+    var p = document.createElement('p');
+    container.appendChild(p);
+    p.appendChild(document.createTextNode(description + ": " + a.join(", ")));
+    if (additional > 0) {
+        var b = document.createElement('b');
+        p.appendChild(b);
+        b.appendChild.document.createTextNode(" and " + additional + " more");
+    }
+}
+
+function buildDiffAppend(container, buildDiff) {
+    if (!buildDiff)
+        return document.createTextNode("No changes or new build");
+    var added = buildDiff[0];
+    var modified = buildDiff[1];
+    var removed = buildDiff[2];
+
+    if (added.length > 0)
+        buildDiffComponentAppend(container, 'Added', added);
+    if (modified.length > 0)
+        buildDiffComponentAppend(container, 'Updated', modified);
+    if (removed.length > 0)
+        buildDiffComponentAppend(container, 'removed', removed);
+}
+
 function renderBuild(container, build) {
     var now = new Date();
 
-    var div = document.createElement('div');
-    container.appendChild(div);
     var version = build['meta']['version'];
-    var endTimestamp = null;
-    if (build['timestamp'])
-        endTimestamp = new Date(build['timestamp'] * 1000);
+
+    var divider = document.createElement('li');
+    container.appendChild(divider);
+    divider.setAttribute('data-role', 'list-divider');
+    divider.appendChild(document.createTextNode(version));
+
+    var li = document.createElement('li');
+    container.appendChild(li);
     var a = document.createElement('a');
-    div.appendChild(a);
+    li.appendChild(a);
     a.setAttribute('href', 'work/tasks/' + prefix + '-build/' + build['v'] + '/log');
     a.setAttribute('rel', 'external');
-    a.appendChild(document.createTextNode("Build " + version));
-    div.appendChild(document.createTextNode(": "));
-    var stateSpan = document.createElement('span');
-    div.appendChild(stateSpan);
-    var state = document.createTextNode(build['state']);
-    stateSpan.appendChild(state);
-    if (build['state'] == 'success')
-        $(stateSpan).addClass("repoweb-build-success");
-    else
-        $(stateSpan).addClass("repoweb-build-failed");
-    var status = build['build-status'];
-    if (status)
-        div.appendChild(document.createTextNode(" " + status['description']));
-    else if (endTimestamp)
-        div.appendChild(document.createTextNode(" " + timeago(endTimestamp, now)));
+
+    var state = build['state'];
+    
+    if (state == 'running') {
+        var p = document.createElement('p');
+        a.appendChild(p);
+        var text = "Build " + version + " running";
+        var status = build['build-status'];
+        if (status)
+            text += ": " + status['description'];
+        p.appendChild(document.createTextNode(text));
+        p = document.createElement('p');
+        p.appendChild(document.createTextNode(text));
+    } else {
+        var p = document.createElement('p');
+        a.appendChild(p);
+        p.appendChild(document.createTextNode("Build " + version + ": "));
+        var stateSpan = document.createElement('span');
+        p.appendChild(stateSpan);
+        stateSpan.appendChild(document.createTextNode(build['state']));
+        if (state == 'success')
+            $(stateSpan).addClass("repoweb-build-success");
+        else if (state == 'failed')
+            $(stateSpan).addClass("repoweb-build-failed");
+    }
+
+    buildDiffAppend(a, build['diff']);
+
+    if (build['timestamp']) {
+        var endTimestamp = new Date(build['timestamp'] * 1000);
+        var p = document.createElement('p');
+        a.appendChild(p);
+        $(p).addClass("ui-li-aside");
+        p.appendChild(document.createTextNode(timeago(endTimestamp, now)));
+    }
+}
+
+function updateResolve() {
+    $("#resolve-summary").empty();
+    var summary = $("#resolve-summary").get(0);
+
+    var div = document.createElement('div');
+    summary.appendChild(div);
+    div.appendChild(document.createTextNode("Current version: "));
+    var a = document.createElement('a');
+    div.appendChild(a);
+    a.setAttribute('href', 'work/snapshots/' + repoData['version-path']);
+    a.setAttribute('rel', 'external');
+    a.appendChild(document.createTextNode(repoData['version']));
 }
 
 function repoweb_index_init() {
     repoweb_init();
     $(repoDataSignal).on("loaded", function () {
-	$("#resolve-summary").empty();
-	var summary = $("#resolve-summary").get(0);
 
-        var div = document.createElement('div');
-        summary.appendChild(div);
-        div.appendChild(document.createTextNode("Current version: "));
-        var a = document.createElement('a');
-        div.appendChild(a);
-        a.setAttribute('href', 'work/snapshots/' + repoData['version-path']);
-        a.setAttribute('rel', 'external');
-        a.appendChild(document.createTextNode(repoData['version']));
-
-	$("#build-summary").empty();
-	summary = $("#build-summary").get(0);
+	var buildSummary = $("#build-summary").get(0);
         var buildData = repoData.build;
         for (var i = buildData.length - 1; i >= 0; i--) {
             var build = buildData[i];
-            renderBuild(summary, build);
+            renderBuild(buildSummary, build);
         }
+	$(buildSummary).listview('refresh');
     });
 }
