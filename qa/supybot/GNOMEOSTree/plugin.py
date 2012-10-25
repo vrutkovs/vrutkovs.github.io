@@ -56,7 +56,7 @@ class GNOMEOSTree(callbacks.Plugin):
         for channel in self._irc.state.channels:
             self._irc.queueMsg(ircmsgs.privmsg(channel, msg))
 
-    def _query_new_build(self, announce=False):
+    def _query_new_build(self, status=False):
         path = os.path.expanduser('~/ostbuild/work/autobuilder-default.json')
         f = open(path)
         data = json.load(f)
@@ -64,27 +64,43 @@ class GNOMEOSTree(callbacks.Plugin):
         
         builds = data['build']
         if len(builds) == 0:
-            if announce:
+            if status:
                 self._broadcast("No builds")
             return
-        latest = builds[-1]
+        latest = None
+        for build in reversed(builds):
+            if build['state'] == 'running':
+                continue
+            latest = build
+            break
         version = latest['meta']['version']
-        if (not announce and version == self._last_version):
+        version_matches = version == self._last_version
+        if (not status and version_matches):
             return
 
         self._last_version = version
-        msg = "New build %s: %s" % (version, latest['state'])
+        if (not status and not version_matches):
+            msg = "New build"
+        else:
+            msg = "Current build"
+            if status and builds[-1]['state'] == 'running':
+                building = builds[-1]
+                msg = "Active build: %s; %s" % (building['build-status']['description'], msg)
+        msg += " %s: %s" % (version, latest['state'])
         diff = latest['diff']
         if len(diff[0]) > 0:
-            msg += " added: %r" % (diff[0], )
+            msg += " Added modules: %s" % (', '.join(diff[0]), )
         if len(diff[1]) > 0:
-            msg += " modified: %r" % (diff[1], )
+            msg += " Updated modules: %s" % (', '.join(diff[1]), )
         if len(diff[2]) > 0:
-            msg += " removed: %r" % (diff[2], )
+            msg += " Removed modules: %s" % (', '.join(diff[2]), )
+
+        msg += " http://ostree.gnome.org/work/tasks/%s-build/%s/log" % (data['prefix'],
+                                                                        latest['v'])
 
         self._broadcast(msg)
 
-    def latest(self, irc, msg, args):
-        self._query_new_build(announce=True)
+    def buildstatus(self, irc, msg, args):
+        self._query_new_build(status=True)
 
 Class = GNOMEOSTree
