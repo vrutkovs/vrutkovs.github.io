@@ -1,8 +1,9 @@
+<?xml version="1.0" standalone="yes"?> <!--*- mode: nxml -*-->
 <moduleset>
   <repository type="git" name="git.gnome.org" default="yes"
       href="git://git.gnome.org/"/>
   <autotools id="glib" autogenargs="--disable-modular-tests">
-    <branch/>
+    <branch revision="glib-2-34"/>
   </autotools>
   <autotools id="ostree" autogenargs="--disable-documentation --disable-libarchive">
     <branch/>
