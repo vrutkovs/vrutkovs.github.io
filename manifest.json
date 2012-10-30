@@ -511,6 +511,7 @@
 				 "--disable-documentation"]},
 
                 {"src": "cgwalters:ragel-tarballs-as-git",
+		 "patches": ["ragel-gcc-4.7.patch"],
 		 "tag": "0b17ee79bf5237ffdc3a2a7480023a7d61063788"},
 
                 {"src": "git:git://anongit.freedesktop.org/harfbuzz"},
