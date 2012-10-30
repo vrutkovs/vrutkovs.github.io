@@ -348,7 +348,8 @@
 		{"src": "cgwalters:texinfo-git-mirror",
 		 "tag": "TEXI2HTML_1_82",
 		 "config-opts": ["--disable-man-pages"],
-		 "patches": ["texinfo-disable-man.patch"]},
+		 "patches": ["texinfo-disable-man.patch",
+			     "texinfo-dist-xz.patch"]},
 
 		{"src": "fd:xorg/util/makedepend",
 		 "component": "devel",
