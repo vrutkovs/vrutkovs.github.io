@@ -86,17 +86,22 @@ class GNOMEOSTree(callbacks.Plugin):
             if status and builds[-1]['state'] == 'running':
                 building = builds[-1]
                 msg = "Active build: %s; %s" % (building['build-status']['description'], msg)
-        msg += " %s: %s" % (version, latest['state'])
+        msg += " %s: %s." % (version, latest['state'])
         diff = latest['diff']
         if len(diff[0]) > 0:
-            msg += " Added modules: %s" % (', '.join(diff[0]), )
+            msg += " Latest added modules: %s." % (', '.join(diff[0]), )
         if len(diff[1]) > 0:
-            msg += " Updated modules: %s" % (', '.join(diff[1]), )
+            msg += " Latest updated modules: %s." % (', '.join(diff[1]), )
         if len(diff[2]) > 0:
-            msg += " Removed modules: %s" % (', '.join(diff[2]), )
+            msg += " Latest removed modules: %s." % (', '.join(diff[2]), )
 
         msg += " http://ostree.gnome.org/work/tasks/%s-build/%s/log" % (data['prefix'],
                                                                         latest['v'])
+
+        if latest['state'] == 'failed':
+            msg = ircutils.mircColor(msg, fg='red')
+        elif latest['state'] == 'success':
+            msg = ircutils.mircColor(msg, fg='green')
 
         self._broadcast(msg)
 
