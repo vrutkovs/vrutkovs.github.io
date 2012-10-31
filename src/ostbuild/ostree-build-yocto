@@ -65,6 +65,7 @@ if ! grep -q "DISTRO.*gnomeosdistro" ${builddir}/conf/local.conf; then
 PARALLEL_MAKE = "-j ${numcpus}"
 BB_NUMBER_THREADS = "${numcpus}"
 DISTRO = "gnomeosdistro"
+INHERIT += "rm_work"
 EOF
 fi
 
