@@ -6,7 +6,7 @@
   "base": {
             "name": "yocto",
 	    "src": "cgwalters:poky",
-            "branch": "gnomeos-3.8"
+            "branch": "gnomeos-3.8-danny"
           },
 
   "config-opts": ["--disable-static", "--disable-silent-rules"],
