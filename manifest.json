@@ -342,7 +342,6 @@
 		 "tag": "v1.5.7"},
 
 		{"src": "fd:cairo",
-		 "tag": "1.10.2",
 		 "config-opts": ["--disable-interpreter"]},
 
 		{"src": "cgwalters:texinfo-git-mirror",
