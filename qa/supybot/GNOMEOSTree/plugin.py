@@ -68,10 +68,18 @@ class GNOMEOSTree(callbacks.Plugin):
                 self._broadcast("No builds")
             return
         latest = None
+        latest_failed = None
+        # find the first successful build
         for build in reversed(builds):
             if build['state'] == 'running':
                 continue
             latest = build
+            break
+        # find the first failed build
+        for build in reversed(builds):
+            if build['state'] != 'failed':
+                continue
+            latest_failed = build
             break
         version = latest['meta']['version']
         version_matches = version == self._last_version
@@ -86,7 +94,10 @@ class GNOMEOSTree(callbacks.Plugin):
             if status and builds[-1]['state'] == 'running':
                 building = builds[-1]
                 msg = "Active build: %s; %s" % (building['build-status']['description'], msg)
-        msg += " %s: %s." % (version, latest['state'])
+        if latest['state'] == 'failed' and latest['meta']['version'] != latest_failed['meta']['version']:
+            msg += " %s: %s (fails since: %s)." % (version, latest['state'], latest_failed['meta']['version'])
+        else:
+            msg += " %s: %s." % (version, latest['state'])
         diff = latest['diff']
         if len(diff[0]) > 0:
             msg += " Latest added modules: %s." % (', '.join(diff[0]), )
