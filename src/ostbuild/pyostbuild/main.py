@@ -22,7 +22,6 @@ import sys
 import argparse
 
 from . import builtins
-from . import builtin_autobuilder
 from . import builtin_build
 from . import builtin_checkout
 from . import builtin_deploy_root
@@ -37,12 +36,16 @@ from . import builtin_repoweb_json
 from . import builtin_resolve
 from . import builtin_source_diff
 
+JS_BUILTINS = {'autobuilder': 'Run resolve and build'}
+
 def usage(ecode):
     print "Builtins:"
     for builtin in builtins.get_all():
         if builtin.name.startswith('privhelper'):
             continue
         print "    %s - %s" % (builtin.name, builtin.short_description)
+    for name,short_description in JS_BUILTINS.items():
+        print "    %s - %s" % (name, short_description)
     return ecode
 
 def main(args):
@@ -51,10 +54,17 @@ def main(args):
     elif args[0] in ('-h', '--help'):
         return usage(0)
     else:
-        builtin = builtins.get(args[0])
+        name = args[0]
+        builtin = builtins.get(name)
         if builtin is None:
-            print "error: Unknown builtin '%s'" % (args[0], )
-            return usage(1)
+            js_builtin = JS_BUILTINS.get(name)
+            if js_builtin is None:
+                print "error: Unknown builtin '%s'" % (args[0], )
+                return usage(1)
+            else:
+                child_args = ['ostbuild-js', name]
+                child_args.extend(args[:1])
+                os.execvp('ostbuild-js', child_args)
         return builtin.execute(args[1:])
     
     

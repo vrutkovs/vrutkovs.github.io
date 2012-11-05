@@ -15,16 +15,25 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
+substitutions= \
+	-e s,@libdir\@,$(libdir), \
+	-e s,@pkglibdir\@,$(pkglibdir), \
+	-e s,@datarootdir\@,$(datarootdir), \
+	-e s,@pkgdatadir\@,$(pkgdatadir), \
+	-e s,@PYTHON\@,$(PYTHON), \
+	$(NULL)
+
+
 ostbuild: src/ostbuild/ostbuild.in Makefile
-	sed -e s,@libdir\@,$(libdir), \
-	    -e s,@datarootdir\@,$(datarootdir), \
-	    -e s,@pkgdatadir\@,$(pkgdatadir), \
-	    -e s,@PYTHON\@,$(PYTHON), \
-	    $< > $@.tmp && mv $@.tmp $@
+	sed $(substitutions) $< > $@.tmp && mv $@.tmp $@
 EXTRA_DIST += ostbuild/ostbuild.in
 
+ostbuild-js: src/ostbuild/ostbuild-js.in Makefile
+	sed $(substitutions) $< > $@.tmp && mv $@.tmp $@
+EXTRA_DIST += ostbuild/ostbuild-js.in
+
 if BUILDSYSTEM
-bin_SCRIPTS += ostbuild 
+bin_SCRIPTS += ostbuild ostbuild-js
 
 utils_SCRIPTS = \
 	src/ostbuild/ostree-build-compile-one \
@@ -35,7 +44,6 @@ utilsdir = $(libdir)/ostbuild
 pyostbuilddir=$(libdir)/ostbuild/pyostbuild
 pyostbuild_PYTHON =					\
 	src/ostbuild/pyostbuild/buildutil.py		\
-	src/ostbuild/pyostbuild/builtin_autobuilder.py	\
 	src/ostbuild/pyostbuild/builtin_build.py	\
 	src/ostbuild/pyostbuild/builtin_checkout.py	\
 	src/ostbuild/pyostbuild/builtin_deploy_qemu.py	\
@@ -67,4 +75,16 @@ pyostbuild_PYTHON =					\
 	src/ostbuild/pyostbuild/subprocess_helpers.py	\
 	src/ostbuild/pyostbuild/vcs.py			\
 	$(NULL)
+
+jsostbuilddir=$(pkgdatadir)/js
+jsostbuild_DATA= \
+	src/ostbuild/js/autobuilder.js \
+	src/ostbuild/js/config.js \
+	src/ostbuild/js/jsondb.js \
+	src/ostbuild/js/task.js \
+	src/ostbuild/js/procutil.js \
+	src/ostbuild/js/snapshot.js \
+	src/ostbuild/js/jsonutil.js \
+	$(NULL)
+
 endif
