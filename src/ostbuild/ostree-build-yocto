@@ -59,14 +59,23 @@ if ! grep -q meta-gnomeos ${builddir}/conf/bblayers.conf; then
     echo "BBLAYERS += \"${srcdir}/meta-gnomeos\"" >> ${builddir}/conf/bblayers.conf
 fi
 
-if ! grep -q "DISTRO.*gnomeosdistro" ${builddir}/conf/local.conf; then
+mkdir -p ${builddir}/conf
+localconf=${builddir}/conf/local.conf
+if ! grep -q "DISTRO.*gnomeos" ${localconf}; then
     numcpus=$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 ))
-    cat >> ${builddir}/conf/local.conf <<EOF
+    cat > ${localconf}.tmp <<EOF
 PARALLEL_MAKE = "-j ${numcpus}"
 BB_NUMBER_THREADS = "${numcpus}"
+LAYER_CONF_VERSION = "6"
+CONF_VERSION = "1"
+MACHINE = "qemux86"
 DISTRO = "gnomeosdistro"
+USER_CLASSES = ""
+PACKAGE_CLASSES = "package_rpm"
+PATCHRESOLVE = "noop"
 INHERIT += "rm_work"
 EOF
+    mv ${localconf}.tmp ${localconf}
 fi
 
 IMAGEDIR=${builddir}/tmp-eglibc/deploy/images
