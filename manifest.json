@@ -843,6 +843,8 @@
 		 "config-opts": ["--disable-documentation",
 				 "--disable-cups"]},
 
+		{"src": "gnome:gnome-initial-setup"},
+
 		{"src": "gnome:notification-daemon"},
 
 		{"src": "gnome:libwnck"},
