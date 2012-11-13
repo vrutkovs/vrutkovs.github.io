@@ -462,11 +462,10 @@
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
 
 		{"src": "fd-NM:NetworkManager",
-		 "config-opts": ["--with-distro=generic",
-		                 "--with-dhclient=yes",
+		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
 				 "--with-crypto=nss",
-				 "--with-docs=no",
+				 "--disable-doc",
 				 "--enable-more-warnings=yes",
 				 "--enable-modify-system"]},
 
