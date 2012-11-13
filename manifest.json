@@ -808,7 +808,9 @@
 
 		{"src": "gnome:gnome-screensaver"},
 
-		{"src": "gnome:gnome-session"},
+		{"src": "gnome:gnome-session",
+		 "config-opts": ["--disable-docbook-docs",
+				 "--disable-man"]},
 
 		{"src": "gnome:gnome-settings-daemon",
 		 "config-opts": ["--disable-packagekit",
