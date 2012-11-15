@@ -512,7 +512,8 @@
 		 "patches": ["ragel-gcc-4.7.patch"],
 		 "tag": "0b17ee79bf5237ffdc3a2a7480023a7d61063788"},
 
-                {"src": "git:git://anongit.freedesktop.org/harfbuzz"},
+                {"src": "git:git://anongit.freedesktop.org/harfbuzz",
+		 "tag": "0c7df2222862122ebbdc8665a21d6771ef5e0252"},
 
 		{"src": "gnome:pango"},
 
