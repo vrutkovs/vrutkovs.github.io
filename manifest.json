@@ -759,10 +759,8 @@
 				 "--disable-ui"]},
 
 		{"src": "fd-telepathy:telepathy-glib",
-		 "tag": "telepathy-glib-0.17.5",
 		 "config-opts": ["--enable-vala-bindings",
-                                 "--disable-compiler-warnings"],
-		 "patches": ["telepathy-glib-builddir.patch"]},
+                                 "--disable-fatal-warnings"]},
 
 		{"src": "gnome:libgweather"},
 
