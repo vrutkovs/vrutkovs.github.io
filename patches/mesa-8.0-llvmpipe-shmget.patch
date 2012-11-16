@@ -1,0 +1,173 @@
+From 815879b955654f517fd80ac41ce738c3bd3efa08 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Wed, 14 Nov 2012 19:49:04 -0500
+Subject: [PATCH] llvmpipe: Use ShmGetImage if possible
+
+* Wed Mar 21 2012 Adam Jackson <ajax@redhat.com> 8.0.1-6
+- mesa-8.0.1-llvmpipe-shmget.patch: Use ShmGetImage if possible
+---
+ src/gallium/state_trackers/dri/sw/drisw.c |   10 ---
+ src/glx/drisw_glx.c                       |  101 ++++++++++++++++++++++++++++-
+ 2 files changed, 100 insertions(+), 11 deletions(-)
+
+diff --git a/src/gallium/state_trackers/dri/sw/drisw.c b/src/gallium/state_trackers/dri/sw/drisw.c
+index 5247126..3cdb6eb 100644
+--- a/src/gallium/state_trackers/dri/sw/drisw.c
++++ b/src/gallium/state_trackers/dri/sw/drisw.c
+@@ -252,8 +252,6 @@ drisw_update_tex_buffer(struct dri_drawable *drawable,
+    struct pipe_transfer *transfer;
+    char *map;
+    int x, y, w, h;
+-   int ximage_stride, line;
+-   int cpp = util_format_get_blocksize(res->format);
+ 
+    get_drawable_info(dPriv, &x, &y, &w, &h);
+ 
+@@ -265,14 +263,6 @@ drisw_update_tex_buffer(struct dri_drawable *drawable,
+    /* Copy the Drawable content to the mapped texture buffer */
+    get_image(dPriv, x, y, w, h, map);
+ 
+-   /* The pipe transfer has a pitch rounded up to the nearest 64 pixels. */
+-   ximage_stride = w * cpp;
+-   for (line = h-1; line; --line) {
+-      memmove(&map[line * transfer->stride],
+-              &map[line * ximage_stride],
+-              ximage_stride);
+-   }
+-
+    pipe_transfer_unmap(pipe, transfer);
+ }
+ 
+diff --git a/src/glx/drisw_glx.c b/src/glx/drisw_glx.c
+index 014296b..03522a9 100644
+--- a/src/glx/drisw_glx.c
++++ b/src/glx/drisw_glx.c
+@@ -24,6 +24,9 @@
+ #if defined(GLX_DIRECT_RENDERING) && !defined(GLX_USE_APPLEGL)
+ 
+ #include <X11/Xlib.h>
++#include <sys/ipc.h>
++#include <sys/shm.h>
++#include <X11/extensions/XShm.h>
+ #include "glxclient.h"
+ #include <dlfcn.h>
+ #include "dri_common.h"
+@@ -206,6 +209,96 @@ swrastPutImage(__DRIdrawable * draw, int op,
+    ximage->data = NULL;
+ }
+ 
++static int shm_error;
++
++static int
++shm_handler(Display *d, XErrorEvent *e)
++{
++    shm_error = 1;
++    return 0;
++}
++
++static int
++align(int value, int alignment)
++{
++   return (value + alignment - 1) & ~(alignment - 1);
++}
++
++/*
++ * Slight fast path.  Short of changing how texture memory is allocated, we
++ * have two options for getting the pixels out.  GetImage is clamped by the
++ * server's write buffer size, so you end up doing lots of relatively small
++ * requests (128k each or so), with two memcpys: down into the kernel, and
++ * then back up.  ShmGetImage is one big blit into the shm segment (which
++ * could be GPU DMA, in principle) and then another one here.
++ */
++static Bool
++swrastShmGetImage(__DRIdrawable *read, char *data, struct drisw_drawable *prp)
++{
++    __GLXDRIdrawable *pread = &(prp->base);
++    Display *dpy = pread->psc->dpy;
++    XImage *ximage = prp->ximage;
++    unsigned long image_size = ximage->height * ximage->bytes_per_line;
++    Bool ret = 0;
++    XShmSegmentInfo seg = { 0, -1, (void *)-1, 0 };
++    int (*old_handler)(Display *, XErrorEvent *);
++
++    if (!XShmQueryExtension(dpy))
++	goto out;
++
++    /* image setup */
++    seg.shmid = shmget(IPC_PRIVATE, image_size, IPC_CREAT | 0777);
++    if (seg.shmid < 0)
++	goto out;
++
++    seg.shmaddr = shmat(seg.shmid, NULL, 0);
++    if (seg.shmaddr == (void *)-1)
++	goto out;
++
++    XSync(dpy, 0);
++    old_handler = XSetErrorHandler(shm_handler);
++    XShmAttach(dpy, &seg);
++    XSync(dpy, 0);
++    XSetErrorHandler(old_handler);
++    if (shm_error)
++	goto out;
++
++    ximage->data = seg.shmaddr;
++    ximage->obdata = &seg;
++    if (!XShmGetImage(dpy, pread->xDrawable, ximage, 0, 0, -1))
++	goto out;
++
++    /*
++     * ShmGetImage doesn't actually pay attention to ->bytes_per_line.
++     * We have to compensate for this somewhere since llvmpipe's natural
++     * tile width is 64.  Do it here so we don't have to undo it with a
++     * bunch of memmove in the driver.
++     */
++    do {
++	int i;
++	char *src = ximage->data;
++	int dst_width = align(ximage->width * ximage->bits_per_pixel / 8, 256);
++
++	for (i = 0; i < ximage->height; i++) {
++	    memcpy(data, src, ximage->bytes_per_line);
++	    data += dst_width;
++	    src += ximage->bytes_per_line;
++	}
++    } while (0);
++    ret = 1;
++
++out:
++    ximage->obdata = NULL;
++    ximage->data = NULL;
++    shm_error = 0;
++    XShmDetach(dpy, &seg);
++    if (seg.shmaddr != (void *)-1)
++	shmdt(seg.shmaddr);
++    if (seg.shmid > -1)
++	shmctl(seg.shmid, IPC_RMID, NULL);
++    return ret;
++}
++
+ static void
+ swrastGetImage(__DRIdrawable * read,
+                int x, int y, int w, int h,
+@@ -220,11 +313,17 @@ swrastGetImage(__DRIdrawable * read,
+    readable = pread->xDrawable;
+ 
+    ximage = prp->ximage;
+-   ximage->data = data;
+    ximage->width = w;
+    ximage->height = h;
+    ximage->bytes_per_line = bytes_per_line(w * ximage->bits_per_pixel, 32);
+ 
++   /* XXX check dimensions, if any caller ever sub-images */
++   if (swrastShmGetImage(read, data, prp))
++      return;
++
++   /* shm failed, fall back to protocol */
++   ximage->data = data;
++
+    XGetSubImage(dpy, readable, x, y, w, h, ~0L, ZPixmap, ximage, 0, 0);
+ 
+    ximage->data = NULL;
+-- 
+1.7.7.6
+
