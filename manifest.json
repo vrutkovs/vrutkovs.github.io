@@ -804,9 +804,8 @@
 		 "patches": ["telepathy-logger-autogen.patch"]},
 
 		{"src": "fd-telepathy:telepathy-mission-control",
-		 "tag": "telepathy-mission-control-5.14.0",
-		 "config-opts": ["--disable-gtk-doc"],
-                 "patches": ["mission-control-autogen.patch"]},
+		 "branch": "telepathy-mission-control-5.14",
+		 "config-opts": ["--disable-gtk-doc"]},
 
 		{"src": "gnome:gnome-screensaver"},
 
