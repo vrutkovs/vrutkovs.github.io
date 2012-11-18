@@ -361,7 +361,7 @@
 		 "config-opts": ["--enable-nouveau-experimental-api"]},
 
 		{"src": "fd-mesa:mesa",
-            	 "tag": "mesa-9.0", 
+            	 "tag": "mesa-9.0.1", 
 		 "patches": ["mesa-llvmpipe-dlopen.patch",
 		 	    "mesa-8.0-llvmpipe-shmget.patch",
 			    "mesa-8.0.1-fix-16bpp.patch"],
@@ -380,9 +380,9 @@
 		     "--enable-shared-glapi",
 		     "--enable-gbm",
 		     "--enable-xa",
-		     "--with-gallium-drivers=r300,r600,nouveau,swrast",
+		     "--with-gallium-drivers=svga,r300,r600,nouveau,swrast",
 		     "--enable-gallium-llvm",
-		     "--with-dri-drivers=nouveau,radeon,r200,i915,i965"
+		     "--with-dri-drivers=nouveau,radeon,r200,i915,i965,swrast"
 		     ]},
 
 		{"src": "fd:xorg/app/xkbcomp",
