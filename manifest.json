@@ -367,6 +367,7 @@
 		 	    "mesa-8.0-llvmpipe-shmget.patch",
 			    "mesa-8.0.1-fix-16bpp.patch"],
 		 "config-opts": [
+            	     "--enable-debug", 
             	     "--enable-pic", 
             	     "--disable-asm", 
 		     "--disable-glw", 
