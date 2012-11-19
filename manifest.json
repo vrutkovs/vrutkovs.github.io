@@ -18,6 +18,7 @@
                 "fd-mesa": "git:git://anongit.freedesktop.org/git/mesa/",
                 "fd-pulse": "git:git://anongit.freedesktop.org/git/pulseaudio/",
                 "fd-xdg": "git:git://anongit.freedesktop.org/git/xdg/",
+                "fd-fprint": "git:git://anongit.freedesktop.org/git/libfprint/",
                 "fd-p11": "git:git://anongit.freedesktop.org/git/p11-glue/",
                 "fd-gstreamer": "git:git://anongit.freedesktop.org/gstreamer/",
                 "fd-telepathy": "git:git://anongit.freedesktop.org/telepathy/",
@@ -549,6 +550,10 @@
 		                 "--disable-libdrm_nouveau",
 				 "--enable-systemd-integration",
 				 "--with-system-root-install=yes"]},
+
+		{"src": "fd-fprint:libfprint"},
+
+		{"src": "fd-fprint:fprintd"},
 
                 {"src": "gnome:PolicyKit-gnome",
 		 "config-opts": ["--with-gtk=3.0"]},
