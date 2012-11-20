@@ -861,8 +861,7 @@
 		 "config-opts": ["--disable-documentation",
 				 "--disable-cups"]},
 
-		{"src": "gnome:gnome-initial-setup",
-                 "tag": "0.4"},
+		{"src": "gnome:gnome-initial-setup"},
 
 		{"src": "gnome:notification-daemon"},
 
