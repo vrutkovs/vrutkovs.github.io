@@ -718,7 +718,8 @@
 		{"src": "gnome:webkitgtk-tarball-releases",
 		 "config-opts": ["--enable-introspection",
 				 "--with-gstreamer=1.0"],
-		 "patches": ["webkitgtk-disable-parallel.patch"]},
+		 "patches": ["webkitgtk-disable-parallel.patch",
+			     "webkitgtk-linking.patch"]},
 
 		{"src": "gnome:vala-bootstrap",
 		 "bootstrap": true,

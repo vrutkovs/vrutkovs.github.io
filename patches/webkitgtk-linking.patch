@@ -1,0 +1,47 @@
+From b5790ec0997e5fa4d0c388f478756a8a642f05de Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Tue, 20 Nov 2012 07:57:42 -0500
+Subject: [PATCH] build: Optimize linker and debug flags for memory use/space
+
+We'd really like to be able to build webkitgtk on at least a machine
+with 4G, since, well, that's what my laptop has.
+---
+ configure    | 3 +++
+ configure.ac | 7 +++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/configure b/configure
+index 9418a8b..57b8521 100755
+--- a/configure
++++ b/configure
+@@ -21101,6 +21101,9 @@ else
+    CFLAGS="$CFLAGS -O0"
+ fi
+ 
++LDFLAGS="$LDFLAGS -Wl,--no-keep-memory"
++CFLAGS=`echo $CFLAGS | sed -e "s/-g /-g1 /"`
++CXXFLAGS=`echo $CXXFLAGS | sed -e "s/-g /-g1 /"`
+ 
+ pkg_failed=no
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBSOUP" >&5
+diff --git a/configure.ac b/configure.ac
+index 03bdb5f..a39e56c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1221,6 +1221,13 @@ else
+    CFLAGS="$CFLAGS -O0"
+ fi
+ 
++dnl Optimize for ld memory use: http://lists.macosforge.org/pipermail/webkit-dev/2012-March/020111.html
++LDFLAGS="$LDFLAGS -Wl,--no-keep-memory"
++dnl Build with -g1 on all platforms to avoid running into 4 GB ar format limit
++dnl https://bugs.webkit.org/show_bug.cgi?id=91154
++CFLAGS=`echo $CFLAGS | sed -e "s/-g /-g1 /"`
++CXXFLAGS=`echo $CXXFLAGS | sed -e "s/-g /-g1 /"`
++
+ PKG_CHECK_MODULES([LIBSOUP],
+                   [libsoup-2.4 >= $LIBSOUP_REQUIRED_VERSION])
+ AC_SUBST([LIBSOUP_CFLAGS])
+-- 
+1.7.11.7
+
