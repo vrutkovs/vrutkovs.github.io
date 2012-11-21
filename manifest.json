@@ -557,9 +557,6 @@
 
 		{"src": "fd-fprint:fprintd"},
 
-                {"src": "gnome:PolicyKit-gnome",
-		 "config-opts": ["--with-gtk=3.0"]},
-
 		{"src": "fd-p11:p11-kit"},
 
 		{"src": "gnome:gcr"},
@@ -759,8 +756,6 @@
 
 		{"src": "gnome:zenity"},
 
-		{"src": "gnome:metacity"},
-
 		{"src": "gnome:mutter",
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
 
@@ -824,8 +819,6 @@
 		 "branch": "telepathy-mission-control-5.14",
 		 "config-opts": ["--disable-gtk-doc"]},
 
-		{"src": "gnome:gnome-screensaver"},
-
 		{"src": "gnome:gnome-session",
 		 "config-opts": ["--disable-docbook-docs",
 				 "--disable-man"]},
@@ -865,12 +858,7 @@
 
 		{"src": "gnome:gnome-initial-setup"},
 
-		{"src": "gnome:notification-daemon"},
-
 		{"src": "gnome:libwnck"},
-
-		{"src": "gnome:gnome-panel",
-		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "gnome:vte",
 		 "branch": "vte-0-32"},
