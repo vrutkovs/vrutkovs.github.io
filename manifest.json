@@ -525,8 +525,7 @@
 
                 {"src": "git:git://anongit.freedesktop.org/harfbuzz"},
 
-		{"src": "gnome:pango",
-		 "tag": "93123e2a00779b840f7876013135ac2a2dbd4b46"},
+		{"src": "gnome:pango"},
 
 		{"src": "gnome:atk"},
 
