@@ -633,7 +633,8 @@
                 {"src": "git:git://gitorious.org/gusb/gusb.git"},
 
 		{"src": "git:git://gitorious.org/colord/master.git",
-		 "name": "colord"},
+		 "name": "colord",
+		 "patches": ["colord-disable-private-tmp.patch"]},
 
 		{"src": "linuxwacom:libwacom",
 		 "patches": ["libwacom-autogen.patch"]},

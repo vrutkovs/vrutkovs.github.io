@@ -1,0 +1,27 @@
+From 65ac69c977dae13a3302d9c042c080c3c3a1ed76 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Wed, 21 Nov 2012 08:48:43 -0500
+Subject: [PATCH] colord.service: Disable PrivateTmp for now
+
+It breaks inside gnome-ostree because systemd gets confused
+by the way we set up bind mounts presently.  This is a temporary
+workaround.
+
+http://lists.freedesktop.org/archives/systemd-devel/2012-September/006668.html
+---
+ data/colord.service.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/data/colord.service.in b/data/colord.service.in
+index b473397..d0e29e7 100644
+--- a/data/colord.service.in
++++ b/data/colord.service.in
+@@ -9,4 +9,4 @@ User=@daemon_user@
+ # We think that udev's AF_NETLINK messages are being filtered when
+ # network namespacing is on.
+ # PrivateNetwork=yes
+-PrivateTmp=yes
++#PrivateTmp=yes
+-- 
+1.7.11.7
+
