@@ -75,7 +75,7 @@
 				 "--with-system-pid-file=/run/dbus.pid"]},
 
 		{"src": "git:git://git.libusb.org/libusb.git",
-		 "tag": "v1.0.8",
+		 "tag": "1.0.9",
 		 "patches": ["libusb-autogen.patch"]},
 
 		{"src": "git:git://github.com/gregkh/usbutils.git",
