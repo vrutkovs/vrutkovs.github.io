@@ -852,7 +852,6 @@
                 }, 
 
 		{"src": "gnome:gnome-control-center",
-		 "tag": "2dee0fd591c0897db779c0541f1153ce5854a455",
 		 "config-opts": ["--disable-documentation",
 				 "--disable-cups"]},
 
