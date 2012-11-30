@@ -1,0 +1,28 @@
+From c862e64dc76831a9cb418fe98c4dfcfd48a33a7b Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Fri, 30 Nov 2012 09:57:53 -0500
+Subject: [PATCH] IBusFactory: Fix syntax of gtk-doc comment
+
+This was always invalid, but older versions of gobject-introspection
+accepted it.
+---
+ src/ibusfactory.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/ibusfactory.c b/src/ibusfactory.c
+index c25280f..54a94fe 100644
+--- a/src/ibusfactory.c
++++ b/src/ibusfactory.c
+@@ -170,7 +170,8 @@ ibus_factory_class_init (IBusFactoryClass *class)
+      * with @engine_name, which gets emitted when IBusFactory
+      * received CreateEngine dbus method. The callback functions
+      * will be called until a callback returns a non-null object
+-     * of IBusEngine. */
++     * of IBusEngine.
++     */
+     factory_signals[CREATE_ENGINE] =
+         g_signal_new (I_("create-engine"),
+             G_TYPE_FROM_CLASS (gobject_class),
+-- 
+1.7.11.7
+

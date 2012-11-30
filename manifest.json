@@ -762,7 +762,8 @@
 		{"src": "gnome:gjs"},
 
                 {"src": "ibus:ibus.git",
-		 "patches": ["ibus-builddir.patch"],
+		 "patches": ["ibus-builddir.patch",
+			     "ibus-introspection-syntax.patch"],
 		 "config-opts": ["--disable-tests", 
 				 "--disable-gconf",
 				 "--enable-dconf",
