@@ -767,7 +767,7 @@
 				 "--disable-gconf",
 				 "--enable-dconf",
 				 "--enable-introspection",
-				 "--enable-vala",
+				 "--disable-vala",
 				 "--disable-ui"]},
 
 		{"src": "fd-telepathy:telepathy-glib",
