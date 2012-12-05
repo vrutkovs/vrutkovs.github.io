@@ -2,10 +2,31 @@
 <moduleset>
   <repository type="git" name="git.gnome.org" default="yes"
       href="git://git.gnome.org/"/>
+  <repository type="git" name="cgwalters"
+      href="git://github.com/cgwalters"/>
   <autotools id="glib" autogenargs="--disable-modular-tests">
-    <branch revision="glib-2-34"/>
+    <branch/>
   </autotools>
-  <autotools id="ostree" autogenargs="--disable-documentation --disable-libarchive">
+  <autotools id="gobject-introspection">
+    <branch/>
+    <dependencies>
+      <dep package="glib"/>
+    </dependencies>
+  </autotools>
+  <autotools id="spidermonkey">
+    <branch repo="cgwalters" module="spidermonkey-tarballs-as-git"/>
+    <dependencies>
+      <dep package="glib"/>
+    </dependencies>
+  </autotools>
+  <autotools id="gjs">
+    <branch/>
+    <dependencies>
+      <dep package="gobject-introspection"/>
+      <dep package="spidermonkey"/>
+    </dependencies>
+  </autotools>
+  <autotools id="ostree" autogenargs="--disable-documentation --disable-libarchive --with-soup=no">
     <branch/>
     <dependencies>
       <dep package="glib"/>
@@ -15,6 +36,7 @@
     <branch/>
     <dependencies>
       <dep package="ostree"/>
+      <dep package="gjs"/>
     </dependencies>
   </autotools>
 </moduleset>
