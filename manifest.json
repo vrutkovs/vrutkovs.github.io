@@ -754,6 +754,9 @@
 				 "--disable-nautilus-extension",
 				 "--with-unicode-support=libicu"]},
 
+		{"src": "gnome:dconf",
+		 "config-opts": ["--disable-man"]},
+
 		{"src": "gnome:zenity"},
 
 		{"src": "gnome:mutter",
@@ -789,9 +792,6 @@
 		{"src": "gnome:evolution-data-server",
 		 "config-opts": ["--enable-vala-bindings",
 				 "--disable-weather"]},
-
-		{"src": "gnome:dconf",
-		 "config-opts": ["--disable-man"]},
 
 		{"src": "fd-xdg:default-icon-theme",
 		 "patches": ["default-icon-theme-autogen.patch",
