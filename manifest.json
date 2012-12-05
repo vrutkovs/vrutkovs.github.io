@@ -769,7 +769,7 @@
 			     "ibus-introspection-syntax.patch"],
 		 "config-opts": ["--disable-tests", 
 				 "--disable-gconf",
-				 "--disable-dconf",
+				 "--enable-dconf",
 				 "--enable-introspection",
 				 "--enable-vala",
 				 "--disable-ui"]},
