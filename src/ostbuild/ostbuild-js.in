@@ -4,8 +4,8 @@ jsdir=@pkgdatadir@/js
 arg=$1
 shift
 
-export GI_TYPELIB_PATH="@pkglibdir@/girepository-1.0${GI_TYPELIB_PATH:+:GI_TYPELIB_PATH}"
-export LD_LIBRARY_PATH="@pkglibdir@/${LD_LIBRARY_PATH:+:LD_LIBRARY_PATH}"
+export GI_TYPELIB_PATH="@pkglibdir@/girepository-1.0${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}"
+export LD_LIBRARY_PATH="@pkglibdir@/${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 # Don't auto-spawn a session bus
 export GIO_USE_VFS=local
 
