@@ -28,7 +28,7 @@
       <dep package="glib"/>
     </dependencies>
   </autotools>
-  <autotools id="gjs">
+  <autotools id="gjs" autogenargs="--without-cairo">
     <branch/>
     <dependencies>
       <dep package="gobject-introspection"/>
