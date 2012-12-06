@@ -4,8 +4,17 @@
       href="git://git.gnome.org/"/>
   <repository type="git" name="cgwalters"
       href="git://github.com/cgwalters"/>
+  <autotools id="gtk-doc-stub">
+    <branch/>
+  </autotools>
+  <autotools id="gnome-common">
+    <branch/>
+  </autotools>
   <autotools id="glib" autogenargs="--disable-modular-tests">
     <branch/>
+    <dependencies>
+      <dep package="gtk-doc-stub"/>
+    </dependencies>
   </autotools>
   <autotools id="gobject-introspection">
     <branch/>
@@ -13,7 +22,7 @@
       <dep package="glib"/>
     </dependencies>
   </autotools>
-  <autotools id="spidermonkey">
+  <autotools id="spidermonkey" autogenargs="--enable-threadsafe --with-system-nspr">
     <branch repo="cgwalters" module="spidermonkey-tarballs-as-git"/>
     <dependencies>
       <dep package="glib"/>
@@ -23,6 +32,7 @@
     <branch/>
     <dependencies>
       <dep package="gobject-introspection"/>
+      <dep package="gnome-common"/>
       <dep package="spidermonkey"/>
     </dependencies>
   </autotools>
