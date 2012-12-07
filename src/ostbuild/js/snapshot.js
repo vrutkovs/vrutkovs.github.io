@@ -16,6 +16,8 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
+const JsonDB = imports.jsondb;
+
 function _componentDict(snapshot) {
     let r = {};
     let components = snapshot['components'];
@@ -55,3 +57,46 @@ function snapshotDiff(a, b) {
     }
     return [added, modified, removed];
 }
+
+function load(db, prefix, pathName, cancellable) {
+    if (pathName) {
+	return db.loadFromPath(Gio.File.new_for_path(pathName), cancellable);
+    } else if (prefix) {
+	return db.loadFromPath(db.getLatestPath(), cancellable);
+    } else {
+	throw new Error("No prefix or snapshot specified");
+    }
+}
+
+function getComponent(snapshot, name, allowNone) {
+    let d = _componentDict(snapshot);
+    let r = d[name] || null;
+    if (!r && !allowNone)
+	throw new Error("No component " + name + " in snapshot");
+    return r;
+}
+
+function expandComponent(snapshot, component) {
+    let r = {};
+    Lang.copyProperties(component, r);
+    let patchMeta = getComponent(snapshot, 'patches', true);
+    if (patchMeta != null) {
+	let componentPatchFiles = component['patches'] || [];
+	if (componentPatchFiles.length > 0) {
+	    let patches = {};
+	    Lang.copyProperties(patchMeta, patches);
+	    patches['files'] = componentPatchFiles;
+	    r['patches'] = patches;
+	}
+    }
+    let configOpts = new Array(snapshot['config-opts'] || []);
+    configOpts.push.apply(configOpts, component['config-opts'] || []);
+    r['config-opts'] = configOpts;
+    return r;
+}
+
+function getExpanded(snapshot, name) {
+    return expandComponent(snapshot, getComponent(snapshot, name));
+}
+
+

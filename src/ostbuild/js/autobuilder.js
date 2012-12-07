@@ -12,6 +12,7 @@ const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
+const Config = imports.config;
 
 const loop = GLib.MainLoop.new(null, true);
 
@@ -32,7 +33,7 @@ const AutoBuilder = new Lang.Class({
 	this._resolve_proc = null;
 	this._build_proc = null;
 
-	this.config = imports.config.get();
+	this.config = Config.get();
 	this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
 	this.prefix = this.config.getPrefix();
 	this._snapshot_dir = this.workdir.get_child('snapshots');
@@ -109,6 +110,7 @@ const AutoBuilder = new Lang.Class({
     },
 
     _fetch: function() {
+	let cancellable = null;
 	if (this._resolve_proc != null) {
 	    this._full_resolve_needed = true;
 	    return false;
@@ -117,7 +119,7 @@ const AutoBuilder = new Lang.Class({
 	let taskWorkdir = t.path;
 
 	if (this._autoupdate_self)
-	    ProcUtil.runSync(['git', 'pull', '-r'])
+	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable)
 
 	let args = ['ostbuild', 'resolve', '--manifest=manifest.json',
 		    '--fetch', '--fetch-keep-going'];

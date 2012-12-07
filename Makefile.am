@@ -51,6 +51,7 @@ GSystem_1_0_gir_LIBS = libgsystem.la
 GSystem_1_0_gir_CFLAGS = $(libgsystem_cflags)
 GSystem_1_0_gir_SCANNERFLAGS =			\
        --warn-all				\
+       --warn-error				\
        --symbol-prefix=gs_			\
        --identifier-prefix=GS			\
         --c-include="libgsystem.h"	        \
