@@ -30,7 +30,6 @@ from . import builtin_git_mirror
 from . import builtin_import_tree
 from . import builtin_prefix
 from . import builtin_privhelper_deploy_qemu
-from . import builtin_repoweb_json
 from . import builtin_resolve
 from . import builtin_source_diff
 
