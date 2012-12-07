@@ -74,7 +74,7 @@ const JsonDB = new Lang.Class({
 	    }
             prev = fname;
 	}
-        if (found)
+        if (found && prev)
             return this._path.get_child(prev);
         return null;
     },
