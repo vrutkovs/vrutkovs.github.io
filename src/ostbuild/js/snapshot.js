@@ -18,8 +18,11 @@
 
 function _componentDict(snapshot) {
     let r = {};
-    for (let component in snapshot['components']) {
-        r[component['name']] = component;
+    let components = snapshot['components'];
+    for (let i = 0; i< components.length; i++) {
+	let component = components[i];
+	let name = component['name'];
+        r[name] = component;
     }
     let patches = snapshot['patches'];
     r[patches['name']] = patches;
@@ -37,8 +40,8 @@ function snapshotDiff(a, b) {
     let removed = [];
 
     for (let name in a_components) {
-        let c_a = a_components[name]
-        let c_b = b_components[name]
+        let c_a = a_components[name];
+        let c_b = b_components[name];
         if (c_b == undefined) {
             removed.push(name);
 	} else if (c_a['revision'] != c_b['revision']) {
