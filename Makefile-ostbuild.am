@@ -50,7 +50,6 @@ pyostbuild_PYTHON =					\
 	src/ostbuild/pyostbuild/builtin_import_tree.py	\
 	src/ostbuild/pyostbuild/builtin_privhelper_deploy_qemu.py	\
 	src/ostbuild/pyostbuild/builtin_git_mirror.py	\
-	src/ostbuild/pyostbuild/builtin_prefix.py	\
 	src/ostbuild/pyostbuild/builtin_resolve.py	\
 	src/ostbuild/pyostbuild/builtin_source_diff.py	\
 	src/ostbuild/pyostbuild/builtins.py		\
@@ -82,6 +81,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/jsondb.js \
 	src/ostbuild/js/jsonutil.js \
 	src/ostbuild/js/params.js \
+	src/ostbuild/js/prefix.js \
 	src/ostbuild/js/procutil.js \
 	src/ostbuild/js/snapshot.js \
 	src/ostbuild/js/task.js \

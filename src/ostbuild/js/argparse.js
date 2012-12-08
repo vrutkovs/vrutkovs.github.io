@@ -16,7 +16,7 @@ const ArgumentParser = new Lang.Class({
 	let buf = 'Usage: ' + this.description + '\n';
 	for (let i = 0; i < this._opts.length; i++) {
 	    let opt = this._opts[i];
-	    let names = this._opts._names;
+	    let names = opt._names;
 	    for (let j = 0; j < names.length; j++) {
 		let name = names[j];
 		buf += name;
@@ -29,7 +29,7 @@ const ArgumentParser = new Lang.Class({
 	}
 	for (let i = 0; i < this._namedArgs.length; i++) {
 	    let arg = this._namedArgs[i];
-	    buf += arg + "\n";
+	    buf += arg._varName + "\n";
 	}
 	return buf;
     },

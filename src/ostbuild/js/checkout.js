@@ -17,7 +17,7 @@ const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
 
-const loop = GLib.MainLoop.new(null, true);
+var loop = GLib.MainLoop.new(null, true);
 
 const Checkout = new Lang.Class({
     Name: 'Checkout',
