@@ -26,7 +26,6 @@ from . import builtin_build
 from . import builtin_deploy_root
 from . import builtin_deploy_qemu
 from . import builtin_git_mirror
-from . import builtin_import_tree
 from . import builtin_privhelper_deploy_qemu
 from . import builtin_resolve
 from . import builtin_source_diff
