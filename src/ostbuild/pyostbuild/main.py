@@ -23,7 +23,6 @@ import argparse
 
 from . import builtins
 from . import builtin_build
-from . import builtin_source_diff
 
 JS_BUILTINS = {'autobuilder': "Run resolve and build",
                'checkout': "Check out source tree",
