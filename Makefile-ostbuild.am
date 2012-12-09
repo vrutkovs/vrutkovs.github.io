@@ -46,7 +46,6 @@ pyostbuild_PYTHON =					\
 	src/ostbuild/pyostbuild/buildutil.py		\
 	src/ostbuild/pyostbuild/builtin_build.py	\
 	src/ostbuild/pyostbuild/builtin_deploy_qemu.py	\
-	src/ostbuild/pyostbuild/builtin_deploy_root.py	\
 	src/ostbuild/pyostbuild/builtin_privhelper_deploy_qemu.py	\
 	src/ostbuild/pyostbuild/builtin_resolve.py	\
 	src/ostbuild/pyostbuild/builtin_source_diff.py	\

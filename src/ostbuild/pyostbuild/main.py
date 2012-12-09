@@ -23,7 +23,6 @@ import argparse
 
 from . import builtins
 from . import builtin_build
-from . import builtin_deploy_root
 from . import builtin_deploy_qemu
 from . import builtin_privhelper_deploy_qemu
 from . import builtin_resolve
