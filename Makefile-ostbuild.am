@@ -33,7 +33,7 @@ ostbuild-js: src/ostbuild/ostbuild-js.in Makefile
 EXTRA_DIST += ostbuild/ostbuild-js.in
 
 if BUILDSYSTEM
-bin_SCRIPTS += ostbuild ostbuild-js
+bin_SCRIPTS += ostbuild ostbuild-js $(srcdir)/src/ostbuild/ostbuild-qemu-pull-deploy
 
 utils_SCRIPTS = \
 	src/ostbuild/ostree-build-compile-one \
@@ -45,8 +45,6 @@ pyostbuilddir=$(libdir)/ostbuild/pyostbuild
 pyostbuild_PYTHON =					\
 	src/ostbuild/pyostbuild/buildutil.py		\
 	src/ostbuild/pyostbuild/builtin_build.py	\
-	src/ostbuild/pyostbuild/builtin_deploy_qemu.py	\
-	src/ostbuild/pyostbuild/builtin_privhelper_deploy_qemu.py	\
 	src/ostbuild/pyostbuild/builtin_source_diff.py	\
 	src/ostbuild/pyostbuild/builtins.py		\
 	src/ostbuild/pyostbuild/filemonitor.py		\
