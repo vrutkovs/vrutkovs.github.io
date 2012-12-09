@@ -133,7 +133,6 @@ const ArgumentParser = new Lang.Class({
 		    }
 		} else if (opts.action == 'storeTrue') {
 		    result[opts._varName] = true;
-		    i++;
 		}
 	    } else {
 		rest.push(arg);

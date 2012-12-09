@@ -47,7 +47,6 @@ pyostbuild_PYTHON =					\
 	src/ostbuild/pyostbuild/builtin_build.py	\
 	src/ostbuild/pyostbuild/builtin_deploy_qemu.py	\
 	src/ostbuild/pyostbuild/builtin_privhelper_deploy_qemu.py	\
-	src/ostbuild/pyostbuild/builtin_resolve.py	\
 	src/ostbuild/pyostbuild/builtin_source_diff.py	\
 	src/ostbuild/pyostbuild/builtins.py		\
 	src/ostbuild/pyostbuild/filemonitor.py		\
@@ -81,6 +80,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/params.js \
 	src/ostbuild/js/prefix.js \
 	src/ostbuild/js/procutil.js \
+	src/ostbuild/js/resolve.js \
 	src/ostbuild/js/snapshot.js \
 	src/ostbuild/js/task.js \
 	src/ostbuild/js/vcs.js \

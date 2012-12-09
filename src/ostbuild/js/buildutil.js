@@ -67,7 +67,8 @@ function resolveComponent(manifest, componentMeta) {
             idx = src.lastIndexOf('/');
             name = src.substr(idx+1);
 	}
-        if (name.lastIndexOf('.git') == name.length - 4) {
+	let i = name.lastIndexOf('.git');
+        if (i != -1 && i == name.length - 4) {
             name = name.substr(0, name.length - 4);
 	}
         name = name.replace(/\//g, '-');
@@ -78,6 +79,6 @@ function resolveComponent(manifest, componentMeta) {
     if (!branchOrTag) {
         result['branch'] = 'master';
     }
-    
+
     return result;
 }

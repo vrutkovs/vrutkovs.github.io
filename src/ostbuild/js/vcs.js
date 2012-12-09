@@ -216,3 +216,11 @@ function fetch(mirrordir, keytype, uri, branch, cancellable, params) {
     ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
 		      {fetch:true, fetchKeepGoing: params.keepGoing});
 }
+
+function describeVersion(dirpath, branch) {
+    let args = ['git', 'describe', '--long', '--abbrev=42', '--always'];
+    if (branch) {
+        args.push(branch);
+    }
+    return ProcUtil.runSyncGetOutputUTF8(args, null, {cwd:dirpath}).replace(/[ \n]/g, '');
+}

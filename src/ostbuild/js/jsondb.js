@@ -12,6 +12,7 @@ const JsonDB = new Lang.Class({
 	this._path = path;
 	this._prefix = prefix;
 	this._re = /-(\d+)\.(\d+)-([0-9a-f]+).json$/;
+	this._maxVersions = 5;
     },
 
     parseVersion: function(basename) {
@@ -34,7 +35,7 @@ const JsonDB = new Lang.Class({
 	    let name = info.get_name();
 	    if (name.indexOf(this._prefix) != 0)
 		continue;
-	    if (name.lastIndexOf('.json') != name.length-5)
+	    if (name.length < 6 || name.lastIndexOf('.json') != name.length-5)
 		continue;
 	    let match = this._re.exec(name);
 	    if (!match)
@@ -82,5 +83,43 @@ const JsonDB = new Lang.Class({
 
     loadFromPath: function(path, cancellable) {
 	return JsonUtil.loadJson(this._path.get_child(path.get_basename()), cancellable);
+    },
+
+    store: function(obj, cancellable) {
+        let files = this._getAll();
+	let latest = null;
+        if (files.length > 0) {
+            latest = files[0];
+	}
+	
+	let currentTime = GLib.DateTime.new_now_utc();
+
+	let buf = JSON.stringify(obj);
+	let csum = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, buf, -1);
+        
+	let latestVersion;
+        if (latest) {
+            if (csum == latest[2]) {
+                return [this._path.get_child(latest[3]), false];
+	    }
+            latestVersion = [latest[0], latest[1]];
+        } else {
+            latestVersion = [currentTime.get_year(), 0];
+	}
+
+        let targetName = Format.vprintf('%s-%d.%d-%s.json', [this._prefix, currentTime.get_year(),
+							     latestVersion[1] + 1, csum]);
+        let targetPath = this._path.get_child(targetName);
+	targetPath.replace_contents(buf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+
+        if (files.length + 1 > this._maxVersions) {
+	    for (let i = Math.max(files.length-(this._maxVersions-1), 0);
+		 i < files.length;
+		 i++) {
+		GSystem.file_unlink(this._path.get_child(files[i][3]), cancellable);
+	    }
+	}
+
+        return [targetPath, true];
     }
 });
