@@ -60,9 +60,11 @@ function snapshotDiff(a, b) {
 
 function load(db, prefix, pathName, cancellable) {
     if (pathName) {
-	return db.loadFromPath(Gio.File.new_for_path(pathName), cancellable);
+	let path = Gio.File.new_for_path(pathName);
+	return [db.loadFromPath(Gio.File.new_for_path(pathName), cancellable), path];
     } else if (prefix) {
-	return db.loadFromPath(db.getLatestPath(), cancellable);
+	let path = db.getLatestPath();
+	return [db.loadFromPath(path, cancellable), path];
     } else {
 	throw new Error("No prefix or snapshot specified");
     }
@@ -79,8 +81,8 @@ function getComponent(snapshot, name, allowNone) {
 function expandComponent(snapshot, component) {
     let r = {};
     Lang.copyProperties(component, r);
-    let patchMeta = getComponent(snapshot, 'patches', true);
-    if (patchMeta != null) {
+    let patchMeta = snapshot['patches'];
+    if (patchMeta) {
 	let componentPatchFiles = component['patches'] || [];
 	if (componentPatchFiles.length > 0) {
 	    let patches = {};
@@ -89,7 +91,7 @@ function expandComponent(snapshot, component) {
 	    r['patches'] = patches;
 	}
     }
-    let configOpts = new Array(snapshot['config-opts'] || []);
+    let configOpts = (snapshot['config-opts'] || []).concat();
     configOpts.push.apply(configOpts, component['config-opts'] || []);
     r['config-opts'] = configOpts;
     return r;

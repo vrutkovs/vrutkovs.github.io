@@ -82,3 +82,44 @@ function resolveComponent(manifest, componentMeta) {
 
     return result;
 }
+
+function getPatchPathsForComponent(patchdir, component) {
+    let patches = component['patches'];
+    if (!patches)
+	return [];
+    let patchSubdir = patches['subdir'];
+    let subPatchdir;
+    if (patchSubdir) {
+        subPatchdir = patchdir.get_child(patchSubdir);
+    } else {
+        subPatchdir = patchdir;
+    }
+    let result = [];
+    let files = patches['files'];
+    for (let i = 0; i < files.length; i++) {
+        result.push(subPatchdir.get_child(files[i]));
+    }
+    return result;
+}
+
+function findUserChrootPath() {
+    // We need to search PATH here manually so we correctly pick up an
+    // ostree install in e.g. ~/bin even though we're going to set PATH
+    // below for our children inside the chroot.
+    let userChrootPath = null;
+    let elts = GLib.getenv('PATH').split(':');
+    for (let i = 0; i < elts.length; i++) {
+	let dir = Gio.File.new_for_path(elts[i]);
+	let child = dir.get_child('linux-user-chroot');
+        if (child.query_exists(null)) {
+            userChrootPath = child;
+            break;
+	}
+    }
+    return userChrootPath;
+}
+
+function getBaseUserChrootArgs() {
+    let path = findUserChrootPath();
+    return [path.get_path(), '--unshare-pid', '--unshare-ipc', '--unshare-net'];
+}

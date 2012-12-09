@@ -3,13 +3,29 @@ const Gio = imports.gi.Gio;
 
 const GSystem = imports.gi.GSystem;
 const Params = imports.params;
+const StreamUtil = imports.streamutil;
+
+function objectToEnvironment(o) {
+    let r = [];
+    for (let k in o)
+	r.push(k + "=" + o[k]);
+    return r;
+}
 
 function _setContextFromParams(context, params) {
-    params = Params.parse(params, {cwd: null});
+    params = Params.parse(params, {cwd: null,
+				   env: null,
+				   stderr: null });
     if (typeof(params.cwd) == 'string')
 	context.set_cwd(params.cwd);
     else if (params.cwd)
 	context.set_cwd(params.cwd.get_path());
+
+    if (params.env)
+	context.set_environment(params.env);
+
+    if (params.stderr)
+	context.set_stderr_disposition(params.stderr);
 }
 
 function _wait_sync_check_internal(proc, cancellable) {
@@ -42,19 +58,21 @@ function _runSyncGetOutputInternal(args, cancellable, params, splitLines) {
     proc.init(cancellable);
     let input = proc.get_stdout_pipe();
     let dataIn = Gio.DataInputStream.new(input);
-    let resultLines = [];
-    let resultBuf = '';
-    while (true) {
-	let [line, len] = dataIn.read_line_utf8(cancellable);
-	if (line == null)
-	    break;
-	if (splitLines)
-	    resultLines.push(line);
-	else
-	    resultBuf += line;
+
+    let result;
+    if (splitLines) {
+	result = StreamUtil.dataInputStreamReadLines(dataIn, cancellable);
+    } else {
+	result = '';
+	while (true) {
+	    let [line, len] = dataIn.read_line_utf8(cancellable);
+	    if (line == null)
+		break;
+	    result += line;
+	}
     }
     _wait_sync_check_internal(proc, cancellable);
-    return splitLines ? resultLines : resultBuf;
+    return result;
 }
 
 function runSyncGetOutputLines(args, cancellable, params) {
@@ -63,6 +81,21 @@ function runSyncGetOutputLines(args, cancellable, params) {
 
 function runSyncGetOutputUTF8(args, cancellable, params) {
     return _runSyncGetOutputInternal(args, cancellable, params, false);
+}
+
+function runSyncGetOutputUTF8Stripped(args, cancellable, params) {
+    return _runSyncGetOutputInternal(args, cancellable, params, false).replace(/[ \n]+$/, '');
+}
+
+function runSyncGetOutputUTF8StrippedOrNull(args, cancellable, params) {
+    try {
+	params.stderr = Gio.SubprocessStreamDisposition.NULL;
+	return runSyncGetOutputUTF8Stripped(args, cancellable, params);
+    } catch (e) {
+	if (e.domain == GLib.spawn_exit_error_quark())
+	    return null;
+	throw e;
+    }
 }
 
 function asyncWaitCheckFinish(process, result) {

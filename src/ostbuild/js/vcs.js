@@ -69,7 +69,7 @@ function getVcsCheckout(mirrordir, keytype, uri, dest, branch, cancellable, para
         GSystem.file_unlink(dest, cancellable);
     } else if (ftype == Gio.FileType.DIRECTORY) {
         if (params.overwrite) {
-	    GSystem.shutil_rm_rf(dest);
+	    GSystem.shutil_rm_rf(dest, cancellable);
         } else {
             tmpDest = dest;
 	}
@@ -113,11 +113,11 @@ function parseSrcKey(srckey) {
 }
     
 function checkoutPatches(mirrordir, patchdir, component, cancellable, params) {
-    params = Params.parse(params, { patches_path: null });
+    params = Params.parse(params, { patchesPath: null });
     let patches = component['patches'];
     let patches_keytype = null;
     let patches_uri = null;
-    if (params.patches_path != null) {
+    if (params.patchesPath != null) {
         patches_keytype = local;
 	patches_uri = patches_path;
         patchdir = patches_uri;

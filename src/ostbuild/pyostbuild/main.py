@@ -22,14 +22,13 @@ import sys
 import argparse
 
 from . import builtins
-from . import builtin_build
 
 JS_BUILTINS = {'autobuilder': "Run resolve and build",
                'checkout': "Check out source tree",
                'prefix': "Display or modify \"prefix\" (build target)",
                'git-mirror': "Update internal git mirror for one or more components",
                'resolve': "Expand git revisions in source to exact targets",
-               'qemu-pull-deploy': "Copy from local repository into qemu disk and deploy"};
+               'build': "Build multiple components and generate trees"};
 
 def usage(ecode):
     print "Builtins:"

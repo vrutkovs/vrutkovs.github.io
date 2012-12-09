@@ -94,7 +94,7 @@ const JsonDB = new Lang.Class({
 	
 	let currentTime = GLib.DateTime.new_now_utc();
 
-	let buf = JSON.stringify(obj);
+	let buf = JSON.stringify(obj, null, "  ");
 	let csum = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, buf, -1);
         
 	let latestVersion;

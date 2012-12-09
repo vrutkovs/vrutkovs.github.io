@@ -49,8 +49,6 @@ const Resolve = new Lang.Class({
 					help:"Also perform a git fetch"});
         parser.addArgument('--fetch-keep-going', {action:'storeTrue',
 						  help:"Don't exit on fetch failures"});
-        parser.addArgument('--stamp-file',
-                           {help: "If manifest changes, create this file"});
         parser.addArgument('components', {nargs:'*',
 					  help:"List of component names to git fetch"});
 

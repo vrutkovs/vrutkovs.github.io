@@ -48,13 +48,13 @@ const Checkout = new Lang.Class({
 	this._snapshotDir = this.workdir.get_child('snapshots');
 
 	this._srcDb = new JsonDB.JsonDB(this._snapshotDir, this.prefix + '-src-snapshot');
-	this._snapshot = Snapshot.load(this._srcDb, this.prefix, args.snapshot, cancellable);
+	[this._snapshot, this._snapshotPath] = Snapshot.load(this._srcDb, this.prefix, args.snapshot, cancellable);
 
         let componentName = args.component;
 
 	let component;
         if (args.metadata_path != null) {
-	    component = JsonUtil.load(Gio.File.new_for_path(args.metadata_path));
+	    component = JsonUtil.loadJson(Gio.File.new_for_path(args.metadata_path), cancellable);
         } else {
             component = Snapshot.getExpanded(this._snapshot, componentName);
 	}
@@ -99,7 +99,7 @@ const Checkout = new Lang.Class({
 
         if (component['patches']) {
             if (args.patches_path == null) {
-                patchdir = Vcs.checkoutPatches(this.mirrordir, this.patchdir, component);
+                patchdir = Vcs.checkoutPatches(this.mirrordir, this.patchdir, component, cancellable);
             } else {
                 patchdir = args.patches_path
 	    }
@@ -118,7 +118,9 @@ const Checkout = new Lang.Class({
     }
 });
 
+let ecode = 1;
 var checkout = new Checkout();
 GLib.idle_add(GLib.PRIORITY_DEFAULT,
-	      function() { try { checkout.execute(ARGV); } finally { loop.quit(); }; return false; });
+	      function() { try { checkout.execute(ARGV); ecode = 0; } finally { loop.quit(); }; return false; });
 loop.run();
+ecode;
