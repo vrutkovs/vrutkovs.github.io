@@ -6,8 +6,10 @@ const Params = imports.params;
 
 function _setContextFromParams(context, params) {
     params = Params.parse(params, {cwd: null});
-    if (params.cwd)
+    if (typeof(params.cwd) == 'string')
 	context.set_cwd(params.cwd);
+    else if (params.cwd)
+	context.set_cwd(params.cwd.get_path());
 }
 
 function _wait_sync_check_internal(proc, cancellable) {
@@ -33,6 +35,7 @@ function runSync(args, cancellable, params) {
 function _runSyncGetOutputInternal(args, cancellable, params, splitLines) {
     params = Params.parse(params, {cwd: null});
     let context = new GSystem.SubprocessContext({argv: args});
+    _setContextFromParams(context, params);
     context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
     context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.INHERIT);
     let proc = new GSystem.Subprocess({context: context});

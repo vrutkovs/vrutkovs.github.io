@@ -45,6 +45,8 @@ const ArgumentParser = new Lang.Class({
 
 	if (opts.action == undefined)
 	    opts.action = 'store';
+	if (opts.nargs == undefined)
+	    opts.nargs = '1';
 
 	if (names.length == 0) {
 	    throw new Error("Must specify at least one argument");
@@ -72,7 +74,7 @@ const ArgumentParser = new Lang.Class({
 		this._optNames[name] = opts;
 		if (opts._varName == null) {
 		    if (name.indexOf('--') == 0)
-			opts._varName = name.substr(2);
+			opts._varName = name.substr(2).replace(/-/g, '_');
 		    else if (shortOpt == null && name[0] == '-' && name[1] != '-')
 			shortOpt = name.substr(1);
 		}
@@ -100,7 +102,11 @@ const ArgumentParser = new Lang.Class({
 	    }
 	}
 	for (let name in this._argNames) {
-	    result[name] = null;
+	    let opts = this._argNames[name];
+	    if (opts.nargs == '*')
+		result[name] = [];
+	    else
+		result[name] = null;
 	}
 
 	let rest = [];
@@ -118,9 +124,13 @@ const ArgumentParser = new Lang.Class({
 		if (!opts) this._failed();
 
 		if (opts.action == 'store') {
-		    if (i == argv.length - 1) this._failed();
-		    result[opts._varName] = argv[i+1];
-		    i++;
+		    if (equalsIdx == -1) {
+			if (i == argv.length - 1) this._failed();
+			result[opts._varName] = argv[i+1];
+			i++;
+		    } else {
+			result[opts._varName] = arg.substr(equalsIdx+1);
+		    }
 		} else if (opts.action == 'storeTrue') {
 		    result[opts._varName] = true;
 		    i++;
@@ -131,10 +141,15 @@ const ArgumentParser = new Lang.Class({
 	}
 	
 	for (let i = 0; i < this._namedArgs.length; i++) {
-	    let a = this._namedArgs[i];
-	    if (rest.length == 0) this._failed();
-	    let value = rest.shift();
-	    result[a._varName] = value;
+	    let opts = this._namedArgs[i];
+	    let varName = opts._varName;
+	    if (opts.nargs == '*') {
+		result[varName].push.apply(result[varName], rest);
+	    } else {
+		if (rest.length == 0) this._failed();
+		let value = rest.shift();
+		result[varName] = value;
+	    }
 	}
 
 	return result;

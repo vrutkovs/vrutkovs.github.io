@@ -1,4 +1,3 @@
-// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
 // Taken from gnome-shell/js/misc/params.js under the GNU General Public License
 // parse:
 // @params: caller-provided parameter object, or %null

@@ -25,14 +25,14 @@ from . import builtins
 from . import builtin_build
 from . import builtin_deploy_root
 from . import builtin_deploy_qemu
-from . import builtin_git_mirror
 from . import builtin_privhelper_deploy_qemu
 from . import builtin_resolve
 from . import builtin_source_diff
 
 JS_BUILTINS = {'autobuilder': "Run resolve and build",
                'checkout': "Check out source tree",
-               'prefix': "Display or modify \"prefix\" (build target)"};
+               'prefix': "Display or modify \"prefix\" (build target)",
+               'git-mirror': "Update internal git mirror for one or more components"};
 
 def usage(ecode):
     print "Builtins:"
@@ -58,7 +58,7 @@ def main(args):
                 print "error: Unknown builtin '%s'" % (args[0], )
                 return usage(1)
             else:
-                child_args = ['ostbuild-js', name]
+                child_args = ['ostbuild-js', name.replace('-', '_')]
                 child_args.extend(args[1:])
                 os.execvp('ostbuild-js', child_args)
         return builtin.execute(args[1:])

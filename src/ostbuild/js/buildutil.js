@@ -37,3 +37,47 @@ function parseSrcKey(srckey) {
     let uri = srckey.substr(idx+1);
     return [keytype, uri];
 }
+
+function resolveComponent(manifest, componentMeta) {
+    let result = {};
+    Lang.copyProperties(componentMeta, result);
+    let origSrc = componentMeta['src'];
+
+    let didExpand = false;
+    let vcsConfig = manifest['vcsconfig'];
+    for (let vcsprefix in vcsConfig) {
+	let expansion = vcsConfig[vcsprefix];
+        let prefix = vcsprefix + ':';
+        if (origSrc.indexOf(prefix) == 0) {
+            result['src'] = expansion + origSrc.substr(prefix.length);
+            didExpand = true;
+            break;
+	}
+    }
+
+    let name = componentMeta['name'];
+    let src, idx, name;
+    if (name == undefined) {
+        if (didExpand) {
+            src = origSrc;
+            idx = src.lastIndexOf(':');
+            name = src.substr(idx+1);
+        } else {
+            src = result['src'];
+            idx = src.lastIndexOf('/');
+            name = src.substr(idx+1);
+	}
+        if (name.lastIndexOf('.git') == name.length - 4) {
+            name = name.substr(0, name.length - 4);
+	}
+        name = name.replace(/\//g, '-');
+        result['name'] = name;
+    }
+
+    let branchOrTag = result['branch'] || result['tag'];
+    if (!branchOrTag) {
+        result['branch'] = 'master';
+    }
+    
+    return result;
+}
