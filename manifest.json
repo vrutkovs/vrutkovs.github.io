@@ -791,7 +791,6 @@
 		{"src": "cgwalters:libical-tarballs-as-git"},
 
 		{"src": "gnome:evolution-data-server",
-		 "tag": "30f3f1f4452a62669169f45359f6a92f4fd354b6",
 		 "config-opts": ["--enable-vala-bindings",
 				 "--disable-weather"]},
 
