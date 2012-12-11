@@ -1,6 +1,7 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const format = imports.format;
+const Lang = imports.lang;
 
 const GSystem = imports.gi.GSystem;
 

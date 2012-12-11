@@ -142,7 +142,11 @@ const Resolve = new Lang.Class({
     }
 });
 
-var resolve = new Resolve();
-GLib.idle_add(GLib.PRIORITY_DEFAULT,
-	      function() { try { resolve.execute(ARGV); } finally { loop.quit(); }; return false; });
-loop.run();
+function main(argv) {
+    let ecode = 1;
+    var resolve = new Resolve();
+    GLib.idle_add(GLib.PRIORITY_DEFAULT,
+		  function() { try { resolve.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
+    loop.run();
+    return ecode;
+}

@@ -1,5 +1,3 @@
-#!/usr/bin/env gjs
-
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
@@ -42,6 +40,7 @@ const Checkout = new Lang.Class({
 	this.config = Config.get();
 	this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
 	this.mirrordir = Gio.File.new_for_path(this.config.getGlobal('mirrordir'));
+	this.patchdir = this.workdir.get_child('patches');
 	if (!this.mirrordir.query_exists(cancellable))
 	    throw new Error("Need mirrordir: "+ this.mirrordir.get_path());
 	this.prefix = args.prefix || this.config.getPrefix();
@@ -98,16 +97,17 @@ const Checkout = new Lang.Class({
 	}
 
         if (component['patches']) {
+	    let patchdir;
             if (args.patches_path == null) {
                 patchdir = Vcs.checkoutPatches(this.mirrordir, this.patchdir, component, cancellable);
             } else {
-                patchdir = args.patches_path
+                patchdir = Gio.File.new_for_path(args.patches_path);
 	    }
-            patches = BuildUtil.getPatchPathsForComponent(patchdir, component)
+            let patches = BuildUtil.getPatchPathsForComponent(patchdir, component)
             for (let i = 0; i < patches.length; i++) {
 		let patch = patches[i];
-                ProcUtil.runSync(['git', 'am', '--ignore-date', '-3', patch], cancellable,
-				 {cwd:checkoutdir.get_path()});
+                ProcUtil.runSync(['git', 'am', '--ignore-date', '-3', patch.get_path()], cancellable,
+				 {cwd:checkoutdir});
 	    }
 	}
 
@@ -118,9 +118,11 @@ const Checkout = new Lang.Class({
     }
 });
 
-let ecode = 1;
-var checkout = new Checkout();
-GLib.idle_add(GLib.PRIORITY_DEFAULT,
-	      function() { try { checkout.execute(ARGV); ecode = 0; } finally { loop.quit(); }; return false; });
-loop.run();
-ecode;
+function main(argv) {
+    let ecode = 1;
+    var checkout = new Checkout();
+    GLib.idle_add(GLib.PRIORITY_DEFAULT,
+		  function() { try { checkout.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
+    loop.run();
+    return ecode;
+}

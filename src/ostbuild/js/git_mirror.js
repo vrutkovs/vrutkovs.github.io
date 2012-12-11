@@ -101,7 +101,11 @@ const GitMirror = new Lang.Class({
     }
 });
 
-var gitMirror = new GitMirror();
-GLib.idle_add(GLib.PRIORITY_DEFAULT,
-	      function() { try { gitMirror.execute(ARGV); } finally { loop.quit(); }; return false; });
-loop.run();
+function main(argv) {
+    let ecode = 1;
+    var gitMirror = new GitMirror();
+    GLib.idle_add(GLib.PRIORITY_DEFAULT,
+		  function() { try { gitMirror.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
+    loop.run();
+    return ecode;
+}

@@ -1,5 +1,3 @@
-#!/usr/bin/env gjs
-
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
@@ -284,9 +282,11 @@ const AutoBuilder = new Lang.Class({
     }
 });
 
-var ownId = Gio.DBus.session.own_name('org.gnome.OSTreeBuild', Gio.BusNameOwnerFlags.NONE,
-				      function(name) {},
-				      function(name) { loop.quit(); });
-
-var builder = new AutoBuilder();
-loop.run();
+function main(argv) {
+    var ownId = Gio.DBus.session.own_name('org.gnome.OSTreeBuild', Gio.BusNameOwnerFlags.NONE,
+					  function(name) {},
+					  function(name) { loop.quit(); });
+    
+    var builder = new AutoBuilder();
+    loop.run();
+}

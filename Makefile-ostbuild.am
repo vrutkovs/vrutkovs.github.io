@@ -20,17 +20,11 @@ substitutions= \
 	-e s,@pkglibdir\@,$(pkglibdir), \
 	-e s,@datarootdir\@,$(datarootdir), \
 	-e s,@pkgdatadir\@,$(pkgdatadir), \
-	-e s,@PYTHON\@,$(PYTHON), \
 	$(NULL)
-
 
 ostbuild: src/ostbuild/ostbuild.in Makefile
 	sed $(substitutions) $< > $@.tmp && mv $@.tmp $@
 EXTRA_DIST += ostbuild/ostbuild.in
-
-ostbuild-js: src/ostbuild/ostbuild-js.in Makefile
-	sed $(substitutions) $< > $@.tmp && mv $@.tmp $@
-EXTRA_DIST += ostbuild/ostbuild-js.in
 
 if BUILDSYSTEM
 bin_SCRIPTS += ostbuild ostbuild-js $(srcdir)/src/ostbuild/ostbuild-qemu-pull-deploy
@@ -40,28 +34,6 @@ utils_SCRIPTS = \
 	src/ostbuild/ostree-build-yocto \
 	$(NULL)
 utilsdir = $(pkglibdir)
-
-pyostbuilddir=$(libdir)/ostbuild/pyostbuild
-pyostbuild_PYTHON =					\
-	src/ostbuild/pyostbuild/buildutil.py		\
-	src/ostbuild/pyostbuild/builtins.py		\
-	src/ostbuild/pyostbuild/filemonitor.py		\
-	src/ostbuild/pyostbuild/task.py		\
-	src/ostbuild/pyostbuild/fileutil.py		\
-	src/ostbuild/pyostbuild/__init__.py		\
-	src/ostbuild/pyostbuild/jsondb.py		\
-	src/ostbuild/pyostbuild/kvfile.py		\
-	src/ostbuild/pyostbuild/main.py			\
-	src/ostbuild/pyostbuild/mainloop.py		\
-	src/ostbuild/pyostbuild/odict.py		\
-	src/ostbuild/pyostbuild/ostbuildlog.py		\
-	src/ostbuild/pyostbuild/ostbuildrc.py		\
-	src/ostbuild/pyostbuild/privileged_subproc.py	\
-	src/ostbuild/pyostbuild/warningfilter.py	\
-	src/ostbuild/pyostbuild/snapshot.py		\
-	src/ostbuild/pyostbuild/subprocess_helpers.py	\
-	src/ostbuild/pyostbuild/vcs.py			\
-	$(NULL)
 
 jsostbuilddir=$(pkgdatadir)/js
 jsostbuild_DATA= \
@@ -74,6 +46,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/git_mirror.js \
 	src/ostbuild/js/jsondb.js \
 	src/ostbuild/js/jsonutil.js \
+	src/ostbuild/js/main.js \
 	src/ostbuild/js/params.js \
 	src/ostbuild/js/prefix.js \
 	src/ostbuild/js/procutil.js \

@@ -24,7 +24,7 @@ function _setContextFromParams(context, params) {
     if (params.env)
 	context.set_environment(params.env);
 
-    if (params.stderr)
+    if (params.stderr != null)
 	context.set_stderr_disposition(params.stderr);
 }
 
@@ -33,10 +33,13 @@ function _wait_sync_check_internal(proc, cancellable) {
 	proc.wait_sync_check(cancellable);
     } catch (e) {
 	if (e.domain == GLib.spawn_exit_error_quark() ||
-	    e.matches(GLib.SpawnError, GLib.SpawnError.FAILED))
-	    throw new Error(Format.vprintf("Child process %s: %s", [JSON.stringify(proc.context.argv), e.message]));
-	else
+	    e.matches(GLib.SpawnError, GLib.SpawnError.FAILED)) {
+	    let err = new Error(Format.vprintf("Child process %s: %s", [JSON.stringify(proc.context.argv), e.message]));
+	    err.origError = e;
+	    throw err;
+	} else {
 	    throw e;
+	}
     }
 }
 
@@ -49,7 +52,9 @@ function runSync(args, cancellable, params) {
 }
 
 function _runSyncGetOutputInternal(args, cancellable, params, splitLines) {
-    params = Params.parse(params, {cwd: null});
+    params = Params.parse(params, {cwd: null,
+				   env: null,
+				   stderr: null});
     let context = new GSystem.SubprocessContext({argv: args});
     _setContextFromParams(context, params);
     context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
@@ -88,22 +93,21 @@ function runSyncGetOutputUTF8Stripped(args, cancellable, params) {
 }
 
 function runSyncGetOutputUTF8StrippedOrNull(args, cancellable, params) {
+    if (!params)
+	params = {};
     try {
-	params.stderr = Gio.SubprocessStreamDisposition.NULL;
+	params.stderr = GSystem.SubprocessStreamDisposition.NULL;
 	return runSyncGetOutputUTF8Stripped(args, cancellable, params);
     } catch (e) {
-	if (e.domain == GLib.spawn_exit_error_quark())
+	if (e.origError && e.origError.domain == GLib.spawn_exit_error_quark())
 	    return null;
 	throw e;
     }
 }
 
-function asyncWaitCheckFinish(process, result) {
-    let [waitSuccess, estatus] = process.wait_finish(result);
-    let success = false;
-    let errorMsg = null;
+function getExitStatusAndString(ecode) {
     try {
-	GLib.spawn_check_exit_status(estatus);
+	GLib.spawn_check_exit_status(ecode);
 	return [true, null];
     } catch (e) {
 	if (e.domain == GLib.spawn_exit_error_quark() ||
@@ -112,4 +116,9 @@ function asyncWaitCheckFinish(process, result) {
 	else
 	    throw e;
     }
+}
+
+function asyncWaitCheckFinish(process, result) {
+    let [waitSuccess, ecode] = process.wait_finish(result);
+    return getExitStatusAndString(ecode);
 }

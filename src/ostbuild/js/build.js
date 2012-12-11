@@ -25,6 +25,7 @@ const GSystem = imports.gi.GSystem;
 const Task = imports.task;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
+const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
 const Config = imports.config;
@@ -178,13 +179,13 @@ const Build = new Lang.Class({
     _analyzeBuildFailure: function(t, architecture, component, componentSrcdir,
 				   currentVcsVersion, previousVcsVersion,
 				   cancellable) {
-        let dataIn = Gio.DataInputStream.new(t.logfile_path.read());
+        let dataIn = Gio.DataInputStream.new(t.logfile_path.read(cancellable));
         let lines = StreamUtil.dataInputStreamReadLines(dataIn, cancellable);
-        dataIn.close();
+        dataIn.close(cancellable);
 	let maxLines = 250;
 	lines = lines.splice(Math.max(0, lines.length-maxLines), maxLines);
         for (let i = 0; i < lines.length; i++) {
-            print("| " + line);
+            print("| " + lines[i]);
 	}
         if (currentVcsVersion && previousVcsVersion) {
             let args = ['git', 'log', '--format=short'];
@@ -297,7 +298,7 @@ const Build = new Lang.Class({
             previousBuildVersion = previousMetadata['ostree'];
         } else {
             previousBuildVersion = ProcUtil.runSyncGetOutputUTF8StrippedOrNull(['ostree', '--repo=' + this.repo.get_path(),
-										'rev-parse', buildRef]);
+										'rev-parse', buildRef], cancellable);
 	}
 	let previousVcsVersion;
         if (previousMetadata != null) {
@@ -305,7 +306,7 @@ const Build = new Lang.Class({
         } else if (previousBuildVersion != null) {
             let jsonstr = ProcUtil.runSyncGetOutputUTF8(['ostree', '--repo=' + this.repo.get_path(),
 							 'cat', previousBuildVersion,
-							 '/_ostbuild-meta.json']);
+							 '/_ostbuild-meta.json'], cancellable);
 	    previousMetadata = JSON.parse(jsonstr);
             previousVcsVersion = previousMetadata['revision'];
         } else {
@@ -313,9 +314,9 @@ const Build = new Lang.Class({
             previousVcsVersion = null;
 	}
 
+	let patchdir;
         if (expandedComponent['patches']) {
             let patchesRevision = expandedComponent['patches']['revision'];
-	    let patchdir;
             if (this.args.patches_path) {
                 patchdir = Gio.File.new_for_path(this.args.patches_path);
             } else if (this._cachedPatchdirRevision == patchesRevision) {
@@ -326,9 +327,8 @@ const Build = new Lang.Class({
                                                expandedComponent,
 					       cancellable,
                                                {patchesPath: this.args.patches_path});
-                this.cachedPatchdirRevision = patchesRevision;
+                this._cachedPatchdirRevision = patchesRevision;
 	    }
-	    log("patchdir=" + patchdir.get_path());
             if ((previousMetadata != null) &&
                 previousMetadata['patches'] &&
                 previousMetadata['patches']['revision'] &&
@@ -381,7 +381,7 @@ const Build = new Lang.Class({
         if (this.args.patches_path)
             childArgs.push('--patches-path=' + this.args.patches_path);
         else if (patchdir)
-            childArgs.push('--patches-path=' + patchdir);
+            childArgs.push('--patches-path=' + patchdir.get_path());
         ProcUtil.runSync(childArgs, cancellable);
 
         GSystem.file_unlink(tempMetadataPath, cancellable);
@@ -428,11 +428,12 @@ const Build = new Lang.Class({
 	let proc = new GSystem.Subprocess({ context: context });
 	proc.init(cancellable);
 	let [res, estatus] = proc.wait_sync(cancellable);
-        if (!res) {
+	let [buildSuccess, msg] = ProcUtil.getExitStatusAndString(estatus);
+        if (!buildSuccess) {
             buildTaskset.finish(false);
-            this._analyzeBuildFailure(t, architecture, component, component_src,
-                                      currentVcsVersion, previousVcsVersion);
-	    throw new Error("Build failure in component " + buildname);
+            this._analyzeBuildFailure(t, architecture, component, componentSrc,
+                                      currentVcsVersion, previousVcsVersion, cancellable);
+	    throw new Error("Build failure in component " + buildname + " : " + msg);
 	}
 
         let recordedMetaPath = componentResultdir.get_child('_ostbuild-meta.json');
@@ -479,7 +480,7 @@ const Build = new Lang.Class({
 	let rootdir = this.workdir.get_child('roots');
         let composeRootdir = rootdir.get_child(target['name']);
 	GSystem.shutil_rm_rf(composeRootdir, cancellable);
-        GSystem.file_ensure_directory(composeRootdir, cancellable);
+        GSystem.file_ensure_directory(composeRootdir, true, cancellable);
 
         let relatedRefs = {};
         let baseRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
@@ -517,7 +518,7 @@ const Build = new Lang.Class({
             let subtrees = treeContent['trees'];
             for (let j = 0; j < subtrees.length; j++) {
 		let subpath = subtrees[j];
-                compose_contents.append([rev, subpath]);
+                composeContents.push([rev, subpath]);
 	    }
 	}
 
@@ -536,9 +537,9 @@ const Build = new Lang.Class({
 			  'checkout', '--user-mode', '--no-triggers', '--union', 
 			  '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()],
 			cancellable);
-        GSystem.file_unlink(contentsTmppath, cancellable);
+        GSystem.file_unlink(contentsTmpPath, cancellable);
 
-        contentsPath = composeRootdir.get_child('contents.json');
+        let contentsPath = composeRootdir.get_child('contents.json');
         JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot, cancellable);
 
         let treename = 'trees/' + target['name'];
@@ -587,7 +588,7 @@ const Build = new Lang.Class({
 		   this.repo.get_path()];
         // We specifically want to kill off any environment variables jhbuild
         // may have set.
-        env = {};
+        let env = {};
 	Lang.copyProperties(BuildUtil.BUILD_ENV, env);
         env['DL_DIR'] = downloads.get_path();
         env['SSTATE_DIR'] = sstateDir.get_path();
@@ -668,7 +669,7 @@ const Build = new Lang.Class({
         for (let i = 0; i < args.components.length; i++) {
 	    let name = args.components[i];
             let component = Snapshot.getComponent(this._snapshot, name);
-            this._forceBuildComponents[name] = true;
+            this.forceBuildComponents[name] = true;
 	}
 
         let componentsToBuild = [];
@@ -704,15 +705,15 @@ const Build = new Lang.Class({
 		let architecture = architectures[i];
                 let target = {};
                 targetsList.push(target);
-                target['name'] = prefix + '-' + architecture + '-' + target_component_type;
+                target['name'] = prefix + '-' + architecture + '-' + targetComponentType;
 
-                let runtimeRef = base_prefix + '-' + architecture + '-runtime';
-                let buildrootRef = base_prefix + '-' + architecture + '-devel';
+                let runtimeRef = basePrefix + '-' + architecture + '-runtime';
+                let buildrootRef = basePrefix + '-' + architecture + '-devel';
 		let baseRef;
                 if (targetComponentType == 'runtime') {
                     baseRef = runtimeRef;
                 } else {
-                    baseFef = buildrootRef;
+                    baseRef = buildrootRef;
 		}
                 target['base'] = {'name': baseRef,
                                   'runtime': runtimeRef,
@@ -726,8 +727,8 @@ const Build = new Lang.Class({
 		}
                     
                 let contents = [];
-                for (let i = 0; i < target_components.length; i++) {
-		    let component = target_components[i];
+                for (let i = 0; i < targetComponents.length; i++) {
+		    let component = targetComponents[i];
                     if (component['bootstrap']) {
                         continue;
 		    }
@@ -748,8 +749,8 @@ const Build = new Lang.Class({
 	    }
 	}
 
-        for (let i = 0; i < targets_list.length; i++) {
-	    let target = targets_list[i];
+        for (let i = 0; i < targetsList.length; i++) {
+	    let target = targetsList[i];
             log(Format.vprintf("Composing %s from %d components", [target['name'], target['contents'].length]));
             this._composeOneTarget(target, componentBuildRevs, cancellable);
 	}
@@ -757,8 +758,12 @@ const Build = new Lang.Class({
 });
 
 
-var app = new Build();
-GLib.idle_add(GLib.PRIORITY_DEFAULT,
-	      function() { try { app.execute(ARGV); } finally { loop.quit(); }; return false; });
-loop.run();
+function main(argv) {
+    let ecode = 1;
+    var app = new Build();
+    GLib.idle_add(GLib.PRIORITY_DEFAULT,
+		  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
+    loop.run();
+    return ecode;
+}
 

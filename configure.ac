@@ -39,8 +39,6 @@ LT_INIT([disable-static])
 
 GOBJECT_INTROSPECTION_REQUIRE([1.34.0])
 
-AM_PATH_PYTHON([2.6])
-
 AC_ARG_ENABLE(buildsystem,
 	    AS_HELP_STRING([--disable-buildsystem], [Don't install buildsystem]),,
 	    enable_buildsystem=yes)

@@ -16,7 +16,10 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
+const Gio = imports.gi.Gio;
+
 const JsonDB = imports.jsondb;
+const Lang = imports.lang;
 
 function _componentDict(snapshot) {
     let r = {};

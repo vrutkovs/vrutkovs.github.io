@@ -15,6 +15,10 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
+const GLib = imports.gi.GLib;
+const Gio = imports.gi.Gio;
+const Lang = imports.lang;
+
 const BUILD_ENV = {
     'HOME' : '/', 
     'HOSTNAME' : 'ostbuild',

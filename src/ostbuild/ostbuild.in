@@ -1,33 +1,11 @@
-#!/usr/bin/python
-#
-# Copyright (C) 2011 Colin Walters <walters@verbum.org>
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the
-# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+#!/bin/sh
 
-import os
-import sys
-import __builtin__
+jsdir=@pkgdatadir@/js
 
-__builtin__.__dict__['DATADIR'] = '@datarootdir@'
-__builtin__.__dict__['LIBDIR'] = '@libdir@'
-# This is a private directory, we don't want to pollute the global
-# namespace.
-path = os.path.join('@libdir@', 'ostbuild')
-sys.path.insert(0, path)
+export GI_TYPELIB_PATH="@pkglibdir@/girepository-1.0${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}"
+export LD_LIBRARY_PATH="@pkglibdir@/${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# Don't auto-spawn a session bus
+export GIO_USE_VFS=local
+export OSTBUILD_LIBDIR=@pkglibdir@
 
-from pyostbuild.main import main
-
-sys.exit(main(sys.argv[1:]))
+exec gjs -I "${jsdir}" "${jsdir}/main.js" "$@"
