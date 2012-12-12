@@ -63,7 +63,7 @@ const Build = new Lang.Class({
             if (path.equal(keepRoot)) {
                 continue;
 	    }
-            log("Removing old cached buildroot " + path.get_path());
+            print("Removing old cached buildroot " + path.get_path());
             GSystem.shutil_rm_rf(path, cancellable);
 	}
     },
@@ -93,7 +93,7 @@ const Build = new Lang.Class({
 									prefix,
 									architecture]);
 
-        log("Computing buildroot contents");
+        print("Computing buildroot contents");
 
         let archBuildrootRev = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(), 'rev-parse',
 								      archBuildrootName], cancellable);
@@ -142,14 +142,14 @@ const Build = new Lang.Class({
 
         let cachedRoot = buildrootCachedir.get_child(newRootCacheid);
         if (cachedRoot.query_exists(cancellable)) {
-            log("Reusing cached buildroot: " + cachedRoot.get_path());
+            print("Reusing cached buildroot: " + cachedRoot.get_path());
             this._cleanStaleBuildroots(buildrootCachedir, cachedRoot, cancellable);
             GSystem.file_unlink(tmpPath, cancellable);
             return cachedRoot;
 	}
 
         if (checkoutTrees.length > 0) {
-            log("composing buildroot from %d parents (last: %s)" % (checkoutTrees.length,
+            print("composing buildroot from %d parents (last: %s)" % (checkoutTrees.length,
                                                                     checkoutTrees[checkoutTrees.length-1][0]));
 	}
 
@@ -172,7 +172,7 @@ const Build = new Lang.Class({
         this._cleanStaleBuildroots(buildrootCachedir, cachedRoot, cancellable);
 
         let endtime = GLib.DateTime.new_now_utc();
-        log(Format.vprintf("Composed buildroot; %d seconds elapsed", [endtime.difference(starttime) / GLib.USEC_PER_SEC]));
+        print(Format.vprintf("Composed buildroot; %d seconds elapsed", [endtime.difference(starttime) / GLib.USEC_PER_SEC]));
         return cachedRoot;
      },
 
@@ -195,7 +195,7 @@ const Build = new Lang.Class({
 	    ProcUtil.runSync(args, cancellable, {cwd: componentSrcdir,
 						 env: env});
         } else {
-            log("No previous build; skipping source diff");
+            print("No previous build; skipping source diff");
 	}
      },
 
@@ -310,7 +310,7 @@ const Build = new Lang.Class({
 	    previousMetadata = JSON.parse(jsonstr);
             previousVcsVersion = previousMetadata['revision'];
         } else {
-            log("No previous build for " + buildname);
+            print("No previous build for " + buildname);
             previousVcsVersion = null;
 	}
 
@@ -350,16 +350,16 @@ const Build = new Lang.Class({
             let rebuildReason = this._needsRebuild(previousMetadata, expandedComponent);
             if (rebuildReason == null) {
                 if (!forceRebuild) {
-                    log(Format.vprintf("Reusing cached build of %s at %s", [buildname, previousVcsVersion]));
+                    print(Format.vprintf("Reusing cached build of %s at %s", [buildname, previousVcsVersion]));
                     if (!wasInBuildCache) {
                         return this._saveComponentBuild(buildname, expandedComponent, cancellable);
 		    }
                     return previousBuildVersion;
                 } else {
-                    log("Build forced regardless");
+                    print("Build forced regardless");
 		}
             } else {
-                log(Format.vprintf("Need rebuild of %s: %s", [buildname, rebuildReason]));
+                print(Format.vprintf("Need rebuild of %s: %s", [buildname, rebuildReason]));
 	    }
 	}
 
@@ -751,7 +751,7 @@ const Build = new Lang.Class({
 
         for (let i = 0; i < targetsList.length; i++) {
 	    let target = targetsList[i];
-            log(Format.vprintf("Composing %s from %d components", [target['name'], target['contents'].length]));
+            print(Format.vprintf("Composing %s from %d components", [target['name'], target['contents'].length]));
             this._composeOneTarget(target, componentBuildRevs, cancellable);
 	}
     }

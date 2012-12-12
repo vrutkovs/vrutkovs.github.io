@@ -135,9 +135,9 @@ const Resolve = new Lang.Class({
 	this._src_db = new JsonDB.JsonDB(snapshotdir, this.prefix + '-src-snapshot');
         let [path, modified] = this._src_db.store(this._snapshot, cancellable);
         if (modified) {
-            log("New source snapshot: " + path.get_path());
+            print("New source snapshot: " + path.get_path());
         } else {
-            log("Source snapshot unchanged: " + path.get_path());
+            print("Source snapshot unchanged: " + path.get_path());
 	}
     }
 });

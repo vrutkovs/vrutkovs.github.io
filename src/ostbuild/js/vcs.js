@@ -196,10 +196,10 @@ function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
 
     let changed = currentVcsVersion != lastFetchContents; 
     if (changed) {
-        log(Format.vprintf("last fetch %s differs from branch %s", [lastFetchContents, currentVcsVersion]));
+        print(Format.vprintf("last fetch %s differs from branch %s", [lastFetchContents, currentVcsVersion]));
 	_listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable).forEach(function (elt) {
 	    let [subChecksum, subName, subUrl] = elt;
-	    log("Processing submodule " + subName + " at " + subChecksum + " from " + subUrl);
+	    print("Processing submodule " + subName + " at " + subChecksum + " from " + subUrl);
             ensureVcsMirror(mirrordir, keytype, subUrl, subChecksum, cancellable, {fetch:fetch});
 	});
     }

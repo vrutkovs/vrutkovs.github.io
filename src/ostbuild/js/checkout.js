@@ -90,7 +90,7 @@ const Checkout = new Lang.Class({
 
         if (args.clean) {
             if (isLocal) {
-                log("note: ignoring --clean argument due to \"local:\" specification");
+                print("note: ignoring --clean argument due to \"local:\" specification");
             } else {
                 Vcs.clean(keytype, checkoutdir, cancellable);
 	    }
@@ -114,7 +114,7 @@ const Checkout = new Lang.Class({
         let metadataPath = checkoutdir.get_child('_ostbuild-meta.json');
 	JsonUtil.writeJsonFileAtomic(metadataPath, component, cancellable);
         
-        log("Checked out: " + checkoutdir.get_path());
+        print("Checked out: " + checkoutdir.get_path());
     }
 });
 

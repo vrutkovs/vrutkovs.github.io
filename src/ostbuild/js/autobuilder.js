@@ -95,14 +95,14 @@ const AutoBuilder = new Lang.Class({
     queueBuild: function(components) {
 	this._queued_force_builds.push.apply(this._queued_force_builds, components);
 	this._build_needed = true;
-	log("queued builds: " + this._queued_force_builds);
+	print("queued builds: " + this._queued_force_builds);
 	if (this._build_proc == null)
 	    this._run_build();
     },
 
     queueResolve: function(components) {
 	this._queued_force_resolve.push.apply(this._queued_force_resolve, components);
-	log("queued resolves: " + this._queued_force_resolve);
+	print("queued resolves: " + this._queued_force_resolve);
 	if (this._resolve_proc == null)
 	    this._fetch();
     },
@@ -133,7 +133,7 @@ const AutoBuilder = new Lang.Class({
 	context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	this._resolve_proc = new GSystem.Subprocess({context: context});
 	this._resolve_proc.init(null);
-	log(Format.vprintf("Resolve task %s.%s started, pid=%s", [t.major, t.minor, this._resolve_proc.get_pid()]));
+	print(Format.vprintf("Resolve task %s.%s started, pid=%s", [t.major, t.minor, this._resolve_proc.get_pid()]));
 	this._resolve_proc.wait(null, Lang.bind(this, this._onResolveExited));
 
 	this._updateStatus();
@@ -144,7 +144,7 @@ const AutoBuilder = new Lang.Class({
     _onResolveExited: function(process, result) {
 	this._resolve_proc = null;
 	let [success, msg] = ProcUtil.asyncWaitCheckFinish(process, result);
-	log(Format.vprintf("resolve exited; success=%s msg=%s", [success, msg]))
+	print(Format.vprintf("resolve exited; success=%s msg=%s", [success, msg]))
 	this._resolve_taskset.finish(success);
 	this._prev_source_snapshot_path = this._source_snapshot_path;
 	this._source_snapshot_path = this._src_db.getLatestPath();
@@ -155,7 +155,7 @@ const AutoBuilder = new Lang.Class({
 	let changed = (this._prev_source_snapshot_path == null ||
 		       !this._prev_source_snapshot_path.equal(this._source_snapshot_path));
         if (changed)
-            log(Format.vprintf("New version is %s", [this._source_snapshot_path.get_path()]))
+            print(Format.vprintf("New version is %s", [this._source_snapshot_path.get_path()]))
 	if (!this._build_needed)
 	    this._build_needed = changed;
 	if (this._build_needed && this._build_proc == null)
@@ -194,7 +194,7 @@ const AutoBuilder = new Lang.Class({
 	context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	this._build_proc = new GSystem.Subprocess({context: context});
 	this._build_proc.init(null);
-	log(Format.vprintf("Build task %s.%s started, pid=%s", [task.major, task.minor, this._build_proc.get_pid()]));
+	print(Format.vprintf("Build task %s.%s started, pid=%s", [task.major, task.minor, this._build_proc.get_pid()]));
 	this._build_proc.wait(null, Lang.bind(this, this._onBuildExited));
 
 	this._updateStatus();
@@ -204,7 +204,7 @@ const AutoBuilder = new Lang.Class({
 	if (this._build_proc == null) throw new Error();
 	this._build_proc = null;
 	let [success, msg] = ProcUtil.asyncWaitCheckFinish(process, result);
-	log(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
+	print(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
 	this._build_taskset.finish(success);
 	if (this._build_needed)
 	    this._run_build()

@@ -94,7 +94,7 @@ const GitMirror = new Lang.Class({
             if (!args.fetch) {
                 Vcs.ensureVcsMirror(this._mirrordir, keytype, uri, branchOrTag, cancellable);
 	    } else {
-		log("Running git fetch for " + name);
+		print("Running git fetch for " + name);
 		Vcs.fetch(this._mirrordir, keytype, uri, branchOrTag, cancellable, {keepGoing:args.keep_going});
 	    }
 	}));
