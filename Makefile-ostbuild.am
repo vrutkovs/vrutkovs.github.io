@@ -27,7 +27,7 @@ ostbuild: src/ostbuild/ostbuild.in Makefile
 EXTRA_DIST += ostbuild/ostbuild.in
 
 if BUILDSYSTEM
-bin_SCRIPTS += ostbuild ostbuild-js $(srcdir)/src/ostbuild/ostbuild-qemu-pull-deploy
+bin_SCRIPTS += ostbuild $(srcdir)/src/ostbuild/ostbuild-qemu-pull-deploy
 
 utils_SCRIPTS = \
 	src/ostbuild/ostree-build-compile-one \
