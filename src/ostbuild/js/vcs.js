@@ -181,7 +181,7 @@ function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
     if (!mirror.query_exists(cancellable)) {
         ProcUtil.runSync(['git', 'clone', '--mirror', uri, tmpMirror.get_path()], cancellable);
         ProcUtil.runSync(['git', 'config', 'gc.auto', '0'], cancellable, {cwd: tmpMirror});
-        GSystem.file_rename(tmpMirror, mirror);
+        GSystem.file_rename(tmpMirror, mirror, cancellable);
     } else if (params.fetch) {
 	try {
             ProcUtil.runSync(['git', 'fetch'], cancellable, {cwd:mirror});
