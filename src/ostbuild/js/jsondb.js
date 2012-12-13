@@ -4,6 +4,7 @@ const Lang = imports.lang;
 const Format = imports.format;
 
 const JsonUtil = imports.jsonutil;
+const GSystem = imports.gi.GSystem;
 
 const JsonDB = new Lang.Class({
     Name: 'JsonDB',
