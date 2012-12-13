@@ -556,9 +556,9 @@ const Build = new Lang.Class({
 
     /* Build the Yocto base system. */
     _buildBase: function(architecture, cancellable) {
-        let basemeta = this._snapshot['base'];
+        let basemeta = Snapshot.expandComponent(this._snapshot, this._snapshot['base']);
         let checkoutdir = this.workdir.get_child('checkouts').get_child(basemeta['name']);
-	GSystem.file_ensure_directory(checkoutdir, true, cancellable);
+	GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
 
 	let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
         if (ftype == Gio.FileType.SYMBOLIC_LINK)
