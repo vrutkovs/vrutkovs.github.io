@@ -68,6 +68,7 @@ const GitMirror = new Lang.Class({
 	    }
             this._snapshot['components'] = resolvedComponents;
             this._snapshot['patches'] = BuildUtil.resolveComponent(this._snapshot, this._snapshot['patches']);
+            this._snapshot['base'] = BuildUtil.resolveComponent(this._snapshot, this._snapshot['base']);
         } else {
 	    [this._snapshot, this._snapshotPath] = Snapshot.load(this._srcDb, this.prefix, args.snapshot, cancellable);
 	}
