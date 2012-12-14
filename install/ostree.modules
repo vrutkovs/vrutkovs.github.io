@@ -36,7 +36,17 @@
       <dep package="spidermonkey"/>
     </dependencies>
   </autotools>
-  <autotools id="ostree" autogenargs="--disable-documentation --disable-libarchive --with-soup=no">
+  <autotools id="libsoup" autogenargs="--disable-tls-check">
+    <branch/>
+    <dependencies>
+      <dep package="glib"/>
+      <dep package="gobject-introspection"/>
+    </dependencies>
+    <suggests>
+      <dep package="glib-networking"/>
+    </suggests>
+  </autotools>
+  <autotools id="ostree" autogenargs="--disable-documentation --disable-libarchive --with-soup=yes">
     <branch/>
     <dependencies>
       <dep package="glib"/>
