@@ -11,6 +11,7 @@ const JsonDB = new Lang.Class({
 
     _init: function(path, prefix) {
 	this._path = path;
+	GSystem.file_ensure_directory(this._path, true, null);
 	this._prefix = prefix;
 	this._re = /-(\d+)\.(\d+)-([0-9a-f]+).json$/;
 	this._maxVersions = 5;
