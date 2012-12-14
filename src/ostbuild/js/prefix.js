@@ -50,7 +50,11 @@ const Prefix = new Lang.Class({
     },
 });
 
-var prefix = new Prefix();
-GLib.idle_add(GLib.PRIORITY_DEFAULT,
-	      function() { try { prefix.execute(ARGV); } finally { loop.quit(); }; return false; });
-loop.run();
+function main(argv) {
+    let ecode = 1;
+    var app = new Prefix();
+    GLib.idle_add(GLib.PRIORITY_DEFAULT,
+		  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
+    loop.run();
+    return ecode;
+}
