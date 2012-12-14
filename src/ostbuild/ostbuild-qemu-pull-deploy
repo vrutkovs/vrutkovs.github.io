@@ -39,6 +39,7 @@ if ! test -f ${qemu_path}; then
     mount -o loop ${tmppath} ${mountpoint}
     ostree admin init-fs ${mountpoint} || (umount ${mountpoint} 2>/dev/null; exit 1)
     umount ${mountpoint}
+    mv ${tmppath} ${qemu_path}
 fi
 
 ostreedir=${mountpoint}/ostree
