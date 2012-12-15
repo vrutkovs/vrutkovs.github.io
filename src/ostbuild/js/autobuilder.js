@@ -178,8 +178,7 @@ const AutoBuilder = new Lang.Class({
 
 	let task = this._build_taskset.start();
 	let workdir = task.path;
-	let args = ['ostbuild', 'build', '--skip-vcs-matches',
-		    '--src-snapshot=' + this._source_snapshot_path.get_path()];
+	let args = ['ostbuild', 'build', '--src-snapshot=' + this._source_snapshot_path.get_path()];
 	args.push.apply(args, this._queued_force_builds);
 	this._queued_force_builds = [];
 
