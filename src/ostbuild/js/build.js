@@ -451,7 +451,7 @@ const Build = new Lang.Class({
 	    let dataOut = Gio.DataOutputStream.new(stream.get_output_stream());
 	    for (let i = 0; i < setuidFiles.length; i++) {
 		dataOut.put_string("+2048 ", cancellable);
-		dataOut.put_string(path, cancellable);
+		dataOut.put_string(setuidFiles[i], cancellable);
 		dataOut.put_string("\n", cancellable);
 	    }
             dataOut.close(cancellable);
