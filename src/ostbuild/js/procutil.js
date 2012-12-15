@@ -12,7 +12,8 @@ function objectToEnvironment(o) {
     return r;
 }
 
-function _setContextFromParams(context, params) {
+function _newContext(argv, params) {
+    let context = new GSystem.SubprocessContext({argv: argv});
     params = Params.parse(params, {cwd: null,
 				   env: null,
 				   stderr: null });
@@ -26,6 +27,7 @@ function _setContextFromParams(context, params) {
 
     if (params.stderr != null)
 	context.set_stderr_disposition(params.stderr);
+    return context;
 }
 
 function _wait_sync_check_internal(proc, cancellable) {
@@ -43,20 +45,15 @@ function _wait_sync_check_internal(proc, cancellable) {
     }
 }
 
-function runSync(args, cancellable, params) {
-    let context = new GSystem.SubprocessContext({argv: args});
-    _setContextFromParams(context, params);
+function runSync(argv, cancellable, params) {
+    let context = _newContext(argv, params);
     let proc = new GSystem.Subprocess({context: context});
     proc.init(cancellable);
     _wait_sync_check_internal(proc, cancellable);
 }
 
-function _runSyncGetOutputInternal(args, cancellable, params, splitLines) {
-    params = Params.parse(params, {cwd: null,
-				   env: null,
-				   stderr: null});
-    let context = new GSystem.SubprocessContext({argv: args});
-    _setContextFromParams(context, params);
+function _runSyncGetOutputInternal(argv, cancellable, params, splitLines) {
+    let context = _newContext(argv, params);
     context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
     context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.INHERIT);
     let proc = new GSystem.Subprocess({context: context});
