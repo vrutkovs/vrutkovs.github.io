@@ -16,7 +16,8 @@ function _newContext(argv, params) {
     let context = new GSystem.SubprocessContext({argv: argv});
     params = Params.parse(params, {cwd: null,
 				   env: null,
-				   stderr: null });
+				   stderr: null,
+				   logInitiation: false });
     if (typeof(params.cwd) == 'string')
 	context.set_cwd(params.cwd);
     else if (params.cwd)
@@ -27,7 +28,7 @@ function _newContext(argv, params) {
 
     if (params.stderr != null)
 	context.set_stderr_disposition(params.stderr);
-    return context;
+    return [context, params];
 }
 
 function _wait_sync_check_internal(proc, cancellable) {
@@ -46,18 +47,22 @@ function _wait_sync_check_internal(proc, cancellable) {
 }
 
 function runSync(argv, cancellable, params) {
-    let context = _newContext(argv, params);
+    let [context, pparams] = _newContext(argv, params);
     let proc = new GSystem.Subprocess({context: context});
     proc.init(cancellable);
+    if (pparams.logInitiation)
+	print(Format.vprintf("Started child process %s: pid=%s", [JSON.stringify(proc.context.argv), proc.get_pid()]));
     _wait_sync_check_internal(proc, cancellable);
 }
 
 function _runSyncGetOutputInternal(argv, cancellable, params, splitLines) {
-    let context = _newContext(argv, params);
+    let [context, pparams] = _newContext(argv, params);
     context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
     context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.INHERIT);
     let proc = new GSystem.Subprocess({context: context});
     proc.init(cancellable);
+    if (pparams.logInitiation)
+	print(Format.vprintf("Started child process %s: pid=%s", [JSON.stringify(proc.context.argv), proc.get_pid()]));
     let input = proc.get_stdout_pipe();
     let dataIn = Gio.DataInputStream.new(input);
 

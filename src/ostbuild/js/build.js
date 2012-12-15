@@ -427,6 +427,7 @@ const Build = new Lang.Class({
 	context.set_environment(ProcUtil.objectToEnvironment(envCopy));
 	let proc = new GSystem.Subprocess({ context: context });
 	proc.init(cancellable);
+	print(Format.vprintf("Started child process %s: pid=%s", [JSON.stringify(proc.context.argv), proc.get_pid()]));
 	let [res, estatus] = proc.wait_sync(cancellable);
 	let [buildSuccess, msg] = ProcUtil.getExitStatusAndString(estatus);
         if (!buildSuccess) {
@@ -458,7 +459,8 @@ const Build = new Lang.Class({
             commitArgs.push('--statoverride=' + statoverridePath.get_path());
 	}
 
-        ProcUtil.runSync(commitArgs, cancellable, {cwd: componentResultdir});
+        ProcUtil.runSync(commitArgs, cancellable, {cwd: componentResultdir,
+						   logInitiation: true});
         if (statoverridePath != null)
             GSystem.file_unlink(statoverridePath, cancellable);
 
@@ -536,7 +538,8 @@ const Build = new Lang.Class({
         ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
 			  'checkout', '--user-mode', '--no-triggers', '--union', 
 			  '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()],
-			cancellable);
+			 cancellable,
+                         {logInitiation: true});
         GSystem.file_unlink(contentsTmpPath, cancellable);
 
         let contentsPath = composeRootdir.get_child('contents.json');
@@ -548,8 +551,9 @@ const Build = new Lang.Class({
 			 'commit', '-b', treename, '-s', 'Compose',
 			 '--owner-uid=0', '--owner-gid=0', '--no-xattrs', 
 			 '--related-objects-file=' + relatedTmpPath.get_path(),
-			 '--skip-if-unchanged'
-			 ], cancellable, {cwd: composeRootdir.get_path()});
+			 '--skip-if-unchanged'], cancellable,
+                          {cwd: composeRootdir.get_path(),
+                           logInitiation: true});
         GSystem.file_unlink(relatedTmpPath, cancellable);
         GSystem.shutil_rm_rf(composeRootdir, cancellable);
     },
