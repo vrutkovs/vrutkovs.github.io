@@ -149,8 +149,8 @@ const Build = new Lang.Class({
 	}
 
         if (checkoutTrees.length > 0) {
-            print("composing buildroot from %d parents (last: %s)" % (checkoutTrees.length,
-                                                                    checkoutTrees[checkoutTrees.length-1][0]));
+            print(Format.vprintf("composing buildroot from %d parents (last: %s)", [checkoutTrees.length,
+										    checkoutTrees[checkoutTrees.length-1][0]]));
 	}
 
         let cachedRootTmp = cachedRoot.get_parent().get_child(cachedRoot.get_basename() + '.tmp');
