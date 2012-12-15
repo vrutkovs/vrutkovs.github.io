@@ -1,48 +1,63 @@
-<!DOCTYPE html> 
-<html> 
-  <head> 
-    <title>GNOME-OSTree</title> 
-    <meta name="viewport" content="width=device-width, initial-scale=1"> 
-    <link rel="stylesheet" href="jquery.mobile-1.1.0.css" />
-    <link rel="stylesheet" href="repoweb.css"/>
-    <script src="jquery-1.7.1.js"></script>
-    <script src="jquery.mobile-1.1.0.js"></script>
-    <script src="repoweb.js"></script>
-  </head> 
-  <body onload="$(document).ready(function(){repoweb_index_init();})">
-
-    <div data-role="page" class="type-interior">
-      <div data-role="header">
-        <h1>GNOME-OSTree build server</h1>
-      </div>
-
-      <div data-role="content"> 
-        <div class="content-primary">
-          <p>This is
-            the <a href="https://live.gnome.org/OSTree/GnomeOSTree">GNOME-OSTree</a>
-            build server.  It builds from
-            the <a href="http://git.gnome.org/browse/gnome-ostree">gnome-ostree</a>
-            git module.</p>
-        
-          <h3>Builds</h3>
-          <ul id="build-summary" data-role="listview" data-theme="d" data-divider-theme="d">
-          </ul>
-
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>
+        </title>
+        <link rel="stylesheet" href="jquery.mobile-1.2.0.css" />
+        <link rel="stylesheet" href="repoweb.css" />
+        <style>
+            /* App custom styles */
+        </style>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
+        </script>
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery.mobile/1.2.0/jquery.mobile-1.2.0.min.js">
+        </script>
+        <script src="repoweb.js">
+        </script>
+    </head>
+    <body onload="$(document).ready(function(){repoweb_index_init();})">
+        <!-- Home -->
+        <div data-role="page" data-theme="a" id="page1">
+            <div data-theme="" data-role="header">
+                <h3>
+                    GNOME-OSTree build server
+                </h3>
+                <div data-role="navbar" data-iconpos="top">
+                    <ul>
+                        <li>
+                            <a href="#page1" data-transition="fade" data-theme="" data-icon="">
+                                Home
+                            </a>
+                        </li>
+                        <li>
+                            <a href="work/tasks" data-transition="fade" data-theme="" data-icon="">
+                                Build logs
+                            </a>
+                        </li>
+                        <li>
+                            <a href="work/src" data-transition="fade" data-theme="" data-icon="">
+                                Source code
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div data-role="content">
+                <div class="buildstatus" id="buildstatus">
+                </div>
+<p>This is the <a href="https://live.gnome.org/OSTree/GnomeOSTree" class="ui-link">GNOME-OSTree</a> build server.  It builds from the <a href="http://git.gnome.org/browse/gnome-ostree" class="ui-link">gnome-ostree</a> git module.</p>
+                <ul data-role="listview" data-divider-theme="a" data-inset="true" id="build-summary">
+                </ul>
+            </div>
+	<div class="footer">
+	<p>Optimized for standards. Hosted by <a href="" data-transition="fade">Colin Walters</a>. Powered by <a href="http://jquerymobile.com" data-transition="fade">jquery-mobile</a>.</p>
+	</div>
         </div>
-        <div class="content-secondary">
-	  <ul data-role="listview" data-theme="c" data-dividertheme="d">
-	    <li data-role="list-divider">Tools</li>
-	    <li><a href="work/tasks" rel="external">Build logs</a></li>
-	    <li><a href="work/src" rel="external">Source code</a></li>
-          </ul>
-        </div>
-      </div> <!-- content -->
-    </div>
-  </body>
+
+        <script>
+            //App custom javascript
+        </script>
+    </body>
 </html>
-
-<!-- 
-  Local Variables:
-  indent-tabs-mode: nil
-  End:
--->
