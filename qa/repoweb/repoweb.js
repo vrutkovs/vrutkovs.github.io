@@ -120,16 +120,13 @@ function renderBuild(container, build) {
 
     var state = build['state'];
 
+    if (state == 'running') {
+      a.appendChild(document.createTextNode("Running: "));
+    }
+
     buildDiffAppend(a, build['diff']);
     
-    if (state == 'running') {
-        var p = document.createElement('p');
-        a.appendChild(p);
-        var status = build['build-status'];
-        if (status)
-            status += ": " + status['description'];
-        p.appendChild(document.createTextNode(status));
-    } else {
+    if (state != 'running') {
         var p = document.createElement('span');
         a.appendChild(p);
         var stateSpan = document.createElement('span');
