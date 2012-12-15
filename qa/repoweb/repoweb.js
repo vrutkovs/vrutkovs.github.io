@@ -127,8 +127,8 @@ function renderBuild(container, build) {
         a.appendChild(p);
         var status = build['build-status'];
         if (status)
-            text += ": " + status['description'];
-        p.appendChild(document.createTextNode(text));
+            status += ": " + status['description'];
+        p.appendChild(document.createTextNode(status));
     } else {
         var p = document.createElement('span');
         a.appendChild(p);
