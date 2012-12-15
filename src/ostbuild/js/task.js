@@ -80,22 +80,33 @@ const TaskSet = new Lang.Class({
 	this._history = [];
 	this._running = false;
 	this._running_version = null;
+	this._maxVersions = 10;
 	
 	this._load();
+    },
+
+    _cleanOldEntries: function() {
+	while (this._history.length > this._maxVersions) {
+	    let task = this._history.shift();
+	    GSystem.shutil_rm_rf(task.path, null);
+	}
     },
 
     _load: function() {
 	var e = this.path.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, null);
 	let info;
+	let history = [];
 	while ((info = e.next_file(null)) != null) {
 	    let name = info.get_name();
 	    let childPath = this.path.get_child(name);
 	    let match = VERSION_RE.exec(name);
 	    if (!match)
 		continue;
-	    this._history.push(new TaskHistoryEntry(childPath))
+	    history.push(new TaskHistoryEntry(childPath))
 	}
-	this._history.sort(TaskHistoryEntry.prototype.compareTo);
+	history.sort(TaskHistoryEntry.prototype.compareTo);
+	this._history = history;
+	this._cleanOldEntries();
     },
 
     start: function() {
@@ -123,6 +134,7 @@ const TaskSet = new Lang.Class({
 	let last = this._history[this._history.length-1];
 	last.finish(success);
 	this._running = false;
+	this._cleanOldEntries();
     },
 
     getHistory: function() {
