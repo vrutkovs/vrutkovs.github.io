@@ -98,7 +98,9 @@ def _has_buildapi_configure_variable(name):
     return False
 
 def main(args):
-    default_buildapi_jobs = ['-j', '%d' % (cpu_count() * 2, )]
+    ncpus = cpu_count()
+    default_buildapi_jobs = ['-j', '%d' % (ncpus + 1), 
+                             '-l', '%d' % (ncpus * 2)]
 
     starttime = time.time()
     
