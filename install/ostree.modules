@@ -10,7 +10,7 @@
   <autotools id="gnome-common">
     <branch/>
   </autotools>
-  <autotools id="glib" autogenargs="--disable-modular-tests">
+  <autotools id="glib">
     <branch/>
     <dependencies>
       <dep package="gtk-doc-stub"/>
