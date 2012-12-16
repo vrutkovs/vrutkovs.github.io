@@ -76,10 +76,11 @@ const GitMirror = new Lang.Class({
 	let componentNames;
         if (args.components.length == 0) {
             componentNames = [];
+            componentNames.push(this._snapshot['patches']['name']);
+            componentNames.push(this._snapshot['base']['name']);
 	    this._snapshot['components'].forEach(function (component) {
 		componentNames.push(component['name']);
 	    });
-            componentNames.push(this._snapshot['patches']['name']);
         } else {
             componentNames = args.components;
 	}
