@@ -43,7 +43,6 @@ const AutoBuilder = new Lang.Class({
 	this._queued_force_resolve = [];
 	this._autoupdate_self = true;
 	this._resolve_timeout = 0;
-	this._resolve_is_full = false;
 	this._source_snapshot_path = null;
 	this._prev_source_snapshot_path = null;
 	
@@ -106,13 +105,17 @@ const AutoBuilder = new Lang.Class({
 	if (this._resolve_proc == null)
 	    this._fetch();
     },
+    
+    _fetchAll: function() {
+	this._full_resolve_needed = true;
+	if (this._resolve_proc == null)
+	    this._fetch();
+	return true;
+    },
 
     _fetch: function() {
 	let cancellable = null;
-	if (this._resolve_proc != null) {
-	    this._full_resolve_needed = true;
-	    return false;
-	}
+	if (this._resolve_proc != null) throw new Error("Attempted multiple fetch");
 	let t = this._resolve_taskset.start();
 	let taskWorkdir = t.path;
 
@@ -121,11 +124,15 @@ const AutoBuilder = new Lang.Class({
 
 	let args = ['ostbuild', 'resolve', '--manifest=manifest.json',
 		    '--fetch', '--fetch-keep-going'];
-	if (this._queued_force_resolve.length > 0) {
-	    this._resolve_is_full = false;
+	let isFull;
+	if (this._full_resolve_needed) {
+	    this._full_resolve_needed = false;
+	    isFull = true;
+	} else if (this._queued_force_resolve.length > 0) {
 	    args.push.apply(args, this._queued_force_resolve);
+	    isFull = false;
 	} else {
-	    this._resolve_is_full = true;
+	    throw new Error("_fetch() when not needed");
 	}
 	this._queued_force_resolve = [];
 	let context = new GSystem.SubprocessContext({ argv: args });
@@ -133,7 +140,9 @@ const AutoBuilder = new Lang.Class({
 	context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	this._resolve_proc = new GSystem.Subprocess({context: context});
 	this._resolve_proc.init(null);
-	print(Format.vprintf("Resolve task %s.%s started, pid=%s", [t.major, t.minor, this._resolve_proc.get_pid()]));
+	print(Format.vprintf("Resolve task %s.%s started (%s), pid=%s", [t.major, t.minor,
+									 isFull ? "full" : "incremental",
+									 this._resolve_proc.get_pid()]));
 	this._resolve_proc.wait(null, Lang.bind(this, this._onResolveExited));
 
 	this._updateStatus();
@@ -148,10 +157,6 @@ const AutoBuilder = new Lang.Class({
 	this._resolve_taskset.finish(success);
 	this._prev_source_snapshot_path = this._source_snapshot_path;
 	this._source_snapshot_path = this._src_db.getLatestPath();
-	if (this._resolve_is_full) {
-	    this._resolve_timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 10*60,
-							     Lang.bind(this, this._fetch));
-	}
 	let changed = (this._prev_source_snapshot_path == null ||
 		       !this._prev_source_snapshot_path.equal(this._source_snapshot_path));
         if (changed)
@@ -161,8 +166,7 @@ const AutoBuilder = new Lang.Class({
 	if (this._build_needed && this._build_proc == null)
 	    this._run_build();
 
-	if (this._full_resolve_needed) {
-	    this._full_resolve_needed = false;
+	if (this._full_resolve_needed || this._queued_force_resolve.length > 0) {
 	    this._fetch();
 	}
 
