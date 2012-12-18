@@ -65,7 +65,7 @@ const Checkout = new Lang.Class({
         if (isLocal) {
             if (args.checkoutdir != null) {
                 checkoutdir = Gio.File.new_for_path(args.checkoutdir);
-		let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+		let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
                 // Kind of a hack, but...
                 if (ftype == Gio.FileType.SYMBOLIC_LINK)
                     GSystem.file_unlink(checkoutdir, cancellable);
