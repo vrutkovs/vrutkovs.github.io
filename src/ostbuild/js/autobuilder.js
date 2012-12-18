@@ -61,7 +61,9 @@ const AutoBuilder = new Lang.Class({
 
 	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
 
-	this._fetch();
+	this._resolve_timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+							 60 * 10, Lang.bind(this, this._fetchAll));
+	this._fetchAll();
 	if (this._source_snapshot_path != null)
 	    this._run_build();
 
