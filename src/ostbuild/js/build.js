@@ -224,13 +224,14 @@ const Build = new Lang.Class({
     },
 
     _needsRebuild: function(previousMetadata, newMetadata) {
-        let buildKeys = ['config-opts', 'src', 'revision'];
+        let buildKeys = ['config-opts', 'src', 'revision', 'setuid'];
         for (let i = 0; i < buildKeys.length; i++) {
 	    let k = buildKeys[i];
-            if (!newMetadata[k]) {
-                return 'key ' + k + ' removed from new_metadata';
-	    }
-            if (previousMetadata[k]) {
+            if (previousMetadata[k] && !newMetadata[k]) {
+                return 'key ' + k + ' removed';
+	    } else if (!previousMetadata[k] && newMetadata[k]) {
+                return 'key ' + k + ' added';
+	    } else if (previousMetadata[k] && newMetadata[k]) {
                 let oldval = previousMetadata[k];
                 let newval = newMetadata[k];
                 if (!this._compareAny(oldval,newval)) {
