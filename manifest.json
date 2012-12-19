@@ -838,6 +838,9 @@
 		                 "--without-folks",
                                  "--disable-man"]},
 
+		{"src": "gnome:gnome-shell-extensions",
+		 "config-opts": ["--enable-extensions=classic-mode"]},
+
 		{"src": "gnome:libgtop"},
 
 		{"src": "gnome:clutter-gst",
