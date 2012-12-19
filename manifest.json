@@ -256,7 +256,6 @@
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd:xorg/lib/libX11",
-		 "tag": "99eae3dcb7bf6764e3b243d2a2934a4d1ecce90e",
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd:xorg/lib/libXrender",
