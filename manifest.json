@@ -106,7 +106,8 @@
 
    		{"src": "git:git://sourceware.org/git/lvm2.git"},
 
-   		{"src": "gnome:linux-user-chroot"},
+   		{"src": "gnome:linux-user-chroot",
+		 "setuid": ["/runtime/usr/bin/linux-user-chroot"]},
 
 		{"src": "gnome:libxml2",
 		 "tag": "4629ee02ac649c27f9c0cf98ba017c6b5526070f"},
