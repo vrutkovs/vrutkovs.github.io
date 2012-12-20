@@ -598,6 +598,19 @@ const Build = new Lang.Class({
         env['DL_DIR'] = downloads.get_path();
         env['SSTATE_DIR'] = sstateDir.get_path();
         ProcUtil.runSync(cmd, cancellable, {env:ProcUtil.objectToEnvironment(env)});
+
+	let componentTypes = ['runtime', 'devel'];
+        for (let i = 0; i < componentTypes.length; i++) {
+	    let componentType = componentTypes[i];
+	    let treename = Format.vprintf('bases/yocto/%s-%s-%s', [this.prefix, architecture, componentType]);
+	    let tarPath = builddir.get_child(Format.vprintf('gnomeos-contents-%s-%s.tar.gz', [componentType, architecture]));
+	    ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
+			      'commit', '-s', 'Build', '--skip-if-unchanged',
+			      '-b', treename, '--tree=tar=' + tarPath.get_path()],
+			     cancellable,
+			     {logInitiation: true});
+	    GSystem.file_unlink(tarPath, cancellable);
+	}
     },
         
     execute: function(argv) {

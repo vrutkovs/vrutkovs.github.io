@@ -95,6 +95,10 @@ ln -sf ${repo_path} ${IMAGEDIR}/repo
 echo "Building ${src_gitrev}"
 bitbake gnomeos-contents-{runtime,devel}
 
+for basetype in runtime devel; do
+    ln -sf ${builddir}/tmp-eglibc/deploy/images/gnomeos-contents-${basetype}-${MACHINE}.tar.gz gnomeos-contents-${basetype}-${architecture}.tar.gz
+done
+
 echo ${src_gitrev} > ${built_gitrev_path}.tmp
 mv ${built_gitrev_path}.tmp ${built_gitrev_path}
 exit 0

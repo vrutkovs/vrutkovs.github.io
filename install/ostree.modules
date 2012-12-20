@@ -46,7 +46,7 @@
       <dep package="glib-networking"/>
     </suggests>
   </autotools>
-  <autotools id="ostree" autogenargs="--disable-documentation --disable-libarchive --with-soup=yes">
+  <autotools id="ostree" autogenargs="--disable-documentation --enable-libarchive --with-soup=yes">
     <branch/>
     <dependencies>
       <dep package="glib"/>
