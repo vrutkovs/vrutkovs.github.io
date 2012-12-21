@@ -582,6 +582,18 @@ const Build = new Lang.Class({
         let builddirName = Format.vprintf('build-%s-%s', [basemeta['name'], architecture]);
         let builddir = this.workdir.get_child(builddirName);
 
+	let builtRevisionPath = builddir.get_child('built-revision');
+	if (builtRevisionPath.query_exists(cancellable)) {
+	    let builtRevision = GSystem.file_load_contents_utf8(builtRevisionPath, cancellable);
+	    builtRevision = builtRevision.replace(/[ \n]/g, '');
+	    if (builtRevision == basemeta['revision']) {
+		print(Format.vprintf("Already built %s at %s", [builddirName, builtRevision]));
+		return;
+	    } else {
+		print(Format.vprintf("%s was %s, now at revision %s", [builddirName, builtRevision, basemeta['revision']]));
+	    }
+	} 
+
         // Just keep reusing the old working directory downloads and sstate
         let oldBuilddir = this.workdir.get_child('build-' + basemeta['name']);
         let sstateDir = oldBuilddir.get_child('sstate-cache');
@@ -611,6 +623,8 @@ const Build = new Lang.Class({
 			     {logInitiation: true});
 	    GSystem.file_unlink(tarPath, cancellable);
 	}
+
+	builtRevisionPath.replace_contents(basemeta['revision'], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
     },
         
     execute: function(argv) {
