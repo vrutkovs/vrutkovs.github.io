@@ -21,8 +21,12 @@ set -x
 
 srcrepo=$1
 shift
+osname=$1
+shift
 target=$1
 shift
+
+test -n "$target" || (echo 1>&2 "usage: $0: SRCREPO OSNAME TARGET"; exit 1)
     
 qemu_path=ostree-qemu.img
 mountpoint=ostree-qemu-mnt
@@ -47,7 +51,9 @@ repopath=${ostreedir}/repo
 
 mount -o loop ${qemu_path} ${mountpoint}
 
+ostree admin --ostree-dir=${ostreedir} os-init ${osname} || (umount ${mountpoint} 2>/dev/null; exit 1)
 ostree --repo=${repopath} pull-local ${srcrepo} ${target} || (umount ${mountpoint} 2>/dev/null; exit 1)
-ostree admin --ostree-dir=${ostreedir} deploy --no-kernel ${target} || (umount ${mountpoint} 2>/dev/null; exit 1)
+ostree admin --ostree-dir=${ostreedir} deploy --no-kernel ${osname} ${target} || (umount ${mountpoint} 2>/dev/null; exit 1)
+ostree admin --ostree-dir=${ostreedir} prune ${osname} ${target} || (umount ${mountpoint} 2>/dev/null; exit 1)
 
 umount ${mountpoint}
