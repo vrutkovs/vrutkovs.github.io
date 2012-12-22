@@ -52,19 +52,13 @@ const Build = new Lang.Class({
     _cleanStaleBuildroots: function(buildrootCachedir, keepRoot, cancellable) {
 	let direnum = buildrootCachedir.enumerate_children("standard::*,unix::mtime",
 							   Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
-        let rootMtimes = [];
 	let finfo;
 	while ((finfo = direnum.next_file(cancellable)) != null) {
-	    rootMtimes.push([buildrootCachedir.get_child(finfo.get_name()), finfo.get_attribute_uint32('unix::mtime')]);
-	}
-        rootMtimes.sort(function (a,b) { let ma = a[1]; let mb = b[1]; if (ma == mb) return 0; else if (ma < mb) return -1; return 1;});
-        for (let i = 0; i < rootMtimes.length - 2; i++) {
-	    let path = rootMtimes[i][0];
-            if (path.equal(keepRoot)) {
-                continue;
-	    }
-            print("Removing old cached buildroot " + path.get_path());
-            GSystem.shutil_rm_rf(path, cancellable);
+	    let child = buildrootCachedir.get_child(finfo.get_name());
+	    if (child.equal(keepRoot))
+		continue;
+            print("Removing old cached buildroot " + child.get_path());
+            GSystem.shutil_rm_rf(child, cancellable);
 	}
     },
 
