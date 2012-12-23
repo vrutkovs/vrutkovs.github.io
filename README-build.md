@@ -81,114 +81,14 @@ locally.  I'm working on this.
 Doing a full build on your system
 ---------------------------------
 
-Following this process is equivalent to what we have set up on the
-ostree.gnome.org build server.  It will generate a completely new
-repository.
+The way I have things set up, I use jhbuild to build glib,
+gobject-introspection, spidermonkey, gjs, and finally the gnome-ostree
+build system.  See install/ostree.modules.
 
-    $ srcdir=/src
-    $ builddir=/src/build
-    
-    
-    # First, you'll need "http://git.gnome.org/browse/linux-user-chroot/"
-    # installed as setuid root.
-    
-    $ cd $srcdir
-    
-    $ git clone gnome:linux-user-chroot
-    $ cd linux-user-chroot
-    $ NOCONFIGURE=1 ./autogen.sh
-    $ ./configure
-    $ make
-    $ sudo make install
-    $ sudo chown root:root /usr/local/bin/linux-user-chroot
-    $ sudo chmod u+s /usr/local/bin/linux-user-chroot
-    
-    
-    # We're going to be using Yocto.  You probably want to refer to:
-    # http://www.yoctoproject.org/docs/current/yocto-project-qs/yocto-project-qs.html
-    # Next, we're grabbing my Poky branch.
-    
-    $ git clone git://github.com/cgwalters/poky.git
-    $ cd poky
-    $ git co gnomeos-3.6
-    $ cd $builddir
-    
-    
-    # This command enters the Poky environment, creating
-    # a directory named gnomeos-build.
-    
-    $ . $srcdir/poky/oe-init-build-env gnomeos-build
-    
-    
-    # Now edit conf/bblayers.conf, and add
-    #   /src/poky/meta-gnomeos
-    # to BBLAYERS.
-    #
-    # Check the conf/local.conf file and make sure "tools-profile" and
-    # "tools-testapps" are not in EXTRA_IMAGE_FEATURES
-    #
-    # Also, you should choose useful values for BB_NUMBER_THREADS and
-    # PARALLEL_MAKE
-    #
-    # For the meaning of this variables you can check:
-    # http://www.yoctoproject.org/docs/current/poky-ref-manual/poky-ref-manual.html#var-EXTRA_IMAGE_FEATURES
-    # http://www.yoctoproject.org/docs/current/poky-ref-manual/poky-ref-manual.html#var-BB_NUMBER_THREADS
-    # http://www.yoctoproject.org/docs/current/poky-ref-manual/poky-ref-manual.html#var-PARALLEL_MAKE
-    
-    $ bitbake ostree-native
-    
-    
-    # After this command, we will have a native compilation of OSTree
-    # e.g. tmp/work/x86_64-linux/ostree-native-1.0-r0/image/opt/gnome-os/tanty/build/gnomeos-build/tmp/sysroots/
-    
-    $ bitbake gnomeos-contents-{runtime,devel}
-    
-    
-    # At the end, the Yocto build process generates two tarballs: one for
-    # a base "runtime", and one "devel" with all of the development tools
-    # like gcc.  We then import that into an OSTree branch
-    # e.g. "bases/yocto/gnomeos-3.6-i686-devel".
-    
-    
-    # This bit is just for shorthand convenience, you can skip it
-    
-    $ cd $builddir
-    $ ln -s gnomeos-build/tmp/deploy/images/repo repo
-    
-    
-    # Now create a file ~/.config/ostbuild.cfg
-    # example contents:
-    # [global]
-    # repo=/src/build/repo
-    # mirrordir=/src/build/ostbuild/src
-    # workdir=/src/build/ostbuild/work
-    
-    
-    # And create the mirrordir and workdir directories
-    
-    $ mkdir -p $builddir/ostbuild/src
-    $ mkdir -p $builddir/ostbuild/work
-    
-    
-    # Now we want to use the "ostbuild" binary that was created
-    # as part of "bitbake ostree-native".  You can do e.g.:
-    
-    $ export PATH=$builddir/gnomeos-build/tmp/sysroots/x86_64-linux/usr/bin:$PATH
-    
-    
-    # This next command will download all of the source code to the
-    # modules specified in $gnome-ostree/gnomeos-3.6.json, and create a
-    # file $workdir/manifest.json that has the exact git commits we want
-    # to build.
-    
-    $ ostbuild resolve --manifest /src/gnome-ostree/gnomeos-3.6.json
-    
-    
-    # By then, you should create your own prefix for the builds of the
-    # OSTree
-    
-    $ ostbuild prefix my-prefix
-    
-    
-    # This command builds everything
-    $ ostbuild build-components --src-snapshot $builddir/ostbuild/work/snapshots/gnomeos-3.6-src-snapshot-<year>.<number>-<hash>.json
+From there, just run:
+
+$ ostbuild resolve --manifest=manifest.json --fetch
+$ ostbuild build --prefix=gnomeos-3.8
+
+
+
