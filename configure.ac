@@ -1,5 +1,5 @@
 AC_PREREQ([2.63])
-AC_INIT([gnome-ostree], [2012.3], [walters@verbum.org], [gnome-ostree], [https://live.gnome.org/OSTree/GnomeOSTree])
+AC_INIT([gnome-ostree], [2012.4], [walters@verbum.org], [gnome-ostree], [https://live.gnome.org/OSTree/GnomeOSTree])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
