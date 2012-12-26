@@ -734,7 +734,6 @@
 		 "patches": ["gee-builddir.patch"]},
 
 		{"src": "gnome:libgee",
-		 "tag": "ce3586f7e768f7f51305f4d134a1dfce37bb43b4",
 		 "patches": ["gee-builddir.patch"]},
 
                 {"src": "gnome:gtksourceview",
