@@ -672,28 +672,6 @@
 		{"src": "gnome:gnome-ostree-integration"},
 
 		{"src": "fd-gstreamer:gstreamer",
-		 "name": "gstreamer-0.10",
-		 "branch": "0.10",
-		 "config-opts": ["--disable-tests",
-		                 "--disable-fatal-warnings"]},
-
-		{"src": "fd-gstreamer:gst-plugins-base",
-		 "name": "gst-plugins-base-0.10",
-		 "branch": "0.10",
-		 "config-opts": ["--with-gtk=3.0",
-		                 "--disable-tests",
-				 "--disable-gnome_vfs",
-				 "--disable-fatal-warnings"]},
-
-		{"src": "fd-gstreamer:gst-plugins-good",
-		 "name": "gst-plugins-good-0.10",
-		 "branch": "0.10",
-		 "config-opts": ["--with-gtk=3.0",
-		                 "--disable-tests",
-				 "--disable-examples",
-				 "--disable-fatal-warnings"]},
-
-		{"src": "fd-gstreamer:gstreamer",
 		 "config-opts": ["--disable-tests",
 		                 "--disable-fatal-warnings"]},
 
@@ -839,10 +817,6 @@
 		 "config-opts": ["--enable-extensions=classic-mode"]},
 
 		{"src": "gnome:libgtop"},
-
-		{"src": "gnome:clutter-gst",
-                 "name": "clutter-gst-1.6",
-		 "branch": "clutter-gst-1.6"},
 
 		{"src": "gnome:clutter-gst"},
 
