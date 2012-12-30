@@ -809,7 +809,6 @@
 
 		{"src": "gnome:gnome-shell",
 		 "config-opts": ["--enable-compile-warnings=maximum",
-		                 "--without-folks",
                                  "--disable-man"]},
 
 		{"src": "gnome:gnome-shell-extensions",
