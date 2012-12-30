@@ -767,8 +767,7 @@
 		{"src": "cgwalters:libical-tarballs-as-git"},
 
 		{"src": "gnome:evolution-data-server",
-		 "config-opts": ["--enable-vala-bindings",
-				 "--disable-weather"]},
+		 "config-opts": ["--enable-vala-bindings"]},
 
 		{"src": "fd-xdg:default-icon-theme",
 		 "patches": ["default-icon-theme-autogen.patch",
