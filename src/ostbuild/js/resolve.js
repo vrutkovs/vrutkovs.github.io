@@ -43,8 +43,7 @@ const Resolve = new Lang.Class({
     execute: function(argv) {
 	let cancellable = null;
         let parser = new ArgParse.ArgumentParser("Expand git revisions in source to exact targets");
-        parser.addArgument('--manifest', {required:true,
-					  help:"Path to manifest file"});
+        parser.addArgument('--manifest', {help:"Path to manifest file"});
         parser.addArgument('--fetch', {action:'storeTrue',
 					help:"Also perform a git fetch"});
         parser.addArgument('--fetch-keep-going', {action:'storeTrue',
@@ -64,6 +63,7 @@ const Resolve = new Lang.Class({
 	}
 
 	this.config = Config.get();
+        args.manifest = args.manifest || this.config.getGlobal('manifest');
 	this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
         this._snapshot = JsonUtil.loadJson(Gio.File.new_for_path(args.manifest), cancellable);
 	this._mirrordir = Gio.File.new_for_path(this.config.getGlobal('mirrordir'));
