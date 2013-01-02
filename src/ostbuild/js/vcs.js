@@ -17,6 +17,7 @@
 
 const Params = imports.params;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const GSystem = imports.gi.GSystem;
 
 const ProcUtil = imports.procutil;
@@ -25,15 +26,20 @@ const BuildUtil = imports.buildutil;
 function getMirrordir(mirrordir, keytype, uri, params) {
     params = Params.parse(params, {prefix: ''});
     let colon = uri.indexOf('://');
-    let scheme = uri.substr(0, colon);
-    let rest = uri.substr(colon+3);
-    let slash = rest.indexOf('/');
-    let netloc = rest.substr(0, slash);
-    let path = rest.substr(slash+1);
+    let scheme, rest;
+    if (colon >= 0) {
+        scheme = uri.substr(0, colon);
+        rest = uri.substr(colon+3);
+    } else {
+        scheme = 'file';
+        if (GLib.path_is_absolute(uri))
+            rest = uri.substr(1);
+        else
+            rest = uri;
+    }
     let prefix = params.prefix ? params.prefix + '/' : '';
-    return mirrordir.resolve_relative_path(prefix + keytype + '/' + 
-					   scheme + '/' + netloc + '/' +
-					   path);
+    return mirrordir.resolve_relative_path(prefix + keytype + '/' +
+					   scheme + '/' + rest);
 }
 
 function _fixupSubmoduleReferences(mirrordir, cwd, cancellable) {
