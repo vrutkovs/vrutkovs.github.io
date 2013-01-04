@@ -579,9 +579,10 @@
 		 "config-opts": ["--disable-gtk-theme"]},
 
 		{"src": "gnome:cogl",
-		 "branch": "cogl-1.10"},
+		 "branch": "cogl-1.12"},
 
-		{"src": "gnome:clutter"},
+		{"src": "gnome:clutter",
+		 "branch": "clutter-1.12"},
 
 		{"src": "gnome:libnotify"},
 
