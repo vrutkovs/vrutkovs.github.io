@@ -789,10 +789,12 @@
 		                 "--with-systemd"]},
 
 		{"src": "fd-telepathy:telepathy-logger",
+		 "config-opts": ["--disable-Werror"],
 		 "patches": ["telepathy-logger-autogen.patch"]},
 
 		{"src": "fd-telepathy:telepathy-mission-control",
-		 "config-opts": ["--disable-gtk-doc"]},
+		 "config-opts": ["--disable-gtk-doc",
+		                 "--disable-Werror"]},
 
 		{"src": "gnome:gnome-session",
 		 "config-opts": ["--disable-docbook-docs",
