@@ -510,10 +510,6 @@
 				 "--disable-gtk",
 				 "--disable-gtk3"]},
 
-		{"src": "gnome:gnome-doc-utils",
-		 "config-opts": ["--disable-scrollkeeper",
-		                 "--disable-documentation"]},
-
 		{"src": "gnome:gconf",
 		 "config-opts": ["--disable-orbit",
 		                 "--disable-gtk",
