@@ -800,6 +800,7 @@
 				 "--disable-man"]},
 
 		{"src": "gnome:gnome-settings-daemon",
+		 "tag": "17f17dd514b0939ba976b9215a2d0d6a9f875f39",
 		 "config-opts": ["--disable-packagekit",
 		                 "--disable-cups",
 		                 "--enable-systemd",
