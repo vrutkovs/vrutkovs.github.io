@@ -835,7 +835,7 @@
 		{"src": "gnome:libwnck"},
 
 		{"src": "gnome:vte",
-		 "branch": "vte-0-32"},
+		 "branch": "vte-0-34"},
 
 		{"src": "gnome:gnome-terminal",
 		 "patches": ["gnome-terminal-disable-docs.patch"],
