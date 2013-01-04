@@ -823,6 +823,7 @@
                 }, 
 
 		{"src": "gnome:gnome-control-center",
+		 "tag": "28ea296f095cbeae69347d7f8e0dd138d0ddbe6b",
 		 "config-opts": ["--disable-documentation",
 				 "--disable-cups"]},
 
