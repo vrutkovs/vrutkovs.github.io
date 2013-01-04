@@ -837,10 +837,7 @@
 		{"src": "gnome:vte",
 		 "branch": "vte-0-34"},
 
-		{"src": "gnome:gnome-terminal",
-		 "patches": ["gnome-terminal-disable-docs.patch"],
-		 "branch": "gnome-3-4",
-		 "config-opts": ["--disable-documentation"]},
+		{"src": "gnome:gnome-terminal"},
 
 		{"src": "git:git://git.kernel.org/pub/scm/utils/dash/dash.git"},
 
