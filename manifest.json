@@ -805,8 +805,6 @@
 		                 "--enable-systemd",
 				 "--disable-man"]},
 
-		{"src": "gnome:gnome-power-manager"},
-
 		{"src": "gnome:gnome-shell",
 		 "config-opts": ["--enable-compile-warnings=maximum",
                                  "--disable-man"]},
