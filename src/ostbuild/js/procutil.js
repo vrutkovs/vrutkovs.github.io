@@ -141,3 +141,81 @@ function asyncWaitCheckFinish(process, result) {
     let [waitSuccess, ecode] = process.wait_finish(result);
     return getExitStatusAndString(ecode);
 }
+
+function runWithTempContextAndLoop(func) {
+    let mainContext = new GLib.MainContext();
+    let mainLoop = GLib.MainLoop.new(mainContext, true);
+    try {
+        mainContext.push_thread_default();
+        return func(mainLoop);
+    } finally {
+        mainContext.pop_thread_default();
+    }
+}
+
+function _runProcWithInputSyncGetLinesInternal(mainLoop, argv, cancellable, input) {
+    let context = new GSystem.SubprocessContext({ argv: argv });
+    context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
+    context.set_stdin_disposition(GSystem.SubprocessStreamDisposition.PIPE);
+    let proc = new GSystem.Subprocess({context: context});
+    proc.init(cancellable);
+    let stdinPipe = proc.get_stdin_pipe();
+    let memStream = Gio.MemoryInputStream.new_from_bytes(new GLib.Bytes(input));
+    let asyncOps = 3;
+    function asyncOpComplete() {
+        asyncOps--;
+        if (asyncOps == 0)
+            mainLoop.quit();
+    }
+    function onSpliceComplete(stdinPipe, result) {
+        try {
+            let bytesWritten = stdinPipe.splice_finish(result);
+        } finally {
+            asyncOpComplete();
+        }
+    }
+    let closeBoth = Gio.OutputStreamSpliceFlags.CLOSE_SOURCE | Gio.OutputStreamSpliceFlags.CLOSE_TARGET;
+    stdinPipe.splice_async(memStream, closeBoth, GLib.PRIORITY_DEFAULT,
+                           cancellable, onSpliceComplete);
+
+    let procException = null;
+    function onProcExited(proc, result) {
+        try {
+            let [success, statusText] = asyncWaitCheckFinish(proc, result);
+            if (!success)
+                procException = statusText;
+        } finally {
+            asyncOpComplete();
+        }
+    }
+    proc.wait(cancellable, onProcExited);
+    
+    let stdoutPipe = proc.get_stdout_pipe();
+    let stdoutData = Gio.DataInputStream.new(stdoutPipe);
+    let lines = [];
+    function onReadLine(datastream, result) {
+        try {
+            let [line, len] = stdoutData.read_line_finish_utf8(result);
+            if (line == null)
+                asyncOpComplete();
+            else {
+                lines.push(line);
+                stdoutData.read_line_async(GLib.PRIORITY_DEFAULT, cancellable, onReadLine);
+            }
+        } catch (e) {
+            asyncOpComplete();
+            throw e;
+        }
+    }
+    stdoutData.read_line_async(GLib.PRIORITY_DEFAULT, cancellable, onReadLine);
+
+    mainLoop.run();
+
+    return lines;
+}
+
+function runProcWithInputSyncGetLines(argv, cancellable, input) {
+    return runWithTempContextAndLoop(function (loop) {
+        return  _runProcWithInputSyncGetLinesInternal(loop, argv, cancellable, input);
+    });
+}

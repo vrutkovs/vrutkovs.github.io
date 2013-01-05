@@ -22,7 +22,9 @@ const BUILTINS = {'autobuilder': "Run resolve and build",
                   'prefix': "Display or modify \"prefix\" (build target)",
                   'git-mirror': "Update internal git mirror for one or more components",
                   'resolve': "Expand git revisions in source to exact targets",
-                  'build': "Build multiple components and generate trees"};
+                  'build': "Build multiple components and generate trees",
+                  'qa-make-disk': "Generate a bare disk image",
+		  'qa-pull-deploy': "Copy OSTree repo into virtual disk and deploy it"};
 
 function usage(ecode) {
     print("Builtins:");

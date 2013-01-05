@@ -27,7 +27,9 @@ ostbuild: src/ostbuild/ostbuild.in Makefile
 EXTRA_DIST += ostbuild/ostbuild.in
 
 if BUILDSYSTEM
-bin_SCRIPTS += ostbuild $(srcdir)/src/ostbuild/ostbuild-qemu-pull-deploy
+bin_SCRIPTS += ostbuild \
+	$(srcdir)/src/ostbuild/ostbuild-qemu-pull-deploy \
+	$(NULL)
 
 utils_SCRIPTS = \
 	src/ostbuild/ostree-build-compile-one \
@@ -57,6 +59,8 @@ jsostbuiltins_DATA= \
 	src/ostbuild/js/builtins/build.js \
 	src/ostbuild/js/builtins/checkout.js \
 	src/ostbuild/js/builtins/git_mirror.js \
+	src/ostbuild/js/builtins/qa_make_disk.js \
+	src/ostbuild/js/builtins/qa_pull_deploy.js \
 	src/ostbuild/js/builtins/prefix.js \
 	src/ostbuild/js/builtins/resolve.js \
 	$(NULL)
