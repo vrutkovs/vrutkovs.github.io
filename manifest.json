@@ -625,11 +625,12 @@
 		 "tag": "lcms2.3"},
 
                 {"src": "git:git://gitorious.org/gusb/gusb.git"},
-
+		
 		{"src": "git:git://gitorious.org/colord/master.git",
-		 "tag": "3811bdbdce232f3af01b9ededa86a10d244e8f58",
 		 "name": "colord",
-		 "patches": ["colord-disable-private-tmp.patch"]},
+		 "config-opts": ["--disable-print-profiles"],
+		 "patches": ["colord-disable-private-tmp.patch",
+		             "colord-builddir-2.patch"]},
 
 		{"src": "linuxwacom:libwacom",
 		 "patches": ["libwacom-autogen.patch"]},
@@ -797,7 +798,6 @@
 				 "--disable-man"]},
 
 		{"src": "gnome:gnome-settings-daemon",
-		 "tag": "17f17dd514b0939ba976b9215a2d0d6a9f875f39",
 		 "config-opts": ["--disable-packagekit",
 		                 "--disable-cups",
 		                 "--enable-systemd",
@@ -823,7 +823,6 @@
                 }, 
 
 		{"src": "gnome:gnome-control-center",
-		 "tag": "28ea296f095cbeae69347d7f8e0dd138d0ddbe6b",
 		 "config-opts": ["--disable-documentation",
 				 "--disable-cups"]},
 
