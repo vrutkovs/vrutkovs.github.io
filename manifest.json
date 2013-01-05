@@ -837,8 +837,10 @@
 		{"src": "git:git://git.kernel.org/pub/scm/utils/dash/dash.git"},
 
                 {"src": "git:git://git.kernel.org/pub/scm/boot/dracut/dracut.git",
-		 "config-opts": ["--disable-documentation"],
-		 "patches": ["dracut-Support-OSTree.patch"]},
+		 "config-opts": ["--disable-documentation",
+		                 "--enable-systemd"],
+		 "patches": ["dracut-Support-OSTree.patch",
+		             "dracut-systemd-configure.patch"]},
 
 		{"src": "git:git://git.cairographics.org/git/py2cairo",
 		 "patches": ["py2cairo-autogen.patch"]},
