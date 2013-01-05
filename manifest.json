@@ -629,8 +629,7 @@
 		{"src": "git:git://gitorious.org/colord/master.git",
 		 "name": "colord",
 		 "config-opts": ["--disable-print-profiles"],
-		 "patches": ["colord-disable-private-tmp.patch",
-		             "colord-builddir-2.patch"]},
+		 "patches": ["colord-disable-private-tmp.patch"]},
 
 		{"src": "linuxwacom:libwacom",
 		 "patches": ["libwacom-autogen.patch"]},
