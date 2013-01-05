@@ -556,6 +556,7 @@ const Build = new Lang.Class({
     /* Build the Yocto base system. */
     _buildBase: function(architecture, cancellable) {
         let basemeta = Snapshot.expandComponent(this._snapshot, this._snapshot['base']);
+	let basename = basemeta['name'];
         let checkoutdir = this.workdir.get_child('checkouts').get_child(basemeta['name']);
 	GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
 
@@ -576,11 +577,16 @@ const Build = new Lang.Class({
         let builddirName = Format.vprintf('build-%s-%s', [basemeta['name'], architecture]);
         let builddir = this.workdir.get_child(builddirName);
 
+        let forceRebuild = (this.forceBuildComponents[basename] ||
+                            basemeta['src'].indexOf('local:') == 0);
+
 	let builtRevisionPath = builddir.get_child('built-revision');
 	if (builtRevisionPath.query_exists(cancellable)) {
 	    let builtRevision = GSystem.file_load_contents_utf8(builtRevisionPath, cancellable);
 	    builtRevision = builtRevision.replace(/[ \n]/g, '');
-	    if (builtRevision == basemeta['revision']) {
+	    if (forceRebuild) {
+		print(Format.vprintf("%s forced rebuild", [builddirName]));
+	    } else if (builtRevision == basemeta['revision']) {
 		print(Format.vprintf("Already built %s at %s", [builddirName, builtRevision]));
 		return;
 	    } else {
