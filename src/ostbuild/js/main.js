@@ -44,7 +44,7 @@ if (ARGV.length < 1) {
     }
     let args = ARGV.concat();
     args.shift();
-    imports[name.replace(/-/g, '_')].main(args);
+    imports.builtins[name.replace(/-/g, '_')].main(args);
 }
     
     
