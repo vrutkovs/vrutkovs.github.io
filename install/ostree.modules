@@ -16,7 +16,7 @@
       <dep package="gtk-doc-stub"/>
     </dependencies>
   </autotools>
-  <autotools id="gobject-introspection">
+  <autotools id="gobject-introspection" autogenargs="--without-cairo">
     <branch/>
     <dependencies>
       <dep package="glib"/>
