@@ -49,7 +49,7 @@
   <autotools id="ostree" autogenargs="--disable-documentation --enable-libarchive --with-soup=yes">
     <branch/>
     <dependencies>
-      <dep package="glib"/>
+      <dep package="libsoup"/>
     </dependencies>
   </autotools>
   <autotools id="gnome-ostree">
