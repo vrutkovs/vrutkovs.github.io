@@ -25,6 +25,7 @@ const GSystem = imports.gi.GSystem;
 
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
+const GuestFish = imports.guestfish;
 
 const loop = GLib.MainLoop.new(null, true);
 
@@ -51,13 +52,12 @@ const QaMakeDisk = new Lang.Class({
         let guestfishProcess;
         
         ProcUtil.runSync(['qemu-img', 'create', tmppath.get_path(), '' + sizeMb + 'M'], cancellable);
-        let lines = ProcUtil.runProcWithInputSyncGetLines(['guestfish', '-a', tmppath.get_path()], 
-                                                          cancellable,
-                                                          'launch\n\
+        let makeDiskCmd = 'launch\n\
 part-init /dev/vda mbr\n\
 blockdev-getsize64 /dev/vda\n\
-blockdev-getss /dev/vda\n');
-                                                 
+blockdev-getss /dev/vda\n';
+        let gf = new GuestFish.GuestFish(tmppath, true);
+        let lines = gf.run(makeDiskCmd, cancellable, {partitionOpts: [], readWrite: true});
         if (lines.length != 2)
             throw new Error("guestfish returned unexpected output lines (" + lines.length + ", expected 2");
         let diskBytesize = parseInt(lines[0]);
@@ -86,7 +86,7 @@ mkdir /boot\n\
     swapOffset, rootOffset - 1,
     rootOffset, endOffset - 1]);
         print("partition config: ", partconfig);
-        lines = ProcUtil.runProcWithInputSyncGetLines(['guestfish', '-a', tmppath.get_path()], cancellable, partconfig);
+        lines = gf.run(partconfig, cancellable, {partitionOpts: [], readWrite: true});
         GSystem.file_rename(tmppath, path, cancellable);
         print("Created: " + path.get_path());
     }

@@ -45,6 +45,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/jsondb.js \
 	src/ostbuild/js/jsonutil.js \
 	src/ostbuild/js/main.js \
+	src/ostbuild/js/guestfish.js \
 	src/ostbuild/js/params.js \
 	src/ostbuild/js/procutil.js \
 	src/ostbuild/js/snapshot.js \

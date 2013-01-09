@@ -25,6 +25,7 @@ const GSystem = imports.gi.GSystem;
 
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
+const GuestFish = imports.guestfish;
 
 const loop = GLib.MainLoop.new(null, true);
 
@@ -35,14 +36,17 @@ const QaPullDeploy = new Lang.Class({
         let deployBootdir = mntdir.resolve_relative_path('ostree/deploy/' + osname + '/current/boot');
         let d = deployBootdir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
 	      let finfo;
-	      while ((finfo = d.next_file(cancellable)) != null) {
-	          let child = deployBootdir.get_child(finfo.get_name());
-	          if (child.get_basename().indexOf('vmlinuz-') == 0) {
-                return child;
+        try {
+	          while ((finfo = d.next_file(cancellable)) != null) {
+	              let child = deployBootdir.get_child(finfo.get_name());
+	              if (child.get_basename().indexOf('vmlinuz-') == 0) {
+                    return child;
+                }
             }
+            throw new Error("Couldn't find vmlinuz- in " + deployBootdir.get_path());
+        } finally {
+            d.close(null);
         }
-        d.close(cancellable);
-        throw new Error("Couldn't find vmlinuz- in " + deployBootdir.get_path());
     },
 
     _parseKernelRelease: function(kernelPath) {
@@ -60,17 +64,6 @@ const QaPullDeploy = new Lang.Class({
         if (!path.query_exists(null))
             throw new Error("Couldn't find initramfs " + path.get_path());
         return path;
-    },
-
-    // https://bugzilla.redhat.com/show_bug.cgi?id=892834
-    // Also; we have to recreate it as a directory, then
-    // delete that again to avoid further fuse/guestfs bugs.
-    _workaroundGuestfsFuseBug: function(symlinkPath, cancellable) {
-        GSystem.shutil_rm_rf(symlinkPath, cancellable);
-        GSystem.file_ensure_directory(symlinkPath, true, cancellable);
-        let dummyFile = symlinkPath.get_child('dummy');
-        dummyFile.replace_contents('hello world', null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-        GSystem.shutil_rm_rf(symlinkPath, cancellable);
     },
 
     execute: function(argv) {
@@ -120,19 +113,24 @@ const QaPullDeploy = new Lang.Class({
                 ProcUtil.runSync(adminCmd.concat(['init-fs', mntdir.get_path()]), cancellable,
                                  {logInitiation: true, env: adminEnv});
             }
-            ProcUtil.runSync(adminCmd.concat(['os-init', args.osname]), cancellable,
-                             {logInitiation: true, env: adminEnv});
+
+            // *** NOTE ***
+            // Here we blow away any current deployment.  This is pretty lame, but it
+            // avoids us triggering a variety of guestfs/FUSE bugs =(
+            // See: https://bugzilla.redhat.com/show_bug.cgi?id=892834
+            //
+            // But regardless, it's probably useful if every
+            // deployment starts clean, and callers can use libguestfs
+            // to crack the FS open afterwards and modify config files
+            // or the like.
+            GSystem.shutil_rm_rf(ostree_osdir, cancellable);
+
             ProcUtil.runSync(adminCmd.concat(['os-init', args.osname]), cancellable,
                              {logInitiation: true, env: adminEnv});
             ProcUtil.runSync(['ostree', '--repo=' + ostreedir.get_child('repo').get_path(),
                               'pull-local', args.srcrepo, args.target], cancellable,
                              {logInitiation: true, env: adminEnv});
 
-            let currentDeployLink = ostree_osdir.get_child('current');
-            let currentEtcDeployLink = ostree_osdir.get_child('current-etc');
-            this._workaroundGuestfsFuseBug(currentDeployLink, cancellable);
-            this._workaroundGuestfsFuseBug(currentEtcDeployLink, cancellable);
-            
             ProcUtil.runSync(adminCmd.concat(['deploy', '--no-kernel', args.osname, args.target]), cancellable,
                              {logInitiation: true, env: adminEnv});
             ProcUtil.runSync(adminCmd.concat(['update-kernel', '--no-bootloader', args.osname]), cancellable,
@@ -162,10 +160,10 @@ LABEL=gnostree-swap swap swap defaults 0 0\n';
             let grubConfPath = grubDir.get_child('grub.conf');
             let grubConf = Format.vprintf('default=0\n\
 timeout=5\n\
-title GNOME-OSTree\n\
+title %s\n\
         root (hd0,0)\n\
-        kernel /%s root=LABEL=gnostree-root\n\
-        initrd /%s\n', [bootRelativeKernelPath, bootRelativeInitramfsPath]);
+        kernel /%s root=LABEL=gnostree-root ostree=%s/current\n\
+        initrd /%s\n', [args.osname, bootRelativeKernelPath, args.osname, bootRelativeInitramfsPath]);
             grubConfPath.replace_contents(grubConf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
         } finally {
             if (guestmountPidFile.query_exists(null)) {
@@ -181,8 +179,23 @@ title GNOME-OSTree\n\
                         } catch (e) {
                             if (!(e.origError && e.origError.domain == GLib.spawn_exit_error_quark()))
                                 throw e;
-                            else
+                            else {
+                                let proc = GSystem.Subprocess.new_simple_argv(['fuser', '-m', mntdir.get_path()],
+                                                                              GSystem.SubprocessStreamDisposition.INHERIT,
+                                                                              GSystem.SubprocessStreamDisposition.INHERIT,
+                                                                              cancellable);
+                                proc.init(cancellable);
+                                proc.wait_sync(cancellable);
+                                let creds = new Gio.Credentials();
+                                proc = GSystem.Subprocess.new_simple_argv(['ls', '-al', '/proc/' + creds.get_unix_pid() + '/fd'],
+                                                                          GSystem.SubprocessStreamDisposition.INHERIT,
+                                                                          GSystem.SubprocessStreamDisposition.INHERIT,
+                                                                          cancellable);
+                                proc.init(cancellable);
+                                proc.wait_sync(cancellable);
+                                                                              
                                 GLib.usleep(GLib.USEC_PER_SEC);
+                            }
                         }
                     }
                     let pid = parseInt(pidStr);
@@ -205,12 +218,10 @@ title GNOME-OSTree\n\
             }
         }
 
-        let grubInstallCmds = 'grub-install / /dev/vda\n';
-        let lines = ProcUtil.runProcWithInputSyncGetLines(['guestfish', '-a', args.diskpath,
-                                                           '-m', '/dev/sda3',
-                                                           '-m', '/dev/sda1:/boot'],
-                                                          cancellable, grubInstallCmds);
-        
+        let gf = new GuestFish.GuestFish(diskpath, true);
+        gf.run('grub-install / /dev/vda\n', cancellable,
+               {partitionOpts: ['-m', '/dev/sda3', '-m', '/dev/sda1:/boot'],
+                readWrite: true});
         print("Complete!");
     }
 });
