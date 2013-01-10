@@ -359,6 +359,7 @@
 		 "patches": ["xorg-autogen.patch"]},
 
 		{"src": "fd-mesa:drm",
+		 "tag": "891517f5111cd82909906d5e8ee0299db0d46762",
 		 "config-opts": ["--enable-nouveau-experimental-api"]},
 
 		{"src": "fd-mesa:mesa",
