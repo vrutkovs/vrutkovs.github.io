@@ -119,7 +119,6 @@
 		 "patches": ["freetype-autogen.patch"]},
 
    		{"src": "fd:fontconfig",
-		 "tag": "2.8.0",
 		 "patches": ["fontconfig-autogen.patch"]},
 
 		{"src": "fd:xorg/util/macros",
