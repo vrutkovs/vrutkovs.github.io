@@ -43,7 +43,7 @@ const GitMirror = new Lang.Class({
         let parser = new ArgParse.ArgumentParser("Update internal git mirror for one or more components");
         parser.addArgument('--prefix');
         parser.addArgument('--manifest');
-        parser.addArgument('--src-snapshot');
+        parser.addArgument('--snapshot');
         parser.addArgument('--fetch', {action:'storeTrue',
 				       help:"Also do a git fetch for components"});
         parser.addArgument(['-k', '--keep-going'], {action:'storeTrue',

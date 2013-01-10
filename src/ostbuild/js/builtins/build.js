@@ -632,7 +632,7 @@ const Build = new Lang.Class({
 
         let parser = new ArgParse.ArgumentParser("Build multiple components and generate trees");
         parser.addArgument('--prefix');
-        parser.addArgument('--src-snapshot');
+        parser.addArgument('--snapshot');
         parser.addArgument('--patches-path');
         parser.addArgument('components', {nargs:'*'});
         
