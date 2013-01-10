@@ -56,8 +56,8 @@ const QaMakeDisk = new Lang.Class({
 part-init /dev/vda mbr\n\
 blockdev-getsize64 /dev/vda\n\
 blockdev-getss /dev/vda\n';
-        let gf = new GuestFish.GuestFish(tmppath, true);
-        let lines = gf.run(makeDiskCmd, cancellable, {partitionOpts: [], readWrite: true});
+        let gf = new GuestFish.GuestFish(tmppath, {partitionOpts: [], readWrite: true});
+        let lines = gf.run(makeDiskCmd, cancellable);
         if (lines.length != 2)
             throw new Error("guestfish returned unexpected output lines (" + lines.length + ", expected 2");
         let diskBytesize = parseInt(lines[0]);
@@ -86,7 +86,7 @@ mkdir /boot\n\
     swapOffset, rootOffset - 1,
     rootOffset, endOffset - 1]);
         print("partition config: ", partconfig);
-        lines = gf.run(partconfig, cancellable, {partitionOpts: [], readWrite: true});
+        lines = gf.run(partconfig, cancellable);
         GSystem.file_rename(tmppath, path, cancellable);
         print("Created: " + path.get_path());
     }
