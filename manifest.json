@@ -119,7 +119,8 @@
 		 "patches": ["freetype-autogen.patch"]},
 
    		{"src": "fd:fontconfig",
-		 "patches": ["fontconfig-autogen.patch"]},
+		 "patches": ["fontconfig-autogen.patch",
+			     "fontconfig-test-build.patch"]},
 
 		{"src": "fd:xorg/util/macros",
 		 "component": "devel",

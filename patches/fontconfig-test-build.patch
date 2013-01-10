@@ -1,0 +1,24 @@
+From e265118cfc6fdfefe6a940e8e3b621dd4cf6d07d Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Thu, 10 Jan 2013 08:46:33 -0500
+Subject: [PATCH] test: Ensure we find the uninstalled fontconfig header
+
+---
+ test/Makefile.am |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 3ba8e93..5e2fdd4 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -7,6 +7,7 @@ TESTDATA=4x6.pcf 8x16.pcf out.expected fonts.conf.in
+ if HAVE_PTHREAD
+ check_PROGRAMS = test-pthread
+ noinst_PROGRAMS = $(check_PROGRAMS)
++test_pthread_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)
+ test_pthread_LDADD = $(top_builddir)/src/libfontconfig.la
+ # We don't enable this test by default because it will require config and fonts
+ # to meaningfully test anything, and we are not installed yet.
+-- 
+1.7.1
+
