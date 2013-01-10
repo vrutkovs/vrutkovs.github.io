@@ -1,26 +1,35 @@
-From 3582884f5b6246c06d60bd4abd986713b4c4c05d Mon Sep 17 00:00:00 2001
-From: Colin Walters <walters@verbum.org>
-Date: Fri, 6 Jan 2012 19:42:12 -0500
+From 09850fbe88ca27458e75a942d8f7d3ccbbbb7b12 Mon Sep 17 00:00:00 2001
+From: Matthias Clasen <mclasen@redhat.com>
+Date: Thu, 10 Jan 2013 08:06:18 -0500
 Subject: [PATCH] autogen.sh: Honor NOCONFIGURE environment variable
 
 http://people.gnome.org/~walters/docs/build-api.txt
 ---
- autogen.sh |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ autogen.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/autogen.sh b/autogen.sh
-index 820c457..f534bdd 100755
+index 93855cb..19832f6 100755
 --- a/autogen.sh
 +++ b/autogen.sh
-@@ -114,7 +114,7 @@ echo Running $AUTOCONF
+@@ -86,7 +86,7 @@ test $TEST_TYPE $FILE || {
+ 	exit 1
+ }
+ 
+-if test -z "$AUTOGEN_SUBDIR_MODE"; then
++if test -z "$AUTOGEN_SUBDIR_MODE && test -z "$NOCONFIGURE"; then
+         if test -z "$*"; then
+                 echo "I am going to run ./configure with no arguments - if you wish "
+                 echo "to pass any to it, please specify them on the $0 command line."
+@@ -115,7 +115,7 @@ echo Running $AUTOCONF
  $AUTOCONF
  cd $ORIGDIR
  
 -if test -z "$AUTOGEN_SUBDIR_MODE"; then
 +if test -z "$AUTOGEN_SUBDIR_MODE" && test -z "$NOCONFIGURE"; then
- 	echo Running $srcdir/configure --enable-maintainer-mode "$@"
-         $srcdir/configure --enable-maintainer-mode "$@"
+ 	echo Running $srcdir/configure "$@"
+         $srcdir/configure "$@"
  
 -- 
-1.7.6.4
+1.8.1
 
