@@ -19,6 +19,7 @@
 const Gio = imports.gi.Gio;
 
 const JsonDB = imports.jsondb;
+const JsonUtil = imports.jsonutil;
 const Lang = imports.lang;
 
 function _componentDict(snapshot) {
@@ -64,7 +65,7 @@ function snapshotDiff(a, b) {
 function load(db, prefix, pathName, cancellable) {
     if (pathName) {
 	let path = Gio.File.new_for_path(pathName);
-	return [db.loadFromPath(Gio.File.new_for_path(pathName), cancellable), path];
+	return [JsonUtil.loadJson(path, cancellable), path];
     } else if (prefix) {
 	let path = db.getLatestPath();
 	return [db.loadFromPath(path, cancellable), path];
