@@ -45,6 +45,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/jsondb.js \
 	src/ostbuild/js/jsonutil.js \
 	src/ostbuild/js/main.js \
+	src/ostbuild/js/libqa.js \
 	src/ostbuild/js/guestfish.js \
 	src/ostbuild/js/params.js \
 	src/ostbuild/js/procutil.js \
@@ -62,6 +63,7 @@ jsostbuiltins_DATA= \
 	src/ostbuild/js/builtins/git_mirror.js \
 	src/ostbuild/js/builtins/qa_make_disk.js \
 	src/ostbuild/js/builtins/qa_pull_deploy.js \
+	src/ostbuild/js/builtins/qa_smoketest.js \
 	src/ostbuild/js/builtins/prefix.js \
 	src/ostbuild/js/builtins/resolve.js \
 	$(NULL)

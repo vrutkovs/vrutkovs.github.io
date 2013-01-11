@@ -24,7 +24,8 @@ const BUILTINS = {'autobuilder': "Run resolve and build",
                   'resolve': "Expand git revisions in source to exact targets",
                   'build': "Build multiple components and generate trees",
                   'qa-make-disk': "Generate a bare disk image",
-		  'qa-pull-deploy': "Copy OSTree repo into virtual disk and deploy it"};
+		  'qa-pull-deploy': "Copy OSTree repo into virtual disk and deploy it",
+		  'qa-smoketest': "Basic smoke testing via parsing serial console"};
 
 function usage(ecode) {
     print("Builtins:");

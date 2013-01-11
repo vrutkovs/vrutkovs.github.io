@@ -25,6 +25,7 @@ const GSystem = imports.gi.GSystem;
 
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
+const LibQA = imports.libqa;
 const GuestFish = imports.guestfish;
 
 const loop = GLib.MainLoop.new(null, true);
@@ -151,8 +152,7 @@ initrd /%s\n', [args.osname, bootRelativeKernelPath, args.osname, bootRelativeIn
         this._mntdir = this._workdir.get_child('mnt');
         GSystem.file_ensure_directory(this._mntdir, true, cancellable);
 
-        let gfmnt = new GuestFish.GuestMount(diskpath, {partitionOpts: ['-m', '/dev/sda3',
-                                                                        '-m', '/dev/sda1:/boot'],
+        let gfmnt = new GuestFish.GuestMount(diskpath, {partitionOpts: LibQA.DEFAULT_GF_PARTITION_OPTS,
                                                         readWrite: true});
         gfmnt.mount(this._mntdir, cancellable);
         try {

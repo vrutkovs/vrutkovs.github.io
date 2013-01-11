@@ -39,7 +39,9 @@ libgsystem_cflags = $(GIO_UNIX_CFLAGS) -I$(srcdir)/src/libgsystem
 libgsystem_libs = $(GIO_UNIX_LIBS)
 include src/libgsystem/Makefile-libgsystem.am
 privlib_LTLIBRARIES += libgsystem.la
+
 include Makefile-ostbuild.am
+include Makefile-tests.am
 
 include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = GSystem-1.0.gir

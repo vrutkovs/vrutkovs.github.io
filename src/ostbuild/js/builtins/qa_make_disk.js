@@ -51,7 +51,7 @@ const QaMakeDisk = new Lang.Class({
 
         let guestfishProcess;
         
-        ProcUtil.runSync(['qemu-img', 'create', tmppath.get_path(), '' + sizeMb + 'M'], cancellable);
+        ProcUtil.runSync(['qemu-img', 'create', '-f', 'qcow2', tmppath.get_path(), '' + sizeMb + 'M'], cancellable);
         let makeDiskCmd = 'launch\n\
 part-init /dev/vda mbr\n\
 blockdev-getsize64 /dev/vda\n\
