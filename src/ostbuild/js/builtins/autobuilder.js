@@ -201,7 +201,7 @@ const AutoBuilder = new Lang.Class({
 
 	let task = this._build_taskset.start();
 	let workdir = task.path;
-	let transientSnapshotPath = this.workdir.get_child(this.prefix + '-src-snapshot.json');
+	let transientSnapshotPath = workdir.get_child(this._source_snapshot_path.get_basename());
 	GSystem.file_linkcopy(this._source_snapshot_path, transientSnapshotPath, Gio.FileCopyFlags.OVERWRITE, null);
 	let args = ['ostbuild', 'build', '--snapshot=' + transientSnapshotPath.get_path()];
 	args.push.apply(args, this._queued_force_builds);
