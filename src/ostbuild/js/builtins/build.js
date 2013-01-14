@@ -542,15 +542,16 @@ const Build = new Lang.Class({
 
         let treename = 'trees/' + target['name'];
         
-        ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
-			 'commit', '-b', treename, '-s', 'Compose',
-			 '--owner-uid=0', '--owner-gid=0', '--no-xattrs', 
-			 '--related-objects-file=' + relatedTmpPath.get_path(),
-			 '--skip-if-unchanged'], cancellable,
-                          {cwd: composeRootdir.get_path(),
-                           logInitiation: true});
+        let ostreeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
+								    'commit', '-b', treename, '-s', 'Compose',
+								    '--owner-uid=0', '--owner-gid=0', '--no-xattrs', 
+								    '--related-objects-file=' + relatedTmpPath.get_path(),
+								    '--skip-if-unchanged'], cancellable,
+								   {cwd: composeRootdir.get_path(),
+								    logInitiation: true});
         GSystem.file_unlink(relatedTmpPath, cancellable);
         GSystem.shutil_rm_rf(composeRootdir, cancellable);
+	return [treename, ostreeRevision];
     },
 
     /* Build the Yocto base system. */
@@ -649,6 +650,7 @@ const Build = new Lang.Class({
 
 	this._srcDb = new JsonDB.JsonDB(this._snapshotDir, this.prefix + '-src-snapshot');
 	[this._snapshot, this._snapshotPath] = Snapshot.load(this._srcDb, this.prefix, args.snapshot, cancellable);
+	let snapshotName = this._snapshotPath.get_basename();
 	
         this.forceBuildComponents = {};
         this.cachedPatchdirRevision = null;
@@ -781,11 +783,17 @@ const Build = new Lang.Class({
 	    }
 	}
 
+	let buildDataPath = this.workdir.get_child(this.prefix + '-buildresult.json');
+	let targetRevisions = {};
+	let buildData = { snapshotName: snapshotName,
+			  targets: targetRevisions };
         for (let i = 0; i < targetsList.length; i++) {
 	    let target = targetsList[i];
             print(Format.vprintf("Composing %s from %d components", [target['name'], target['contents'].length]));
-            this._composeOneTarget(target, componentBuildRevs, cancellable);
+            let [treename, ostreeRev] = this._composeOneTarget(target, componentBuildRevs, cancellable);
+	    targetRevisions[treename] = ostreeRev;
 	}
+	JsonUtil.writeJsonFileAtomic(buildDataPath, buildData, cancellable);
     }
 });
 
