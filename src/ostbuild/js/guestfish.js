@@ -88,7 +88,9 @@ const GuestMount = new Lang.Class({
 	this._lock();
 	try {
 	    this._mntdir = mntdir;
-	    let guestmountArgv = ['guestmount', '-o', 'allow_root'];
+	    this._mountPidFile = mntdir.get_parent().get_child(mntdir.get_basename() + '.guestmount-pid');
+	    let guestmountArgv = ['guestmount', '-o', 'allow_root',
+				  '--pid-file', this._mountPidFile.get_path()];
 	    this._appendOpts(guestmountArgv);
 	    guestmountArgv.push(mntdir.get_path());
             let context = new GSystem.SubprocessContext({ argv: guestmountArgv });
@@ -110,6 +112,12 @@ const GuestMount = new Lang.Class({
     umount: function(cancellable) {
 	if (!this._mounted)
 	    return;
+
+        let pidStr = GSystem.file_load_contents_utf8(this._mountPidFile, cancellable);
+        if (pidStr.length == 0) {
+	    this._mounted = false;
+	    return;
+	}
 
         for (let i = 0; i < 30; i++) {
             // See "man guestmount" for why retry loops here might be needed if this
