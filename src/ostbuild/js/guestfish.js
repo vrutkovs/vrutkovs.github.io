@@ -111,12 +111,6 @@ const GuestMount = new Lang.Class({
 	if (!this._mounted)
 	    return;
 
-        let pidStr = GSystem.file_load_contents_utf8(this._mountPidFile, cancellable);
-        if (pidStr.length == 0) {
-	    this._mounted = false;
-	    return;
-	}
-
         for (let i = 0; i < 30; i++) {
             // See "man guestmount" for why retry loops here might be needed if this
             // script is running on a client machine with programs that watch for new mounts
