@@ -88,9 +88,7 @@ const GuestMount = new Lang.Class({
 	this._lock();
 	try {
 	    this._mntdir = mntdir;
-	    this._mountPidFile = mntdir.get_parent().get_child(mntdir.get_basename() + '.guestmount-pid');
-	    let guestmountArgv = ['guestmount', '-o', 'allow_root',
-				  '--pid-file', this._mountPidFile.get_path()];
+	    let guestmountArgv = ['guestmount', '-o', 'allow_root'];
 	    this._appendOpts(guestmountArgv);
 	    guestmountArgv.push(mntdir.get_path());
             let context = new GSystem.SubprocessContext({ argv: guestmountArgv });
