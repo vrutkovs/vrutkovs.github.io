@@ -300,8 +300,7 @@
 		 "component": "devel",
 		 "patches": ["xorg-autogen.patch"]},
 
-		{"src": "fd:xorg/lib/libpciaccess",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libpciaccess"},
 
 		{"src": "fd-mesa:drm",
 		 "tag": "891517f5111cd82909906d5e8ee0299db0d46762",
