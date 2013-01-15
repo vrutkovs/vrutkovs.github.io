@@ -121,118 +121,90 @@
    		{"src": "fd:fontconfig"},
 
 		{"src": "fd:xorg/util/macros",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/bigreqsproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/compositeproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/damageproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/dmxproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/dri2proto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "tag": "ead89ad84877551cc15d26b95cb19a3e205df71f",
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/evieproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/fontsproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/glproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/inputproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/kbproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/randrproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/recordproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/renderproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/resourceproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/scrnsaverproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/videoproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xcmiscproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xextproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xf86bigfontproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xf86dgaproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xf86driproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xf86miscproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xf86vidmodeproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xineramaproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/fixesproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/proto/xproto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
-		{"src": "fd:xorg/lib/libxtrans",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libxtrans"},
 
-		{"src": "fd:xorg/lib/libXau",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXau"},
 
 		{"src": "fd:xcb/proto",
 		 "component": "devel",
@@ -242,8 +214,7 @@
 		 "component": "devel",
 		 "patches": ["xorg-autogen.patch"]},
 
-		{"src": "fd:xorg/lib/libfontenc",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libfontenc"},
 
 		{"src": "fd:xcb/pthread-stubs",
 		 "component": "devel",
@@ -252,80 +223,56 @@
 		{"src": "fd:xcb/libxcb",
 		 "patches": ["xorg-autogen.patch"]},
 
-		{"src": "fd:xorg/lib/libX11",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libX11"},
 
-		{"src": "fd:xorg/lib/libXrender",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXrender"},
 
-		{"src": "fd:xorg/lib/libXfixes",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXfixes"},
 
-		{"src": "fd:xorg/lib/libXext",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXext"},
 
-		{"src": "fd:xorg/lib/libXfont",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXfont"},
 
-		{"src": "fd:xorg/lib/libXft",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXft"},
 
-		{"src": "fd:xorg/lib/libXi",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXi"},
 
-		{"src": "fd:xorg/lib/libXinerama",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXinerama"},
 
-		{"src": "fd:xorg/lib/libICE",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libICE"},
 
-		{"src": "fd:xorg/lib/libSM",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libSM"},
 
-		{"src": "fd:xorg/lib/libXt",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXt"},
 
-		{"src": "fd:xorg/lib/libXmu",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXmu"},
 
-		{"src": "fd:xorg/lib/libXpm",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXpm"},
 
-		{"src": "fd:xorg/lib/libXrandr",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXrandr"},
 
-		{"src": "fd:xorg/lib/libXRes",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXRes"},
 
-		{"src": "fd:xorg/lib/libXtst",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXtst"},
 
-		{"src": "fd:xorg/lib/libXv",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXv"},
 
-		{"src": "fd:xorg/lib/libXvMC",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXvMC"},
 
-		{"src": "fd:xorg/lib/libXxf86dga",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXxf86dga"},
 
-		{"src": "fd:xorg/lib/libXxf86vm",
-		 "patches": ["xorg-libXxf86vm-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXxf86vm"},
 
-		{"src": "fd:xorg/lib/libXdamage",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXdamage"},
 
-		{"src": "fd:xorg/lib/libXcomposite",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libXcomposite"},
 
-		{"src": "fd:xorg/lib/libxkbfile",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libxkbfile"},
 
 		{"src": "fd:xorg/lib/libxkbui",
 		 "patches": ["xorg-autogen.patch"]},
 
-		{"src": "fd:xorg/lib/libFS",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/lib/libFS"},
 
 		{"src": "fd-dbus:dbus",
 		 "config-opts": ["--with-dbus-user=dbus",
