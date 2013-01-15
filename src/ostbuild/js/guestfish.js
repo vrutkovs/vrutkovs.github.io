@@ -89,6 +89,10 @@ const GuestMount = new Lang.Class({
 	try {
 	    this._mntdir = mntdir;
 	    this._mountPidFile = mntdir.get_parent().get_child(mntdir.get_basename() + '.guestmount-pid');
+
+	    if (this._mountPidFile.query_exists(null))
+		throw new Error("guestfish pid file exists: " + this._mountPidFile.get_path());
+
 	    let guestmountArgv = ['guestmount', '-o', 'allow_root',
 				  '--pid-file', this._mountPidFile.get_path()];
 	    this._appendOpts(guestmountArgv);
