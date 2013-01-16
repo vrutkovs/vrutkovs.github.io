@@ -42,6 +42,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/argparse.js \
 	src/ostbuild/js/buildutil.js \
 	src/ostbuild/js/config.js \
+	src/ostbuild/js/dyntask.js \
 	src/ostbuild/js/jsondb.js \
 	src/ostbuild/js/jsonutil.js \
 	src/ostbuild/js/main.js \
