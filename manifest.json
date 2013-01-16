@@ -207,21 +207,17 @@
 		{"src": "fd:xorg/lib/libXau"},
 
 		{"src": "fd:xcb/proto",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/font/util",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/lib/libfontenc"},
 
 		{"src": "fd:xcb/pthread-stubs",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
-		{"src": "fd:xcb/libxcb",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xcb/libxcb"},
 
 		{"src": "fd:xorg/lib/libX11"},
 
@@ -297,8 +293,7 @@
 			     "texinfo-dist-xz.patch"]},
 
 		{"src": "fd:xorg/util/makedepend",
-		 "component": "devel",
-		 "patches": ["xorg-autogen.patch"]},
+		 "component": "devel"},
 
 		{"src": "fd:xorg/lib/libpciaccess"},
 
@@ -332,11 +327,9 @@
 		     "--with-dri-drivers=nouveau,radeon,r200,i915,i965,swrast"
 		     ]},
 
-		{"src": "fd:xorg/app/xkbcomp",
-		 "patches": ["xkbcomp-autogen.patch"]},
+		{"src": "fd:xorg/app/xkbcomp"},
 
-		{"src": "fd:xorg/app/xrandr",
-		 "patches": ["xkbcomp-autogen.patch"]},
+		{"src": "fd:xorg/app/xrandr"},
 
 		{"src": "fd:xkeyboard-config",
 		 "config-opts": ["--with-xkb-rules-symlink=xorg",
@@ -346,17 +339,13 @@
 		{"src": "fd:xorg/xserver",
 		 "patches": ["xorg-xserver-autogen.patch"]},
 
-		{"src": "fd:xorg/driver/xf86-input-keyboard",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/driver/xf86-input-keyboard"},
 
-		{"src": "fd:xorg/driver/xf86-input-mouse",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/driver/xf86-input-mouse"},
 
-		{"src": "fd:xorg/driver/xf86-input-evdev",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/driver/xf86-input-evdev"},
 
-		{"src": "fd:xorg/driver/xf86-video-cirrus",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/driver/xf86-video-cirrus"},
 
 		{"src": "fd:xorg/driver/xf86-video-intel",
 		 "tag": "0040eb84c9187476a75202ebb251dd74354e4fc7",
