@@ -265,9 +265,6 @@
 
 		{"src": "fd:xorg/lib/libxkbfile"},
 
-		{"src": "fd:xorg/lib/libxkbui",
-		 "patches": ["xorg-autogen.patch"]},
-
 		{"src": "fd:xorg/lib/libFS"},
 
 		{"src": "fd-dbus:dbus",
