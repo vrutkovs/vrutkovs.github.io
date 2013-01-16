@@ -28,11 +28,77 @@ const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
 const Config = imports.config;
+const Params = imports.params;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
 
 var loop = GLib.MainLoop.new(null, true);
+
+function _checkoutOneComponent(mirrordir, patchdir, component, cancellable, params) {
+    params = Params.parse(params, { checkoutdir: null,
+				    clean: false,
+				    patchesPath: null,
+				    overwrite: false });
+    let [keytype, uri] = BuildUtil.parseSrcKey(component['src']);
+
+    let isLocal = (keytype == 'local');
+
+    let checkoutdir;
+    if (isLocal) {
+	if (params.checkoutdir != null) {
+	    checkoutdir = Gio.File.new_for_path(params.checkoutdir);
+	    let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+	    // Kind of a hack, but...
+	    if (ftype == Gio.FileType.SYMBOLIC_LINK)
+		GSystem.file_unlink(checkoutdir, cancellable);
+	    if (params.overwrite && ftype == Gio.FileType.DIRECTORY)
+		GSystem.shutil_rm_rf(checkoutdir, cancellable);
+	    
+	    checkoutdir.make_symbolic_link(uri, cancellable);
+	} else {
+	    checkoutdir = Gio.File.new_for_path(uri);
+	}
+    } else {
+	if (params.checkoutdir) {
+	    checkoutdir = Gio.File.new_for_path(params.checkoutdir);
+	} else {
+	    checkoutdir = Gio.File.new_for_path(component['name']);
+	    GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
+	}
+	Vcs.getVcsCheckout(mirrordir, keytype, uri, checkoutdir,
+			   component['revision'], cancellable,
+			   { overwrite: params.overwrite });
+    }
+
+    if (params.clean) {
+	if (isLocal) {
+	    print("note: ignoring --clean argument due to \"local:\" specification");
+	} else {
+	    Vcs.clean(keytype, checkoutdir, cancellable);
+	}
+    }
+
+    if (component['patches']) {
+	let usePatchdir;
+	if (params.patchesPath == null) {
+	    usePatchdir = Vcs.checkoutPatches(mirrordir, patchdir, component, cancellable);
+	} else {
+	    usePatchdir = Gio.File.new_for_path(params.patchesPath);
+	}
+	let patches = BuildUtil.getPatchPathsForComponent(usePatchdir, component)
+	for (let i = 0; i < patches.length; i++) {
+	    let patch = patches[i];
+	    ProcUtil.runSync(['git', 'am', '--ignore-date', '-3', patch.get_path()], cancellable,
+			     {cwd:checkoutdir});
+	}
+    }
+
+    let metadataPath = checkoutdir.get_child('_ostbuild-meta.json');
+    JsonUtil.writeJsonFileAtomic(metadataPath, component, cancellable);
+
+    print("Checked out " + component['name'] + " at " + component['revision'] + " in " + checkoutdir.get_path());
+}
 
 const Checkout = new Lang.Class({
     Name: 'Checkout',
@@ -68,70 +134,30 @@ const Checkout = new Lang.Class({
 
         let componentName = args.component;
 
-	let component;
-        if (args.metadata_path != null) {
-	    component = JsonUtil.loadJson(Gio.File.new_for_path(args.metadata_path), cancellable);
-        } else {
-            component = Snapshot.getExpanded(this._snapshot, componentName);
-	}
-        let [keytype, uri] = BuildUtil.parseSrcKey(component['src']);
-
-        let isLocal = (keytype == 'local');
-
-	let checkoutdir;
-        if (isLocal) {
-            if (args.checkoutdir != null) {
-                checkoutdir = Gio.File.new_for_path(args.checkoutdir);
-		let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
-                // Kind of a hack, but...
-                if (ftype == Gio.FileType.SYMBOLIC_LINK)
-                    GSystem.file_unlink(checkoutdir, cancellable);
-                if (args.overwrite && ftype == Gio.FileType.DIRECTORY)
-                    GSystem.shutil_rm_rf(checkoutdir, cancellable);
-		
-		checkoutdir.make_symbolic_link(uri, cancellable);
+	if (componentName != '*') {
+	    let component;
+            if (args.metadata_path != null) {
+		component = JsonUtil.loadJson(Gio.File.new_for_path(args.metadata_path), cancellable);
             } else {
-                checkoutdir = Gio.File.new_for_path(uri);
+		component = Snapshot.getExpanded(this._snapshot, componentName);
 	    }
-        } else {
-            if (args.checkoutdir) {
-                checkoutdir = Gio.File.new_for_path(args.checkoutdir);
-            } else {
-                checkoutdir = Gio.File.new_for_path(componentName);
-		GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
-	    }
-            Vcs.getVcsCheckout(this.mirrordir, keytype, uri, checkoutdir,
-                               component['revision'], cancellable,
-                               {overwrite: args.overwrite});
-	}
 
-        if (args.clean) {
-            if (isLocal) {
-                print("note: ignoring --clean argument due to \"local:\" specification");
-            } else {
-                Vcs.clean(keytype, checkoutdir, cancellable);
+	    _checkoutOneComponent(this.mirrordir, this.patchdir, component, cancellable,
+				  { checkoutdir: args.checkoutdir,
+				    clean: args.clean,
+				    patchesPath: args.patches_path,
+				    overwrite: args.overwrite });
+	} else {
+	    for (let i = 0; i < this._snapshot['components'].length; i++) {
+		let componentName = this._snapshot['components'][i]['name'];
+		let component = Snapshot.getExpanded(this._snapshot, componentName);
+		_checkoutOneComponent(this.mirrordir, this.patchdir, component, cancellable,
+				      { checkoutdir: args.checkoutdir,
+					clean: args.clean,
+					patchesPath: args.patches_path,
+					overwrite: args.overwrite });
 	    }
 	}
-
-        if (component['patches']) {
-	    let patchdir;
-            if (args.patches_path == null) {
-                patchdir = Vcs.checkoutPatches(this.mirrordir, this.patchdir, component, cancellable);
-            } else {
-                patchdir = Gio.File.new_for_path(args.patches_path);
-	    }
-            let patches = BuildUtil.getPatchPathsForComponent(patchdir, component)
-            for (let i = 0; i < patches.length; i++) {
-		let patch = patches[i];
-                ProcUtil.runSync(['git', 'am', '--ignore-date', '-3', patch.get_path()], cancellable,
-				 {cwd:checkoutdir});
-	    }
-	}
-
-        let metadataPath = checkoutdir.get_child('_ostbuild-meta.json');
-	JsonUtil.writeJsonFileAtomic(metadataPath, component, cancellable);
-        
-        print("Checked out: " + checkoutdir.get_path());
     }
 });
 
