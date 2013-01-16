@@ -351,11 +351,9 @@
 		 "tag": "0040eb84c9187476a75202ebb251dd74354e4fc7",
 		 "patches": ["xorg-autogen.patch"]},
 
-		{"src": "fd:xorg/driver/xf86-video-vesa",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
-		{"src": "fd:xcb/util",
-		 "patches": ["xorg-autogen.patch"]},
+		{"src": "fd:xcb/util"},
 
 		{"src": "fd:startup-notification",
 		 "patches": ["startup-notification-autogen.patch"]},
