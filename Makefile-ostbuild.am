@@ -66,6 +66,7 @@ jsostbuiltins_DATA= \
 	src/ostbuild/js/builtins/qa_smoketest.js \
 	src/ostbuild/js/builtins/prefix.js \
 	src/ostbuild/js/builtins/resolve.js \
+	src/ostbuild/js/builtins/shell.js \
 	$(NULL)
 
 endif

@@ -23,6 +23,7 @@ const BUILTINS = {'autobuilder': "Run resolve and build",
                   'git-mirror': "Update internal git mirror for one or more components",
                   'resolve': "Expand git revisions in source to exact targets",
                   'build': "Build multiple components and generate trees",
+                  'shell': "Interactive JavaScript shell",
                   'qa-make-disk': "Generate a bare disk image",
 		  'qa-pull-deploy': "Copy OSTree repo into virtual disk and deploy it",
 		  'qa-smoketest': "Basic smoke testing via parsing serial console"};
