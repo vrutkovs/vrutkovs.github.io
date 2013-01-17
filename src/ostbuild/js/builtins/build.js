@@ -788,6 +788,7 @@ const Build = new Lang.Class({
 	let buildDataPath = this.workdir.get_child(this.prefix + '-buildresult.json');
 	let targetRevisions = {};
 	let buildData = { snapshotName: snapshotName,
+			  snapshot: this._snapshot.data,
 			  targets: targetRevisions };
         for (let i = 0; i < targetsList.length; i++) {
 	    let target = targetsList[i];
