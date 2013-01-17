@@ -1,6 +1,7 @@
 {
   "00ostbuild-manifest-version": 0,
 
+  "osname": "gnome-ostree",
   "prefix": "gnomeos-3.8",
   "architectures": ["i686", "x86_64"],
   "base": {
