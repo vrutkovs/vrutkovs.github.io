@@ -17,10 +17,11 @@
 // Boston, MA 02111-1307, USA.
 
 const Gio = imports.gi.Gio;
+const Lang = imports.lang;
 
 const JsonDB = imports.jsondb;
 const JsonUtil = imports.jsonutil;
-const Lang = imports.lang;
+const Params = imports.params;
 
 function _componentDict(snapshot) {
     let r = {};
@@ -62,47 +63,64 @@ function snapshotDiff(a, b) {
     return [added, modified, removed];
 }
 
-function load(db, prefix, pathName, cancellable) {
-    if (pathName) {
-	let path = Gio.File.new_for_path(pathName);
-	return [JsonUtil.loadJson(path, cancellable), path];
-    } else if (prefix) {
-	let path = db.getLatestPath();
-	return [db.loadFromPath(path, cancellable), path];
-    } else {
-	throw new Error("No prefix or snapshot specified");
-    }
-}
+const Snapshot = new Lang.Class({
+    Name: 'Snapshot',
+    
+    _init: function(data, path) {
+	this.data = data;
+	this.path = path;
+	this._componentDict = _componentDict(data);
+	this._componentNames = [];
+	for (let k in this._componentDict)
+	    this._componentNames.push(k);
+    },
 
-function getComponent(snapshot, name, allowNone) {
-    let d = _componentDict(snapshot);
-    let r = d[name] || null;
-    if (!r && !allowNone)
-	throw new Error("No component " + name + " in snapshot");
-    return r;
-}
-
-function expandComponent(snapshot, component) {
-    let r = {};
-    Lang.copyProperties(component, r);
-    let patchMeta = snapshot['patches'];
-    if (patchMeta) {
-	let componentPatchFiles = component['patches'] || [];
-	if (componentPatchFiles.length > 0) {
-	    let patches = {};
-	    Lang.copyProperties(patchMeta, patches);
-	    patches['files'] = componentPatchFiles;
-	    r['patches'] = patches;
+    _expandComponent: function(component) {
+	let r = {};
+	Lang.copyProperties(component, r);
+	let patchMeta = this.data['patches'];
+	if (patchMeta) {
+	    let componentPatchFiles = component['patches'] || [];
+	    if (componentPatchFiles.length > 0) {
+		let patches = {};
+		Lang.copyProperties(patchMeta, patches);
+		patches['files'] = componentPatchFiles;
+		r['patches'] = patches;
+	    }
 	}
+	let configOpts = (this.data['config-opts'] || []).concat();
+	configOpts.push.apply(configOpts, component['config-opts'] || []);
+	r['config-opts'] = configOpts;
+	return r;
+    },
+
+    loadFromDb: function(db, prefix, snapshotPath, cancellable) {
+	let data, path;
+	if (snapshotPath) {
+	    path = Gio.File.new_for_path(snapshotPath);
+	    data = JsonUtil.loadJson(path, cancellable);
+	} else if (prefix) {
+	    path = db.getLatestPath();
+	    data = db.loadFromPath(path, cancellable);
+	} else {
+	    throw new Error("No prefix or snapshot specified");
+	}
+	return new Snapshot(data, path);
+    },
+
+    getAllComponentNames: function() {
+	return this._componentNames;
+    },
+
+    getComponent: function(name, allowNone) {
+	let d = _componentDict(this.data);
+	let r = d[name] || null;
+	if (!r && !allowNone)
+	    throw new Error("No component " + name + " in snapshot");
+	return r;
+    },
+
+    getExpanded: function(name) {
+	return this._expandComponent(this.getComponent(name));
     }
-    let configOpts = (snapshot['config-opts'] || []).concat();
-    configOpts.push.apply(configOpts, component['config-opts'] || []);
-    r['config-opts'] = configOpts;
-    return r;
-}
-
-function getExpanded(snapshot, name) {
-    return expandComponent(snapshot, getComponent(snapshot, name));
-}
-
-
+});

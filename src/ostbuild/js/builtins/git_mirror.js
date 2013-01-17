@@ -60,33 +60,29 @@ const GitMirror = new Lang.Class({
 	this._srcDb = new JsonDB.JsonDB(this._snapshotDir, this.prefix + '-src-snapshot');
 
         if (args.manifest != null) {
-            this._snapshot = JsonUtil.loadJson(Gio.File.new_for_path(args.manifest), cancellable);
+            let snapshotData = JsonUtil.loadJson(Gio.File.new_for_path(args.manifest), cancellable);
 	    let resolvedComponents = [];
-	    let components = this._snapshot['components'];
+	    let components = snapshotData['components'];
 	    for (let i = 0; i < components.length; i++) {
-		resolvedComponents.push(BuildUtil.resolveComponent(this._snapshot, components[i]));
+		resolvedComponents.push(BuildUtil.resolveComponent(snapshotData, components[i]));
 	    }
-            this._snapshot['components'] = resolvedComponents;
-            this._snapshot['patches'] = BuildUtil.resolveComponent(this._snapshot, this._snapshot['patches']);
-            this._snapshot['base'] = BuildUtil.resolveComponent(this._snapshot, this._snapshot['base']);
+            snapshotData['components'] = resolvedComponents;
+            snapshotData['patches'] = BuildUtil.resolveComponent(snapshotData, snapshotData['patches']);
+            snapshotData['base'] = BuildUtil.resolveComponent(snapshotData, snapshotData['base']);
+	    this._snapshot = new Snapshot.Snapshot(snapshotData, null);
         } else {
-	    [this._snapshot, this._snapshotPath] = Snapshot.load(this._srcDb, this.prefix, args.snapshot, cancellable);
+	    this._snapshot = Snapshot.Snapshot.prototype.loadFromDb(this._srcDb, this.prefix, args.snapshot, cancellable);
 	}
 
 	let componentNames;
         if (args.components.length == 0) {
-            componentNames = [];
-            componentNames.push(this._snapshot['patches']['name']);
-            componentNames.push(this._snapshot['base']['name']);
-	    this._snapshot['components'].forEach(function (component) {
-		componentNames.push(component['name']);
-	    });
+	    componentNames = this._snapshot.getAllComponentNames();
         } else {
             componentNames = args.components;
 	}
 
 	componentNames.forEach(Lang.bind(this, function (name) {
-            let component = Snapshot.getComponent(this._snapshot, name);
+            let component = this._snapshot.getComponent(name);
             let src = component['src']
             let [keytype, uri] = Vcs.parseSrcKey(src);
             let branch = component['branch'];

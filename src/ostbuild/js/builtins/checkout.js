@@ -130,7 +130,7 @@ const Checkout = new Lang.Class({
 	this._snapshotDir = this.workdir.get_child('snapshots');
 
 	this._srcDb = new JsonDB.JsonDB(this._snapshotDir, this.prefix + '-src-snapshot');
-	[this._snapshot, this._snapshotPath] = Snapshot.load(this._srcDb, this.prefix, args.snapshot, cancellable);
+	this._snapshot = Snapshot.Snapshot.prototype.loadFromDb(this._srcDb, this.prefix, args.snapshot, cancellable);
 
         let componentName = args.component;
 
@@ -139,7 +139,7 @@ const Checkout = new Lang.Class({
             if (args.metadata_path != null) {
 		component = JsonUtil.loadJson(Gio.File.new_for_path(args.metadata_path), cancellable);
             } else {
-		component = Snapshot.getExpanded(this._snapshot, componentName);
+		component = this._snapshot.getExpanded(componentName);
 	    }
 
 	    _checkoutOneComponent(this.mirrordir, this.patchdir, component, cancellable,
@@ -148,9 +148,9 @@ const Checkout = new Lang.Class({
 				    patchesPath: args.patches_path,
 				    overwrite: args.overwrite });
 	} else {
-	    for (let i = 0; i < this._snapshot['components'].length; i++) {
-		let componentName = this._snapshot['components'][i]['name'];
-		let component = Snapshot.getExpanded(this._snapshot, componentName);
+	    let all = this._snapshot.getAllComponentNames();
+	    for (let i = 0; i < all.length; i++) {
+		let component = this._snapshot.getExpanded(all[i]);
 		_checkoutOneComponent(this.mirrordir, this.patchdir, component, cancellable,
 				      { checkoutdir: args.checkoutdir,
 					clean: args.clean,

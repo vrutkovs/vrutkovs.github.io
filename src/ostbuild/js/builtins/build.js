@@ -65,11 +65,12 @@ const Build = new Lang.Class({
     _composeBuildroot: function(workdir, componentName, architecture, cancellable) {
         let starttime = GLib.DateTime.new_now_utc();
 
-        let buildname = Format.vprintf('%s/%s/%s', [this._snapshot['prefix'], componentName, architecture]);
+	let prefix = this._snapshot.data['prefix'];
+        let buildname = Format.vprintf('%s/%s/%s', [prefix, componentName, architecture]);
         let buildrootCachedir = this.workdir.resolve_relative_path('roots/' + buildname);
         GSystem.file_ensure_directory(buildrootCachedir, true, cancellable);
 
-        let components = this._snapshot['components']
+        let components = this._snapshot.data['components']
         let component = null;
         let buildDependencies = [];
         for (let i = 0; i < components.length; i++) {
@@ -81,9 +82,7 @@ const Build = new Lang.Class({
 
         let refToRev = {};
 
-        let prefix = this._snapshot['prefix'];
-
-        let archBuildrootName = Format.vprintf('bases/%s/%s-%s-devel', [this._snapshot['base']['name'],
+        let archBuildrootName = Format.vprintf('bases/%s/%s-%s-devel', [this._snapshot.data['base']['name'],
 									prefix,
 									architecture]);
 
@@ -281,11 +280,12 @@ const Build = new Lang.Class({
     _buildOneComponent: function(component, architecture, cancellable) {
         let basename = component['name'];
 
-        let buildname = Format.vprintf('%s/%s/%s', [this._snapshot['prefix'], basename, architecture]);
+	let prefix = this._snapshot.data['prefix'];
+        let buildname = Format.vprintf('%s/%s/%s', [prefix, basename, architecture]);
         let buildRef = 'components/' + buildname;
 
         let currentVcsVersion = component['revision'];
-        let expandedComponent = Snapshot.expandComponent(this._snapshot, component);
+        let expandedComponent = this._snapshot.getExpanded(basename);
         let previousMetadata = this._componentBuildCache[buildname];
         let wasInBuildCache = (previousMetadata != null);
 	let previousBuildVersion;
@@ -369,7 +369,7 @@ const Build = new Lang.Class({
         let checkoutdir = this.workdir.get_child('checkouts');
         let componentSrc = checkoutdir.get_child(buildname);
         GSystem.file_ensure_directory(componentSrc.get_parent(), true, cancellable);
-        let childArgs = ['ostbuild', 'checkout', '--snapshot=' + this._snapshotPath.get_path(),
+        let childArgs = ['ostbuild', 'checkout', '--snapshot=' + this._snapshot.path.get_path(),
 			 '--checkoutdir=' + componentSrc.get_path(),
 			 '--metadata-path=' + tempMetadataPath.get_path(),
 			 '--overwrite', basename];
@@ -490,9 +490,11 @@ const Build = new Lang.Class({
 								   'rev-parse', develName], cancellable);
         relatedRefs[develName] = develRevision;
 
+	let prefix = this._snapshot.data['prefix'];
+
 	for (let name in componentBuildRevs) {
 	    let rev = componentBuildRevs[name];
-            let buildRef = 'components/' + this._snapshot['prefix'] + '/' + name;
+            let buildRef = 'components/' + prefix + '/' + name;
             relatedRefs[buildRef] = rev;
 	}
 
@@ -538,7 +540,7 @@ const Build = new Lang.Class({
         GSystem.file_unlink(contentsTmpPath, cancellable);
 
         let contentsPath = composeRootdir.get_child('contents.json');
-        JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot, cancellable);
+        JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
 
         let treename = 'trees/' + target['name'];
         
@@ -556,7 +558,7 @@ const Build = new Lang.Class({
 
     /* Build the Yocto base system. */
     _buildBase: function(architecture, cancellable) {
-        let basemeta = Snapshot.expandComponent(this._snapshot, this._snapshot['base']);
+        let basemeta = this._snapshot.getExpanded(this._snapshot.data['base']['name']);
 	let basename = basemeta['name'];
         let checkoutdir = this.workdir.get_child('checkouts').get_child(basemeta['name']);
 	GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
@@ -649,8 +651,8 @@ const Build = new Lang.Class({
 	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
 
 	this._srcDb = new JsonDB.JsonDB(this._snapshotDir, this.prefix + '-src-snapshot');
-	[this._snapshot, this._snapshotPath] = Snapshot.load(this._srcDb, this.prefix, args.snapshot, cancellable);
-	let snapshotName = this._snapshotPath.get_basename();
+	this._snapshot = Snapshot.Snapshot.prototype.loadFromDb(this._srcDb, this.prefix, args.snapshot, cancellable);
+	let snapshotName = this._snapshot.path.get_basename();
 	
         this.forceBuildComponents = {};
         this.cachedPatchdirRevision = null;
@@ -663,11 +665,11 @@ const Build = new Lang.Class({
 			     cancellable);
 	}
 
-        let components = this._snapshot['components'];
+        let components = this._snapshot.data['components'];
 
-        let prefix = this._snapshot['prefix'];
-        let basePrefix = this._snapshot['base']['name'] + '/' + prefix;
-        let architectures = this._snapshot['architectures'];
+        let prefix = this._snapshot.data['prefix'];
+        let basePrefix = this._snapshot.data['base']['name'] + '/' + prefix;
+        let architectures = this._snapshot.data['architectures'];
 
         for (let i = 0; i < architectures.length; i++) {
             this._buildBase(architectures[i], cancellable);
@@ -702,7 +704,7 @@ const Build = new Lang.Class({
 
         for (let i = 0; i < args.components.length; i++) {
 	    let name = args.components[i];
-            let component = Snapshot.getComponent(this._snapshot, name);
+            let component = this._snapshot.getComponent(name);
             this.forceBuildComponents[name] = true;
 	}
 
