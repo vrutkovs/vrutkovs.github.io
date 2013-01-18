@@ -43,6 +43,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/buildutil.js \
 	src/ostbuild/js/builtin.js \
 	src/ostbuild/js/config.js \
+	src/ostbuild/js/fileutil.js \
 	src/ostbuild/js/task.js \
 	src/ostbuild/js/jsondb.js \
 	src/ostbuild/js/jsonutil.js \

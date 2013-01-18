@@ -25,6 +25,7 @@ const GSystem = imports.gi.GSystem;
 const Builtin = imports.builtin;
 const Task = imports.task;
 const JsonDB = imports.jsondb;
+const FileUtil = imports.fileutil;
 const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
@@ -36,6 +37,11 @@ const ArgParse = imports.argparse;
 
 const OPT_COMMON_CFLAGS = {'i686': '-O2 -g -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables',
                            'x86_64': '-O2 -g -m64 -mtune=generic'};
+
+const DEVEL_DIRS = ['usr/include', 'usr/share/aclocal',
+		    'usr/share/pkgconfig', 'usr/lib/pkgconfig'];
+const DOC_DIRS = ['usr/share/doc', 'usr/share/gtk-doc',
+		  'usr/share/man', 'usr/share/info'];
 
 const TaskBuild = new Lang.Class({
     Name: "TaskBuild",
@@ -281,6 +287,100 @@ const TaskBuild = new Lang.Class({
         return cachedata['ostree'];
     },
 
+    _installAndUnlinkRecurse: function(buildResultDir, srcFile, srcInfo, finalResultDir, cancellable) {
+	let relpath = buildResultDir.get_relative_path(srcFile);
+	let destFile;
+	if (relpath === null)
+	    destFile = finalResultDir;
+	else
+	    destFile = finalResultDir.resolve_relative_path(relpath);
+
+	GSystem.file_ensure_directory(destFile.get_parent(), true, cancellable);
+	
+	if (srcInfo.get_file_type() != Gio.FileType.SYMBOLIC_LINK) {
+	    let minimalMode = 436; // u+rw,g+rw,o+r
+	    if (srcInfo.get_file_type() == Gio.FileType.DIRECTORY)
+		minimalMode |= 64; // u+x
+	    GSystem.file_chmod(srcFile, minimalMode, cancellable);
+	}
+
+	if (srcInfo.get_file_type() == Gio.FileType.DIRECTORY) {
+	    GSystem.file_ensure_directory(destFile, true, cancellable);
+	    let e = srcFile.enumerate_children('standard::*,unix::mode', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+	    let info;
+	    while ((info = e.next_file(cancellable)) !== null) {
+		let child = e.get_child(info);
+		this._installAndUnlinkRecurse(buildResultDir, child, info, finalResultDir, cancellable);
+	    }
+	    e.close(cancellable);
+	    srcFile.delete(cancellable);
+	} else {
+	    GSystem.file_linkcopy(srcFile, destFile, 0, cancellable);
+	    GSystem.file_unlink(srcFile, cancellable);
+	} 
+    },
+
+    _installAndUnlink: function(buildResultDir, srcFile, finalResultDir, cancellable) {
+	let srcInfo = srcFile.query_info('standard::*,unix::mode', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+	this._installAndUnlinkRecurse(buildResultDir, srcFile, srcInfo, finalResultDir, cancellable);
+    },
+    
+    _processBuildResults: function(component, buildResultDir, finalResultDir, cancellable) {
+	let runtimePath = finalResultDir.get_child('runtime');
+	GSystem.file_ensure_directory(runtimePath, true, cancellable);
+	let develPath = finalResultDir.get_child('devel');
+	GSystem.file_ensure_directory(develPath, true, cancellable);
+	let docPath = finalResultDir.get_child('doc');
+	GSystem.file_ensure_directory(docPath, true, cancellable);
+
+	// First, remove /var from the install - components are required to
+	// auto-create these directories on demand.
+	let varPath = buildResultDir.get_child('var');
+	GSystem.shutil_rm_rf(varPath, cancellable);
+
+	// Python .co files contain timestamps
+	// .la files are generally evil
+	let DELETE_PATTERNS = [{ nameRegex: /\.(py[co])|(la)$/ },
+			       { nameRegex: /\.la$/,
+				 fileType: Gio.FileType.REGULAR }];
+			       
+	for (let i = 0; i < DELETE_PATTERNS.length; i++) {
+	    let pattern = DELETE_PATTERNS[i];
+	    FileUtil.walkDir(buildResultDir, pattern,
+			     Lang.bind(this, function(filePath, cancellable) {
+				 GSystem.file_unlink(filePath, cancellable);
+			     }), cancellable);
+	}
+
+	// Move symbolic links for shared libraries to devel
+	let libdir = buildResultDir.resolve_relative_path('usr/lib');
+	FileUtil.walkDir(libdir, { nameRegex: /\.so$/,
+				   fileType: Gio.FileType.SYMBOLIC_LINK },
+			 Lang.bind(this, function(filePath, cancellable) {
+			     this._installAndUnlink(buildResultDir, filePath, develPath, cancellable);
+			 }), cancellable);
+
+	for (let i = 0; i < DEVEL_DIRS.length; i++) {
+	    let path = DEVEL_DIRS[i];
+	    let oneDevelDir = buildResultDir.resolve_relative_path(path);
+	    
+	    if (oneDevelDir.query_exists(null)) {
+		this._installAndUnlink(buildResultDir, oneDevelDir, develPath, cancellable);
+	    }
+	}
+
+	for (let i = 0; i < DOC_DIRS.length; i++) {
+	    let path = DOC_DIRS[i];
+	    let oneDocDir = buildResultDir.resolve_relative_path(path);
+	    
+	    if (oneDocDir.query_exists(null)) {
+		this._installAndUnlink(buildResultDir, oneDocDir, docPath, cancellable);
+	    }
+	}
+
+	this._installAndUnlink(buildResultDir, buildResultDir, runtimePath, cancellable);
+    },
+
     _onBuildComplete: function(taskset, success, msg, loop) {
 	this._currentBuildSucceded = success;
 	this._currentBuildSuccessMsg = msg;
@@ -289,6 +389,7 @@ const TaskBuild = new Lang.Class({
 
     _buildOneComponent: function(component, architecture, cancellable) {
         let basename = component['name'];
+
 
 	let prefix = this._snapshot.data['prefix'];
         let buildname = Format.vprintf('%s/%s/%s', [prefix, basename, architecture]);
@@ -428,7 +529,13 @@ const TaskBuild = new Lang.Class({
 	print("Started child process " + context.argv.map(GLib.shell_quote).join(' '));
 	proc.wait_sync_check(cancellable);
 
-        let recordedMetaPath = componentResultdir.get_child('_ostbuild-meta.json');
+	let finalBuildResultDir = buildWorkdir.get_child('post-results');
+	GSystem.shutil_rm_rf(finalBuildResultDir, cancellable);
+        GSystem.file_ensure_directory(finalBuildResultDir, true, cancellable);
+
+	this._processBuildResults(component, componentResultdir, finalBuildResultDir, cancellable);
+
+        let recordedMetaPath = finalBuildResultDir.get_child('_ostbuild-meta.json');
         JsonUtil.writeJsonFileAtomic(recordedMetaPath, expandedComponent, cancellable);
 
         let commitArgs = ['ostree', '--repo=' + this.repo.get_path(),
@@ -450,7 +557,7 @@ const TaskBuild = new Lang.Class({
             commitArgs.push('--statoverride=' + statoverridePath.get_path());
 	}
 
-        ProcUtil.runSync(commitArgs, cancellable, {cwd: componentResultdir,
+        ProcUtil.runSync(commitArgs, cancellable, {cwd: finalBuildResultDir,
 						   logInitiation: true});
         if (statoverridePath != null)
             GSystem.file_unlink(statoverridePath, cancellable);

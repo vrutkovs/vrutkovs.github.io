@@ -88,8 +88,6 @@ _DEVEL_DIRS = ['usr/include',
                'usr/share/pkgconfig',
                'usr/lib/pkgconfig']
 
-tempfiles = []
-
 def _has_buildapi_configure_variable(name):
     var = '#buildapi-variable-%s' % (name, )
     for line in open('configure'):
@@ -218,125 +216,12 @@ def main(args):
 
     run_sync(args, cwd=builddir)
 
-    tempdir = tempfile.mkdtemp(prefix='ostbuild-destdir-%s' % (metadata['name'].replace('/', '_'), ))
-    tempfiles.append(tempdir)
-    args = ['make', 'install', 'DESTDIR=' + tempdir]
+    args = ['make', 'install', 'DESTDIR=' + ostbuild_resultdir]
     run_sync(args, cwd=builddir)
-
-    runtime_path = os.path.join(ostbuild_resultdir, 'runtime')
-    devel_path = os.path.join(ostbuild_resultdir, 'devel')
-    doc_path = os.path.join(ostbuild_resultdir, 'doc')
-    for artifact_type in ['runtime', 'devel', 'doc']:
-        resultdir = os.path.join(ostbuild_resultdir, artifact_type)
-        if os.path.isdir(resultdir):
-            shutil.rmtree(resultdir)
-        os.makedirs(resultdir)
-
-    # Remove /var from the install - components are required to
-    # auto-create these directories on demand.
-    varpath = os.path.join(tempdir, 'var')
-    if os.path.isdir(varpath):
-        shutil.rmtree(varpath)
-
-    # Delete all .la files.  See:
-    # https://bugzilla.gnome.org/show_bug.cgi?id=654013
-    libdir = os.path.join(tempdir, 'usr/lib')
-    for dirpath, subdirs, files in os.walk(libdir):
-        for filename in files:
-            path = os.path.join(dirpath, filename)
-            if filename.endswith('.la'):
-                os.unlink(path)
-
-    # Move symbolic links for shared libraries as well
-    # as static libraries into /devel.
-    if os.path.exists(libdir):
-        for filename in os.listdir(libdir):
-            path = os.path.join(libdir, filename)
-            stbuf = os.lstat(path)
-            if not ((filename.endswith('.so')
-                     and stat.S_ISLNK(stbuf.st_mode))
-                    or filename.endswith('.a')):
-                    continue
-            dest = os.path.join(devel_path, 'usr/lib', filename)
-            _install_and_unlink(path, dest)
-
-    for dirname in _DEVEL_DIRS:
-        dirpath = os.path.join(tempdir, dirname)
-        if os.path.isdir(dirpath):
-            dest = os.path.join(devel_path, dirname)
-            _install_and_unlink(dirpath, dest)
-
-    for dirname in _DOC_DIRS:
-        dirpath = os.path.join(tempdir, dirname)
-        if os.path.isdir(dirpath):
-            dest = os.path.join(doc_path, dirname)
-            _install_and_unlink(dirpath, dest)
-    
-    for filename in os.listdir(tempdir):
-        src_path = os.path.join(tempdir, filename)
-        dest_path = os.path.join(runtime_path, filename)
-        _install_and_unlink(src_path, dest_path)
-
-    for tmpname in tempfiles:
-        assert os.path.isabs(tmpname)
-        if os.path.isdir(tmpname):
-            shutil.rmtree(tmpname)
-        else:
-            try:
-                os.unlink(tmpname)
-            except OSError, e:
-                pass
 
     endtime = time.time()
 
     log("Compilation succeeded; %d seconds elapsed" % (int(endtime - starttime),))
     log("Results placed in %s" % (ostbuild_resultdir, ))
-
-def _install_and_unlink(src, dest):
-    statsrc = os.lstat(src)
-    dirname = os.path.dirname(dest)
-    if not os.path.isdir(dirname):
-        os.makedirs(dirname)
-
-    # Ensure that all installed files are at least rw-rw-r--;
-    # we don't support private/hidden files.
-    # Directories also need u+x, i.e. they're rwxrw-r--
-    if not stat.S_ISLNK(statsrc.st_mode):
-        minimal_mode = (stat.S_IRUSR | stat.S_IWUSR |
-                        stat.S_IRGRP | stat.S_IWGRP |
-                        stat.S_IROTH)
-        if stat.S_ISDIR(statsrc.st_mode):
-            minimal_mode |= stat.S_IXUSR
-        os.chmod(src, statsrc.st_mode | minimal_mode)
-
-    if stat.S_ISDIR(statsrc.st_mode):
-        if not os.path.isdir(dest):
-            os.mkdir(dest)
-        for filename in os.listdir(src):
-            src_child = os.path.join(src, filename)
-            dest_child = os.path.join(dest, filename)
-
-            _install_and_unlink(src_child, dest_child)
-        os.rmdir(src)
-    else:
-        basename = os.path.basename(src)
-        ignored = False
-        for r in _IGNORE_FILENAME_REGEXPS:
-            if r.match(basename):
-                ignored = True
-                break
-        if ignored:
-            log("Not installing %s" % (src, ))
-            os.unlink(src)
-            return
-        try:
-            os.rename(src, dest)
-        except OSError, e:
-            if stat.S_ISLNK(statsrc.st_mode):
-                linkto = os.readlink(src)
-                os.symlink(linkto, dest)
-            else:
-                shutil.copy2(src, dest)
-            os.unlink(src)
 
 main(sys.argv[1:])
