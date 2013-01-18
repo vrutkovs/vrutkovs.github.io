@@ -62,6 +62,7 @@ jsostbuiltins_DATA= \
 	src/ostbuild/js/builtins/build.js \
 	src/ostbuild/js/builtins/checkout.js \
 	src/ostbuild/js/builtins/git_mirror.js \
+	src/ostbuild/js/builtins/qa_build_disks.js \
 	src/ostbuild/js/builtins/qa_make_disk.js \
 	src/ostbuild/js/builtins/qa_pull_deploy.js \
 	src/ostbuild/js/builtins/qa_smoketest.js \
