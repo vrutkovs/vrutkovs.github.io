@@ -36,6 +36,7 @@ const QaSmokeTest = new Lang.Class({
 
     RequiredMessageIDs: ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
                          "f77379a8490b408bbe5f6940505a777b"], // systemd-journald
+    FailedMessageIDs: ["fc2e22bc6ee647b6b90729ab34a250b1"], // coredump
 
     _onQemuExited: function(proc, result) {
         let [success, status] = ProcUtil.asyncWaitCheckFinish(proc, result);
@@ -84,7 +85,14 @@ const QaSmokeTest = new Lang.Class({
                     print("Found required message ID " + messageId);
                     delete this._pendingRequiredMessageIds[messageId];
                     this._countPendingRequiredMessageIds--;
-                }
+                } else {
+                    for (let i = 0; i < this.FailedMessageIDs.length; i++) {
+                        if (messageId == this.FailedMessageIDs[i]) {
+                            print("Found failure message ID " + messageId);
+                            this._failed = true;
+                            loop.quit();
+                        }
+                    }
             }
             if (this._countPendingRequiredMessageIds > 0) {
                 this._readingJournal = true;
