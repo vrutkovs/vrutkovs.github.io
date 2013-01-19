@@ -40,7 +40,7 @@ const QaSmokeTest = new Lang.Class({
                         ],
     FailedMessageIDs: ["fc2e22bc6ee647b6b90729ab34a250b1", // coredump
                        "10dd2dc188b54a5e98970f56499d1f73" // gnome-session required component failed
- ], 
+                      ], 
 
     _onQemuExited: function(proc, result) {
         let [success, status] = ProcUtil.asyncWaitCheckFinish(proc, result);
@@ -54,6 +54,9 @@ const QaSmokeTest = new Lang.Class({
 
     _onTimeout: function() {
         print("Timeout reached");
+        for (let msgid in this._pendingRequiredMessageIds) {
+            print("Did not see MESSAGE_ID=" + msgid);
+        }
         this._failed = true;
         loop.quit();
     },
@@ -63,6 +66,7 @@ const QaSmokeTest = new Lang.Class({
             this._journalStream = file.read_finish(result);
             this._journalDataStream = Gio.DataInputStream.new(this._journalStream); 
             this._openedJournal = true;
+            this._readingJournal = true;
             this._journalDataStream.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
                                                     Lang.bind(this, this._onJournalReadLine));
         } catch (e) {
@@ -73,6 +77,7 @@ const QaSmokeTest = new Lang.Class({
     },
     
     _onJournalReadLine: function(stream, result) {
+        this._readingJournal = false;
         let line, len;
         try {
             [line, len] = stream.read_line_finish_utf8(result);
@@ -85,16 +90,20 @@ const QaSmokeTest = new Lang.Class({
             let data = JSON.parse(line);
             let messageId = data['MESSAGE_ID'];
             if (messageId) {
+                let matched = false
                 if (this._pendingRequiredMessageIds[messageId]) {
                     print("Found required message ID " + messageId);
                     delete this._pendingRequiredMessageIds[messageId];
                     this._countPendingRequiredMessageIds--;
+                    matched = true;
                 } else {
                     for (let i = 0; i < this.FailedMessageIDs.length; i++) {
                         if (messageId == this.FailedMessageIDs[i]) {
                             print("Found failure message ID " + messageId);
                             this._failed = true;
                             loop.quit();
+                            matched = true;
+                            break;
                         }
                     }
                 }
@@ -150,7 +159,7 @@ const QaSmokeTest = new Lang.Class({
         let qemuArgs = [LibQA.getQemuPath()];
         qemuArgs.push.apply(qemuArgs, LibQA.DEFAULT_QEMU_OPTS);
 
-        let diskClone = workdir.get_child('qa-smoketest.img');
+        let diskClone = workdir.get_child('qa-smoketest.qcow2');
         GSystem.shutil_rm_rf(diskClone, cancellable);
 
         LibQA.createDiskSnapshot(srcDiskpath, diskClone, cancellable);
