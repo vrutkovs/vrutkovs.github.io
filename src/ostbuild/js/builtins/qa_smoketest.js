@@ -35,8 +35,12 @@ const QaSmokeTest = new Lang.Class({
     Name: 'QaSmokeTest',
 
     RequiredMessageIDs: ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
-                         "f77379a8490b408bbe5f6940505a777b"], // systemd-journald
-    FailedMessageIDs: ["fc2e22bc6ee647b6b90729ab34a250b1"], // coredump
+                         "f77379a8490b408bbe5f6940505a777b",  // systemd-journald
+                         "0ce153587afa4095832d233c17a88001" // gnome-session startup ok
+                        ],
+    FailedMessageIDs: ["fc2e22bc6ee647b6b90729ab34a250b1", // coredump
+                       "10dd2dc188b54a5e98970f56499d1f73" // gnome-session required component failed
+ ], 
 
     _onQemuExited: function(proc, result) {
         let [success, status] = ProcUtil.asyncWaitCheckFinish(proc, result);
@@ -93,6 +97,7 @@ const QaSmokeTest = new Lang.Class({
                             loop.quit();
                         }
                     }
+                }
             }
             if (this._countPendingRequiredMessageIds > 0) {
                 this._readingJournal = true;
@@ -154,17 +159,10 @@ const QaSmokeTest = new Lang.Class({
             LibQA.modifyBootloaderAppendKernelArgs(mntdir, ["console=ttyS0"], cancellable);
 
             let [currentDir, currentEtcDir] = LibQA.getDeployDirs(mntdir, 'gnome-ostree');
-            let binDir = currentDir.resolve_relative_path('usr/bin');
-            // let systemdSystemDir = currentDir.resolve_relative_path('usr/lib/systemd/system');
-            let multiuserWantsDir = currentEtcDir.resolve_relative_path('systemd/system/multi-user.target.wants');
             
-            let datadir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_DATADIR'));
-            let exportScript = datadir.resolve_relative_path('tests/gnome-ostree-export-journal-to-serialdev');
-            let exportScriptService = datadir.resolve_relative_path('tests/gnome-ostree-export-journal-to-serialdev.service');
-            let exportBin = binDir.get_child(exportScript.get_basename());
-            exportScript.copy(exportBin, 0, cancellable, null, null);
-            GSystem.file_chmod(exportBin, 493, cancellable);
-            exportScriptService.copy(multiuserWantsDir.get_child(exportScriptService.get_basename()), 0, cancellable, null, null);
+            LibQA.injectExportJournal(currentDir, currentEtcDir, cancellable);
+            LibQA.injectTestUserCreation(currentDir, currentEtcDir, 'smoketest', {}, cancellable);
+            LibQA.enableAutologin(currentDir, currentEtcDir, 'smoketest', cancellable);
         } finally {
             gfmnt.umount(cancellable);
         }
