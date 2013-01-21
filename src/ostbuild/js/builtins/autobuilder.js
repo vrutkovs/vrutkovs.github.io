@@ -22,7 +22,7 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
-const Task = imports.task;
+const SubTask = imports.subtask;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
@@ -45,14 +45,13 @@ const AutoBuilder = new Lang.Class({
     Name: 'AutoBuilder',
     
     _init: function() {
-	this._resolve_proc = null;
-	this._build_proc = null;
-
 	this.config = Config.get();
 	this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
 	this.prefix = this.config.getPrefix();
 	this._snapshot_dir = this.workdir.get_child('snapshots');
 	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
+
+	this._manifestPath = Gio.File.new_for_path('manifest.json');
 
 	this._build_needed = true;
 	this._full_resolve_needed = true;
@@ -70,9 +69,9 @@ const AutoBuilder = new Lang.Class({
 	GSystem.file_ensure_directory(snapshotdir, true, null);
 	this._src_db = new JsonDB.JsonDB(snapshotdir, this.prefix + '-src-snapshot');
 
-	let taskdir = new Task.TaskDir(this.workdir.get_child('tasks'));
-	this._resolve_taskset = taskdir.get(this.prefix + '-resolve');
-	this._build_taskset = taskdir.get(this.prefix + '-build');
+	let taskdir = this.workdir.get_child('tasks');
+	this._resolve_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-resolve'));
+	this._build_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-build'));
 
 	this._source_snapshot_path = this._src_db.getLatestPath();
 
@@ -89,12 +88,12 @@ const AutoBuilder = new Lang.Class({
 
     _updateStatus: function() {
 	let newStatus = "";
-	if (this._resolve_proc == null && this._build_proc == null) {
+	if (!this._resolve_taskset.isRunning() && !this._build_taskset.isRunning()) {
 	    newStatus = "idle";
 	} else {
-	    if (this._resolve_proc != null)
+	    if (this._resolve_taskset.isRunning())
 		newStatus += "[resolving] ";
-	    if (this._build_proc != null)
+	    if (this._build_taskset.isRunning())
 		newStatus += "[building] ";
 	}
 	if (newStatus != this._status) {
@@ -121,22 +120,19 @@ const AutoBuilder = new Lang.Class({
     queueResolve: function(components) {
 	this._queued_force_resolve.push.apply(this._queued_force_resolve, components);
 	print("queued resolves: " + this._queued_force_resolve);
-	if (this._resolve_proc == null)
+	if (!this._resolve_taskset.isRunning())
 	    this._fetch();
     },
     
     _fetchAll: function() {
 	this._full_resolve_needed = true;
-	if (this._resolve_proc == null)
+	if (!this._resolve_taskset.isRunning())
 	    this._fetch();
 	return true;
     },
 
     _fetch: function() {
 	let cancellable = null;
-	if (this._resolve_proc != null) throw new Error("Attempted multiple fetch");
-	let t = this._resolve_taskset.start();
-	let taskWorkdir = t.path;
 
 	if (this._autoupdate_self)
 	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable)
@@ -155,25 +151,22 @@ const AutoBuilder = new Lang.Class({
 	}
 	this._queued_force_resolve = [];
 	let context = new GSystem.SubprocessContext({ argv: args });
-	context.set_stdout_file_path(t.logfile_path.get_path());
-	context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
-	this._resolve_proc = new GSystem.Subprocess({context: context});
-	this._resolve_proc.init(null);
-	print(Format.vprintf("Resolve task %s.%s started (%s), pid=%s", [t.major, t.minor,
-									 isFull ? "full" : "incremental",
-									 this._resolve_proc.get_pid()]));
-	this._resolve_proc.wait(null, Lang.bind(this, this._onResolveExited));
+	let workdir = this._resolve_taskset.prepare();
+	let tmpManifest = workdir.get_child(this._manifestPath.get_basename());
+	GSystem.file_linkcopy(this._manifestPath, tmpManifest, Gio.FileCopyFlags.OVERWRITE, cancellable);	
+	let t = this._resolve_taskset.start(context,
+					    cancellable,
+					    Lang.bind(this, this._onResolveExited));
+	print(Format.vprintf("Resolve task %s.%s started (%s)", [t.major, t.minor,
+								 isFull ? "full" : "incremental"]));
 
 	this._updateStatus();
 
 	return false;
     },
 
-    _onResolveExited: function(process, result) {
-	this._resolve_proc = null;
-	let [success, msg] = ProcUtil.asyncWaitCheckFinish(process, result);
+    _onResolveExited: function(resolveTask, success, msg) {
 	print(Format.vprintf("resolve exited; success=%s msg=%s", [success, msg]))
-	this._resolve_taskset.finish(success);
 	this._prev_source_snapshot_path = this._source_snapshot_path;
 	this._source_snapshot_path = this._src_db.getLatestPath();
 	let changed = (this._prev_source_snapshot_path == null ||
@@ -182,7 +175,7 @@ const AutoBuilder = new Lang.Class({
             print(Format.vprintf("New version is %s", [this._source_snapshot_path.get_path()]))
 	if (!this._build_needed)
 	    this._build_needed = changed;
-	if (this._build_needed && this._build_proc == null)
+	if (this._build_needed && !this._build_taskset.isRunning())
 	    this._run_build();
 
 	if (this._full_resolve_needed || this._queued_force_resolve.length > 0) {
@@ -194,42 +187,33 @@ const AutoBuilder = new Lang.Class({
     
     _run_build: function() {
 	let cancellable = null;
-	if (this._build_proc != null) throw new Error();
+	if (this._build_taskset.isRunning()) throw new Error();
 	if (!this._build_needed) throw new Error();
 
 	this._build_needed = false;
 
-	let task = this._build_taskset.start();
-	let workdir = task.path;
-	let transientSnapshotPath = workdir.get_child(this._source_snapshot_path.get_basename());
-	GSystem.file_linkcopy(this._source_snapshot_path, transientSnapshotPath, Gio.FileCopyFlags.OVERWRITE, null);
-	let args = ['ostbuild', 'build', '--snapshot=' + transientSnapshotPath.get_path()];
+	let snapshotName = this._source_snapshot_path.get_basename();
+
+	let workdir = this._build_taskset.prepare();
+	let tmpSnapshotPath = workdir.get_child(snapshotName);
+	GSystem.file_linkcopy(this._source_snapshot_path, tmpSnapshotPath,
+			      Gio.FileCopyFlags.OVERWRITE, cancellable);	
+	
+	let args = ['ostbuild', 'build', '--snapshot=' + snapshotName];
 	args.push.apply(args, this._queued_force_builds);
 	this._queued_force_builds = [];
 
-	let version = this._src_db.parseVersionStr(this._source_snapshot_path.get_basename());
-	let meta = {'version': version,
-		    'version-path': this._snapshot_dir.get_relative_path(this._source_snapshot_path)};
-	let metaPath = workdir.get_child('meta.json');
-	JsonUtil.writeJsonFileAtomic(metaPath, meta, cancellable);
-
 	let context = new GSystem.SubprocessContext({ argv: args });
-	context.set_stdout_file_path(task.logfile_path.get_path());
-	context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
-	this._build_proc = new GSystem.Subprocess({context: context});
-	this._build_proc.init(null);
-	print(Format.vprintf("Build task %s.%s started, pid=%s", [task.major, task.minor, this._build_proc.get_pid()]));
-	this._build_proc.wait(null, Lang.bind(this, this._onBuildExited));
+	let task = this._build_taskset.start(context,
+					     cancellable,
+					     Lang.bind(this, this._onBuildExited));
+	print(Format.vprintf("Build task %s.%s started", [task.major, task.minor]));
 
 	this._updateStatus();
     },
 
-    _onBuildExited: function(process, result) {
-	if (this._build_proc == null) throw new Error();
-	this._build_proc = null;
-	let [success, msg] = ProcUtil.asyncWaitCheckFinish(process, result);
+    _onBuildExited: function(buildTaskset, success, msg) {
 	print(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
-	this._build_taskset.finish(success);
 	if (this._build_needed)
 	    this._run_build()
 	

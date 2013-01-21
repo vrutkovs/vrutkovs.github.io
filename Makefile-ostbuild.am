@@ -52,7 +52,7 @@ jsostbuild_DATA= \
 	src/ostbuild/js/procutil.js \
 	src/ostbuild/js/snapshot.js \
 	src/ostbuild/js/streamutil.js \
-	src/ostbuild/js/task.js \
+	src/ostbuild/js/subtask.js \
 	src/ostbuild/js/vcs.js \
 	$(NULL)
 

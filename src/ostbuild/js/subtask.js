@@ -22,22 +22,9 @@ const Lang = imports.lang;
 
 const GSystem = imports.gi.GSystem;
 
+const ProcUtil = imports.procutil;
+
 const VERSION_RE = /(\d+)\.(\d+)/;
-
-const TaskDir = new Lang.Class({
-    Name: 'TaskDir',
-
-    _init: function(path) {
-	this.path = path;
-    },
-
-    get: function(name) {
-	let child = this.path.get_child(name);
-	GSystem.file_ensure_directory(child, true, null);
-
-	return new TaskSet(child);
-    }
-});
 
 const TaskHistoryEntry = new Lang.Class({
     Name: 'TaskHistoryEntry',
@@ -91,11 +78,13 @@ const TaskHistoryEntry = new Lang.Class({
 const TaskSet = new Lang.Class({
     Name: 'TaskSet',
 
-    _init: function(path, prefix) {
+    _init: function(path) {
 	this.path = path;
+	GSystem.file_ensure_directory(this.path, true, null);
 
 	this._history = [];
 	this._running = false;
+	this._prepared = false;
 	this._running_version = null;
 	this._maxVersions = 10;
 	
@@ -126,9 +115,25 @@ const TaskSet = new Lang.Class({
 	this._cleanOldEntries();
     },
 
-    start: function() {
+    _onProcessComplete: function(proc, result) {
+	if (!this._running) throw new Error();
+
+	let [success, msg] = ProcUtil.asyncWaitCheckFinish(proc, result);
+
+	let last = this._history[this._history.length-1];
+	last.finish(success);
+	this._running = false;
+	this._process = null;
+
+	this._cleanOldEntries();
+
+	this._processCallback(this, success, msg);
+    },
+
+    prepare: function() {
 	if (this._running) throw new Error();
-	this._running = true;
+	if (this._prepared) throw new Error();
+	this._prepared = true;
 	let yearver = new Date().getFullYear();
 	let lastversion = -1;
 	if (this._history.length > 0) {
@@ -140,18 +145,33 @@ const TaskSet = new Lang.Class({
 	}
 	let historyPath = this.path.get_child(format.vprintf('%d.%d', [yearver, lastversion + 1]));
 	GSystem.file_ensure_directory(historyPath, true, null);
+
 	let entry = new TaskHistoryEntry(historyPath, 'running');
-	this._history.push(entry);
 	entry.logfile_path = historyPath.get_child('log');
-	return entry;
+	this._history.push(entry);
+	
+	return historyPath;
     },
 
-    finish: function(success) {
-	if (!this._running) throw new Error();
+    start: function(processContext, cancellable, callback) {
+	if (this._running) throw new Error();
+	if (!this._prepared)
+	    this.prepare();
+	this._running = true;
+	this._prepared = false;
 	let last = this._history[this._history.length-1];
-	last.finish(success);
-	this._running = false;
-	this._cleanOldEntries();
+	processContext.set_cwd(last.path.get_path());
+	processContext.set_stdout_file_path(last.logfile_path.get_path());
+	processContext.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
+	this._process = new GSystem.Subprocess({ context: processContext });
+	this._processCallback = callback;
+	this._process.init(cancellable);
+	this._process.wait(cancellable, Lang.bind(this, this._onProcessComplete));
+	return last;
+    },
+
+    isRunning: function() {
+	return this._running;
     },
 
     getHistory: function() {

@@ -22,7 +22,7 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
-const Task = imports.task;
+const SubTask = imports.subtask;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
@@ -277,6 +277,12 @@ const Build = new Lang.Class({
         return cachedata['ostree'];
     },
 
+    _onBuildComplete: function(taskset, success, msg, loop) {
+	this._currentBuildSucceded = success;
+	this._currentBuildSuccessMsg = msg;
+	loop.quit();
+    },
+
     _buildOneComponent: function(component, architecture, cancellable) {
         let basename = component['name'];
 
@@ -358,17 +364,15 @@ const Build = new Lang.Class({
 	    }
 	}
 
-        let taskdir = new Task.TaskDir(this.workdir.get_child('tasks'));
-        let buildTaskset = taskdir.get(buildname);
-        let t = buildTaskset.start()
-        let workdir = t.path;
+        let taskdir = this.workdir.get_child('tasks');
+        let buildTaskset = new SubTask.TaskSet(taskdir.get_child(buildname));
+
+	let workdir = buildTaskset.prepare();
 
         let tempMetadataPath = workdir.get_child('_ostbuild-meta.json');
         JsonUtil.writeJsonFileAtomic(tempMetadataPath, expandedComponent, cancellable);
 
-        let checkoutdir = this.workdir.get_child('checkouts');
-        let componentSrc = checkoutdir.get_child(buildname);
-        GSystem.file_ensure_directory(componentSrc.get_parent(), true, cancellable);
+        let componentSrc = workdir.get_child(basename);
         let childArgs = ['ostbuild', 'checkout', '--snapshot=' + this._snapshot.path.get_path(),
 			 '--checkoutdir=' + componentSrc.get_path(),
 			 '--metadata-path=' + tempMetadataPath.get_path(),
@@ -417,16 +421,22 @@ const Build = new Lang.Class({
         envCopy['CXXFLAGS'] = OPT_COMMON_CFLAGS[architecture];
 
 	let context = new GSystem.SubprocessContext({ argv: childArgs });
-	context.set_stdout_file_path(t.logfile_path.get_path());
-	context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	context.set_environment(ProcUtil.objectToEnvironment(envCopy));
-	let proc = new GSystem.Subprocess({ context: context });
-	proc.init(cancellable);
-	print(Format.vprintf("Started child process %s: pid=%s", [JSON.stringify(proc.context.argv), proc.get_pid()]));
-	let [res, estatus] = proc.wait_sync(cancellable);
-	let [buildSuccess, msg] = ProcUtil.getExitStatusAndString(estatus);
+
+	let mainContext = new GLib.MainContext();
+	mainContext.push_thread_default();
+	let loop = GLib.MainLoop.new(mainContext, true);
+	let t;
+	try {
+	    t = buildTaskset.start(context, cancellable, Lang.bind(this, this._onBuildComplete, loop));
+	    loop.run();
+	} finally {
+	    mainContext.pop_thread_default();
+	}
+	let buildSuccess = this._currentBuildSucceded;
+	let msg = this._currentBuildSuccessMsg;
+
         if (!buildSuccess) {
-            buildTaskset.finish(false);
             this._analyzeBuildFailure(t, architecture, component, componentSrc,
                                       currentVcsVersion, previousVcsVersion, cancellable);
 	    throw new Error("Build failure in component " + buildname + " : " + msg);
@@ -462,8 +472,6 @@ const Build = new Lang.Class({
         GSystem.shutil_rm_rf(tmpdir, cancellable);
 
         let ostreeRevision = this._saveComponentBuild(buildname, expandedComponent, cancellable);
-
-        buildTaskset.finish(true);
 
         return ostreeRevision;
     },
