@@ -778,5 +778,14 @@
 
 		{"src": "gnome:caribou"}
 
-	]
+	],
+    
+    "build-epoch": {"version": 0,
+		    "component-names": ["xorg-driver-xf86-input-evdev",
+					"xorg-driver-xf86-input-keyboard",
+					"xorg-driver-xf86-input-mouse", 
+					"xorg-driver-xf86-video-cirrus",
+					"xorg-driver-xf86-video-intel",
+					"xorg-driver-xf86-video-vesa"]}
+
 }

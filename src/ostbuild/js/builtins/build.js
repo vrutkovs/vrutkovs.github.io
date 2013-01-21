@@ -734,6 +734,23 @@ const Build = new Lang.Class({
             this._componentBuildCache = {};
 	}
 
+	let previousBuildEpoch = this._componentBuildCache['build-epoch'];
+	let currentBuildEpoch = this._snapshot.data['build-epoch'];
+	if (previousBuildEpoch === undefined ||
+	    (currentBuildEpoch !== undefined &&
+	     previousBuildEpoch['version'] < currentBuildEpoch['version'])) {
+	    let currentEpochVer = currentBuildEpoch['version'];
+	    let rebuilds = currentBuildEpoch['component-names'];
+	    for (let i = 0; i < rebuilds.length; i++) {
+		let component = this._snapshot.getComponent(rebuilds[i]);
+		let name = component['name'];
+		print("Component " + name + " build forced via epoch");
+		this.forceBuildComponents[name] = true;
+	    }
+	}
+
+	this._componentBuildCache['build-epoch'] = currentBuildEpoch;
+
         for (let i = 0; i < componentsToBuild.length; i++) {
 	    let [component, architecture] = componentsToBuild[i];
             let archname = component['name'] + '/' + architecture;
