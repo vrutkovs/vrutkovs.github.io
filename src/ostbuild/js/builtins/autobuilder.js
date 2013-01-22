@@ -32,9 +32,6 @@ const Config = imports.config;
 const loop = GLib.MainLoop.new(null, true);
 
 var AutoBuilderIface = <interface name="org.gnome.OSTreeBuild.AutoBuilder">
-<method name="queueBuild">
-    <arg type="as" direction="in" />
-</method>
 <method name="queueResolve">
     <arg type="as" direction="in" />
 </method>
@@ -55,7 +52,6 @@ const AutoBuilder = new Lang.Class({
 
 	this._build_needed = true;
 	this._full_resolve_needed = true;
-	this._queued_force_builds = [];
 	this._queued_force_resolve = [];
 	this._autoupdate_self = true;
 	this._resolve_timeout = 0;
@@ -107,14 +103,6 @@ const AutoBuilder = new Lang.Class({
 
     get Status() {
 	return this._status;
-    },
-
-    queueBuild: function(components) {
-	this._queued_force_builds.push.apply(this._queued_force_builds, components);
-	this._build_needed = true;
-	print("queued builds: " + this._queued_force_builds);
-	if (this._build_proc == null)
-	    this._run_build();
     },
 
     queueResolve: function(components) {
@@ -206,8 +194,6 @@ const AutoBuilder = new Lang.Class({
 	JsonUtil.writeJsonFileAtomic(metaPath, meta, cancellable);
 	
 	let args = ['ostbuild', 'build', '--snapshot=' + snapshotName];
-	args.push.apply(args, this._queued_force_builds);
-	this._queued_force_builds = [];
 
 	let context = new GSystem.SubprocessContext({ argv: args });
 	let task = this._build_taskset.start(context,

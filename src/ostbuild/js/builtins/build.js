@@ -645,7 +645,6 @@ const Build = new Lang.Class({
         parser.addArgument('--prefix');
         parser.addArgument('--snapshot');
         parser.addArgument('--patches-path');
-        parser.addArgument('components', {nargs:'*'});
         
         let args = parser.parse(argv);
 	this.args = args;
@@ -708,12 +707,6 @@ const Build = new Lang.Class({
                 componentArches = component['architectures'] || architectures;
 	    }
             componentToArches[name] = componentArches;
-	}
-
-        for (let i = 0; i < args.components.length; i++) {
-	    let name = args.components[i];
-            let component = this._snapshot.getComponent(name);
-            this.forceBuildComponents[name] = true;
 	}
 
         let componentsToBuild = [];
