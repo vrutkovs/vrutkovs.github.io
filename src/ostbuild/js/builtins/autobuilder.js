@@ -198,6 +198,12 @@ const AutoBuilder = new Lang.Class({
 	let tmpSnapshotPath = workdir.get_child(snapshotName);
 	GSystem.file_linkcopy(this._source_snapshot_path, tmpSnapshotPath,
 			      Gio.FileCopyFlags.OVERWRITE, cancellable);	
+
+	let version = this._src_db.parseVersionStr(this._source_snapshot_path.get_basename());
+	let meta = {'version': version,
+		    'version-path': this._snapshot_dir.get_relative_path(this._source_snapshot_path)};
+	let metaPath = workdir.get_child('meta.json');
+	JsonUtil.writeJsonFileAtomic(metaPath, meta, cancellable);
 	
 	let args = ['ostbuild', 'build', '--snapshot=' + snapshotName];
 	args.push.apply(args, this._queued_force_builds);
