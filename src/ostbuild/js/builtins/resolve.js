@@ -22,7 +22,6 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
-const Task = imports.task;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
