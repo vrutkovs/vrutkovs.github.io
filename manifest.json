@@ -711,7 +711,10 @@
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-split-authentication",
 		                 "--with-default-pam-config=openembedded",
-		                 "--with-systemd"]},
+		                 "--without-console-kit",
+		                 "--with-plymouth",
+		                 "--with-systemd",
+				 "--with-systemd-journal"]},
 
 		{"src": "fd-telepathy:telepathy-logger",
 		 "config-opts": ["--disable-Werror"],
