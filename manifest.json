@@ -714,7 +714,7 @@
 		                 "--without-console-kit",
 		                 "--with-plymouth",
 		                 "--with-systemd",
-				 "--with-systemd-journal"]},
+				 "--enable-systemd-journal"]},
 
 		{"src": "fd-telepathy:telepathy-logger",
 		 "config-opts": ["--disable-Werror"],
