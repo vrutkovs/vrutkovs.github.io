@@ -4,7 +4,7 @@
   "osname": "gnome-ostree",
   "default-target": "trees/gnomeos-3.8-x86_64-runtime",
   "prefix": "gnomeos-3.8",
-  "architectures": ["i686", "x86_64"],
+  "architectures": ["x86_64"],
   "base": {
             "name": "yocto",
 	    "src": "cgwalters:poky",
