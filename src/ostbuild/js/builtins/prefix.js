@@ -24,8 +24,6 @@ const Builtin = imports.builtin;
 const Config = imports.config;
 const ArgParse = imports.argparse;
 
-var loop = GLib.MainLoop.new(null, true);
-
 const Prefix = new Lang.Class({
     Name: 'Prefix',
     Extends: Builtin.Builtin,

@@ -37,8 +37,6 @@ const ArgParse = imports.argparse;
 const OPT_COMMON_CFLAGS = {'i686': '-O2 -g -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables',
                            'x86_64': '-O2 -g -m64 -mtune=generic'}
 
-var loop = GLib.MainLoop.new(null, true);
-
 const Build = new Lang.Class({
     Name: "Build",
     Extends: Builtin.Builtin,

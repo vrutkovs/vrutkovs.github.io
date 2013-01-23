@@ -30,8 +30,6 @@ const JsonUtil = imports.jsonutil;
 const JsonDB = imports.jsondb;
 const ArgParse = imports.argparse;
 
-var loop = GLib.MainLoop.new(null, true);
-
 const GitMirror = new Lang.Class({
     Name: 'GitMirror',
     Extends: Builtin.Builtin,
