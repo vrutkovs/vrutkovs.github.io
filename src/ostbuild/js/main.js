@@ -15,41 +15,83 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
+const GLib = imports.gi.GLib;
+
 const Format = imports.format;
 
-const BUILTINS = {'autobuilder': "Run resolve and build",
-                  'checkout': "Check out source tree",
-                  'prefix': "Display or modify \"prefix\" (build target)",
-                  'git-mirror': "Update internal git mirror for one or more components",
-                  'resolve': "Expand git revisions in source to exact targets",
-                  'build': "Build multiple components and generate trees",
-                  'shell': "Interactive JavaScript shell",
-                  'qa-make-disk': "Generate a bare disk image",
-                  'qa-build-disks': "Build disks",
-		  'qa-pull-deploy': "Copy OSTree repo into virtual disk and deploy it",
-		  'qa-smoketest': "Basic smoke testing via parsing serial console"};
+const BUILTINS = ['autobuilder',
+                  'checkout',
+                  'prefix',
+                  'git-mirror',
+                  'resolve',
+                  'build',
+                  'shell',
+                  'qa-make-disk',
+                  'qa-build-disks',
+		  'qa-pull-deploy',
+		  'qa-smoketest'];
+
+function getModule(unixName) {
+    return imports.builtins[unixName.replace(/-/g, '_')];
+}
+
+function getClass(unixName) {
+    let module = getModule(unixName);
+    let camelParts = unixName.split(/-/);
+    let camel = camelParts.map(function (part) {
+	return part[0].toLocaleUpperCase() + part.substr(1);
+    }).join('');
+    return module[camel];
+}
 
 function usage(ecode) {
     print("Builtins:");
-    for (let builtin in BUILTINS) {
-	let description = BUILTINS[builtin];
-        print(Format.vprintf("    %s - %s", [builtin, description]));
+    for (let i = 0; i < BUILTINS.length; i++) {
+	let unixName = BUILTINS[i];
+	let description = getClass(unixName).prototype.DESCRIPTION;
+        print(Format.vprintf("    %s - %s", [unixName, description]));
     }
     return ecode;
 }
 
+let ecode;
 if (ARGV.length < 1) {
-    usage(1);
+    ecode = usage(1);
 } else if (ARGV[0] == '-h' || ARGV[0] == '--help') {
-    usage(0);
+    ecode = usage(0);
 } else {
     let name = ARGV[0];
-    if (!BUILTINS[name]) {
-	usage(1);
+    let found = false;
+    for (let i = 0; i < BUILTINS.length; i++) {
+	if (BUILTINS[i] == name) {
+	    found = true;
+	    break;
+	}
     }
-    let args = ARGV.concat();
-    args.shift();
-    imports.builtins[name.replace(/-/g, '_')].main(args);
+    if (!found) {
+	usage(1);
+    } else {
+	let argv = ARGV.concat();
+	argv.shift();
+
+	let ecode = 1;
+	let loop = GLib.MainLoop.new(null, true);
+	let cls = getClass(name);
+	let instance = new cls;
+	let cancellable = null;
+	GLib.idle_add(GLib.PRIORITY_DEFAULT,
+		      function() {
+			  try {
+			      instance.main(argv, loop, cancellable); ecode = 0;
+			  } finally {
+			      loop.quit();
+			  }
+			  return false;
+		      });
+	loop.run();
+    }
 }
+ecode;
+
     
     

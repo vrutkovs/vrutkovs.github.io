@@ -20,6 +20,7 @@ const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 const Format = imports.format;
 
+const Builtin = imports.builtin;
 const Config = imports.config;
 const ArgParse = imports.argparse;
 
@@ -27,18 +28,17 @@ var loop = GLib.MainLoop.new(null, true);
 
 const Prefix = new Lang.Class({
     Name: 'Prefix',
+    Extends: Builtin.Builtin,
+
+    DESCRIPTION: "Display or modify \"prefix\" (build target)",
 
     _init: function() {
+	this.parent();
+        this.parser.addArgument(['-a', '--active'], {action: 'storeTrue'});
+        this.parser.addArgument('prefix');
     },
 
-    execute: function(argv) {
-	let cancellable = null;
-        let parser = new ArgParse.ArgumentParser("Display or modify \"prefix\" (build target)");
-        parser.addArgument(['-a', '--active'], {action: 'storeTrue'});
-        parser.addArgument('prefix');
-
-        let args = parser.parse(argv);
-
+    execute: function(args, loop, cancellable) {
 	let filepath = GLib.build_filenamev([GLib.get_user_config_dir(), "ostbuild-prefix"]);
         this.path = Gio.File.new_for_path(filepath);
         this._setPrefix(args.prefix, cancellable);
@@ -49,12 +49,3 @@ const Prefix = new Lang.Class({
         print("Prefix is now " + prefix);
     },
 });
-
-function main(argv) {
-    let ecode = 1;
-    var app = new Prefix();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-		  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}

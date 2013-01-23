@@ -23,26 +23,27 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
+const Builtin = imports.builtin;
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
 const LibQA = imports.libqa;
 const GuestFish = imports.guestfish;
 
-const loop = GLib.MainLoop.new(null, true);
-
 const QaPullDeploy = new Lang.Class({
     Name: 'QaPullDeploy',
+    Extends: Builtin.Builtin,
 
-    execute: function(argv) {
-        let cancellable = null;
-        let parser = new ArgParse.ArgumentParser("Generate a disk image");
-        parser.addArgument('diskpath');
-        parser.addArgument('srcrepo');
-        parser.addArgument('osname');
-        parser.addArgument('target');
-        
-        let args = parser.parse(argv);
+    DESCRIPTION: "Copy from repository into disk image and deploy it",
 
+    _init: function() {
+        this.parent();
+        this.parser.addArgument('diskpath');
+        this.parser.addArgument('srcrepo');
+        this.parser.addArgument('osname');
+        this.parser.addArgument('target');
+    },
+
+    execute: function(args, loop, cancellable) {
         let diskpath = Gio.File.new_for_path(args.diskpath);
 
         this._workdir = Gio.File.new_for_path('.');
@@ -63,12 +64,3 @@ const QaPullDeploy = new Lang.Class({
         print("Complete!");
     }
 });
-
-function main(argv) {
-    let ecode = 1;
-    var app = new QaPullDeploy();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-                  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}

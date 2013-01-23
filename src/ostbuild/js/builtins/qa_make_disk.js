@@ -23,22 +23,23 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
+const Builtin = imports.builtin;
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
 const GuestFish = imports.guestfish;
 
-const loop = GLib.MainLoop.new(null, true);
-
 const QaMakeDisk = new Lang.Class({
     Name: 'QaMakeDisk',
+    Extends: Builtin.Builtin,
 
-    execute: function(argv) {
-        let cancellable = null;
-        let parser = new ArgParse.ArgumentParser("Generate a disk image");
-        parser.addArgument('diskpath');
-        
-        let args = parser.parse(argv);
+    DESCRIPTION: "Generate a disk image",
 
+    _init: function() {
+        this.parent();
+        this.parser.addArgument('diskpath');
+    },
+
+    execute: function(args, loop, cancellable) {
         let path = Gio.File.new_for_path(args.diskpath);
         if (path.query_exists(null))
             throw new Error("" + path.get_path() + " exists");
@@ -91,12 +92,3 @@ mkdir /boot\n\
         print("Created: " + path.get_path());
     }
 });
-
-function main(argv) {
-    let ecode = 1;
-    var app = new QaMakeDisk();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-                  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}

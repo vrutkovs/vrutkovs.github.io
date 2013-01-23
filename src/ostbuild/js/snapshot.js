@@ -94,20 +94,6 @@ const Snapshot = new Lang.Class({
 	return r;
     },
 
-    loadFromDb: function(db, prefix, snapshotPath, cancellable) {
-	let data, path;
-	if (snapshotPath) {
-	    path = Gio.File.new_for_path(snapshotPath);
-	    data = JsonUtil.loadJson(path, cancellable);
-	} else if (prefix) {
-	    path = db.getLatestPath();
-	    data = db.loadFromPath(path, cancellable);
-	} else {
-	    throw new Error("No prefix or snapshot specified");
-	}
-	return new Snapshot(data, path);
-    },
-
     getAllComponentNames: function() {
 	return this._componentNames;
     },

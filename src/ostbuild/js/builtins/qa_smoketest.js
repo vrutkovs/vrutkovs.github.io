@@ -23,16 +23,18 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
+const Builtin = imports.builtin;
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
 const LibQA = imports.libqa;
 
-const loop = GLib.MainLoop.new(null, true);
-
 const TIMEOUT_SECONDS = 2 * 60;
 
-const QaSmokeTest = new Lang.Class({
-    Name: 'QaSmokeTest',
+const QaSmoketest = new Lang.Class({
+    Name: 'QaSmoketest',
+    Extends: Builtin.Builtin,
+
+    DESCRIPTION: "Test booting and logging in",
 
     RequiredMessageIDs: ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
                          "f77379a8490b408bbe5f6940505a777b",  // systemd-journald
@@ -132,14 +134,13 @@ const QaSmokeTest = new Lang.Class({
         }
     },
 
-    execute: function(argv) {
-        let cancellable = null;
-        let parser = new ArgParse.ArgumentParser("Basic smoke testing via parsing serial console");
-        parser.addArgument('--monitor', { action: 'storeTrue' });
-        parser.addArgument('diskpath');
-        
-        let args = parser.parse(argv);
+    _init: function() {
+        this.parent();
+        this.parser.addArgument('--monitor', { action: 'storeTrue' });
+        this.parser.addArgument('diskpath');
+    },
 
+    execute: function(args, loop, cancellable) {
         this._failed = false;
         this._journalStream = null;
         this._journalDataStream = null;
@@ -221,12 +222,3 @@ const QaSmokeTest = new Lang.Class({
         return 0;
     }
 });
-
-function main(argv) {
-    let ecode = 1;
-    var app = new QaSmokeTest();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-                  function() { try { ecode = app.execute(argv); } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}

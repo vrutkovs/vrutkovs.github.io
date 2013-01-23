@@ -22,6 +22,7 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
+const Builtin = imports.builtin;
 const SubTask = imports.subtask;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
@@ -40,6 +41,9 @@ var loop = GLib.MainLoop.new(null, true);
 
 const Build = new Lang.Class({
     Name: "Build",
+    Extends: Builtin.Builtin,
+
+    DESCRIPTION: "Build multiple components and generate trees",
 
     _resolveRefs: function(refs) {
         if (refs.length == 0)
@@ -637,32 +641,20 @@ const Build = new Lang.Class({
 
 	builtRevisionPath.replace_contents(basemeta['revision'], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
     },
-        
-    execute: function(argv) {
-	let cancellable = null;
 
-        let parser = new ArgParse.ArgumentParser("Build multiple components and generate trees");
-        parser.addArgument('--prefix');
-        parser.addArgument('--snapshot');
-        parser.addArgument('--patches-path');
-        
-        let args = parser.parse(argv);
-	this.args = args;
+    _init: function() {
+	this.parent();
+        this.parser.addArgument('--prefix');
+        this.parser.addArgument('--snapshot');
+        this.parser.addArgument('--patches-path');
 
-	this.config = Config.get();
-	this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
-	this.mirrordir = Gio.File.new_for_path(this.config.getGlobal('mirrordir'));
-	this.patchdir = this.workdir.get_child('patches');
-	this.prefix = args.prefix || this.config.getPrefix();
-	this._snapshotDir = this.workdir.get_child('snapshots');
-	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
-
-	this._srcDb = new JsonDB.JsonDB(this._snapshotDir, this.prefix + '-src-snapshot');
-	this._snapshot = Snapshot.Snapshot.prototype.loadFromDb(this._srcDb, this.prefix, args.snapshot, cancellable);
-	let snapshotName = this._snapshot.path.get_basename();
-	
         this.forceBuildComponents = {};
         this.cachedPatchdirRevision = null;
+    },
+        
+    execute: function(args, loop, cancellable) {
+	this._initSnapshot(args.prefix, args.snapshot, cancellable);
+	this.args = args;
 
 	this.repo = this.workdir.get_child('repo');
 
@@ -805,7 +797,7 @@ const Build = new Lang.Class({
 
 	let buildDataPath = this.workdir.get_child(this.prefix + '-buildresult.json');
 	let targetRevisions = {};
-	let buildData = { snapshotName: snapshotName,
+	let buildData = { snapshotName: this._snapshot.path.get_basename(),
 			  snapshot: this._snapshot.data,
 			  targets: targetRevisions };
         for (let i = 0; i < targetsList.length; i++) {
@@ -817,14 +809,3 @@ const Build = new Lang.Class({
 	JsonUtil.writeJsonFileAtomic(buildDataPath, buildData, cancellable);
     }
 });
-
-
-function main(argv) {
-    let ecode = 1;
-    var app = new Build();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-		  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}
-

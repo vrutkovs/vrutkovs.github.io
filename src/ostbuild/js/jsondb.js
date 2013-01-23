@@ -26,11 +26,10 @@ const GSystem = imports.gi.GSystem;
 const JsonDB = new Lang.Class({
     Name: 'JsonDB',
 
-    _init: function(path, prefix) {
+    _init: function(path) {
 	this._path = path;
 	GSystem.file_ensure_directory(this._path, true, null);
-	this._prefix = prefix;
-	this._re = /-(\d+)\.(\d+)-([0-9a-f]+).json$/;
+	this._re = /^(\d+)\.(\d+)-([0-9a-f]+).json$/;
 	this._maxVersions = 5;
     },
 
@@ -52,13 +51,9 @@ const JsonDB = new Lang.Class({
 	let info;
 	while ((info = e.next_file(null)) != null) {
 	    let name = info.get_name();
-	    if (name.indexOf(this._prefix) != 0)
-		continue;
-	    if (name.length < 6 || name.lastIndexOf('.json') != name.length-5)
-		continue;
 	    let match = this._re.exec(name);
 	    if (!match)
-		throw new Error("Invalid JSONDB file " + name);
+		continue;
 	    result.push([parseInt(match[1]), parseInt(match[2]),
 			 match[3], name]);
 	}
@@ -126,8 +121,7 @@ const JsonDB = new Lang.Class({
             latestVersion = [currentTime.get_year(), 0];
 	}
 
-        let targetName = Format.vprintf('%s-%d.%d-%s.json', [this._prefix, currentTime.get_year(),
-							     latestVersion[1] + 1, csum]);
+        let targetName = Format.vprintf('%d.%d-%s.json', [currentTime.get_year(), latestVersion[1] + 1, csum]);
         let targetPath = this._path.get_child(targetName);
 	targetPath.replace_contents(buf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 

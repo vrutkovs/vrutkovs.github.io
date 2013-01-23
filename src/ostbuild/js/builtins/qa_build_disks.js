@@ -23,6 +23,7 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
+const Builtin = imports.builtin;
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
 const LibQA = imports.libqa;
@@ -34,14 +35,12 @@ const loop = GLib.MainLoop.new(null, true);
 
 const QaBuildDisks = new Lang.Class({
     Name: 'QaBuildDisks',
+    Extends: Builtin.Builtin,
 
-    execute: function(argv) {
-	      let cancellable = null;
-	      this.config = Config.get();
-	      this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
-	      this.prefix = this.config.getPrefix();
-	      this.repo = this.workdir.get_child('repo');
-	      this._snapshot_dir = this.workdir.get_child('snapshots');
+    DESCRIPTION: "Generate disk images",
+
+    execute: function(args, loop, cancellable) {
+        this._initPrefix(null);
 	      this._buildDataPath = this.workdir.get_child(this.prefix + '-buildresult.json');
 	      this._buildData = JsonUtil.loadJson(this._buildDataPath, cancellable);
 
@@ -88,12 +87,3 @@ const QaBuildDisks = new Lang.Class({
 	      return this.workdir.get_child(this.prefix + '-' + squashedName + suffix);
     }
 });
-
-function main(argv) {
-    let ecode = 1;
-    var app = new QaBuildDisks();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-                  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}

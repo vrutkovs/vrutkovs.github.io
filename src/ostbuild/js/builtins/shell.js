@@ -22,6 +22,7 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
+const Builtin = imports.builtin;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
@@ -31,24 +32,13 @@ const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
 
-var loop = GLib.MainLoop.new(null, true);
-
 const Shell = new Lang.Class({
     Name: 'Shell',
+    Extends: Builtin.Builtin,
 
-    _init: function() {
-    },
+    DESCRIPTION: "Interactive shell",
 
-    execute: function(argv) {
-	    imports.console.interact();
+    execute: function(args, loop, cancellable) {
+	imports.console.interact();
     }
 });
-
-function main(argv) {
-    let ecode = 1;
-    var app = new Shell();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-		  function() { try { app.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}

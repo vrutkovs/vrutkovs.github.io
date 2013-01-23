@@ -22,6 +22,7 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
+const Builtin = imports.builtin;
 const SubTask = imports.subtask;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
@@ -38,18 +39,14 @@ var AutoBuilderIface = <interface name="org.gnome.OSTreeBuild.AutoBuilder">
 <property name="Status" type="s" access="read" />
 </interface>;
 
-const AutoBuilder = new Lang.Class({
-    Name: 'AutoBuilder',
+const Autobuilder = new Lang.Class({
+    Name: 'Autobuilder',
+    Extends: Builtin.Builtin,
+
+    DESCRIPTION: "Automatically fetch git repositories and build",
     
     _init: function() {
-	this.config = Config.get();
-	this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
-	this.prefix = this.config.getPrefix();
-	this._snapshot_dir = this.workdir.get_child('snapshots');
-	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
-
-	this._manifestPath = Gio.File.new_for_path('manifest.json');
-
+	this.parent();
 	this._build_needed = true;
 	this._full_resolve_needed = true;
 	this._queued_force_resolve = [];
@@ -57,13 +54,22 @@ const AutoBuilder = new Lang.Class({
 	this._resolve_timeout = 0;
 	this._source_snapshot_path = null;
 	this._prev_source_snapshot_path = null;
-	
+    },
+
+    execute: function(args, loop, cancellable) {
+	this._initSnapshot(null, null, cancellable);
+	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
+	this._manifestPath = Gio.File.new_for_path('manifest.json');
+
+	this._ownId = Gio.DBus.session.own_name('org.gnome.OSTreeBuild', Gio.BusNameOwnerFlags.NONE,
+						function(name) {},
+						function(name) { loop.quit(); });
+
 	this._impl = Gio.DBusExportedObject.wrapJSObject(AutoBuilderIface, this);
 	this._impl.export(Gio.DBus.session, '/org/gnome/OSTreeBuild/AutoBuilder');
 
-	let snapshotdir = this.workdir.get_child('snapshots');
-	GSystem.file_ensure_directory(snapshotdir, true, null);
-	this._src_db = new JsonDB.JsonDB(snapshotdir, this.prefix + '-src-snapshot');
+	this._snapshot_dir = this.workdir.get_child('snapshots').get_child(this.prefix);
+	this._src_db = new JsonDB.JsonDB(this._snapshot_dir);
 
 	let taskdir = this.workdir.get_child('tasks');
 	this._resolve_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-resolve'));
@@ -80,6 +86,8 @@ const AutoBuilder = new Lang.Class({
 	    this._run_build();
 
 	this._updateStatus();
+
+	loop.run();
     },
 
     _updateStatus: function() {
@@ -281,12 +289,3 @@ const AutoBuilder = new Lang.Class({
 	JsonUtil.writeJsonFileAtomic(this._status_path, status, cancellable);
     }
 });
-
-function main(argv) {
-    var ownId = Gio.DBus.session.own_name('org.gnome.OSTreeBuild', Gio.BusNameOwnerFlags.NONE,
-					  function(name) {},
-					  function(name) { loop.quit(); });
-    
-    var builder = new AutoBuilder();
-    loop.run();
-}

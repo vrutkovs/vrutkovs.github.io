@@ -23,6 +23,7 @@ const Format = imports.format;
 const GSystem = imports.gi.GSystem;
 
 const JsonDB = imports.jsondb;
+const Builtin = imports.builtin;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
@@ -31,27 +32,24 @@ const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
 
-var loop = GLib.MainLoop.new(null, true);
-
 const Resolve = new Lang.Class({
     Name: "Resolve",
+    Extends: Builtin.Builtin,
+    
+    DESCRIPTION: "Expand git revisions in source to exact targets",
 
     _init: function() {
+	this.parent();
+        this.parser.addArgument('--manifest', {help:"Path to manifest file"});
+        this.parser.addArgument('--fetch', {action:'storeTrue',
+					help:"Also perform a git fetch"});
+        this.parser.addArgument('--fetch-keep-going', {action:'storeTrue',
+						  help:"Don't exit on fetch failures"});
+        this.parser.addArgument('components', {nargs:'*',
+					  help:"List of component names to git fetch"});
     },
 
-    execute: function(argv) {
-	let cancellable = null;
-        let parser = new ArgParse.ArgumentParser("Expand git revisions in source to exact targets");
-        parser.addArgument('--manifest', {help:"Path to manifest file"});
-        parser.addArgument('--fetch', {action:'storeTrue',
-					help:"Also perform a git fetch"});
-        parser.addArgument('--fetch-keep-going', {action:'storeTrue',
-						  help:"Don't exit on fetch failures"});
-        parser.addArgument('components', {nargs:'*',
-					  help:"List of component names to git fetch"});
-
-        let args = parser.parse(argv);
-
+    execute: function(args, loop, cancellable) {
 	let componentsToFetch = {};
 	args.components.forEach(function (name) {
 	    componentsToFetch[name] = true;
@@ -131,7 +129,7 @@ const Resolve = new Lang.Class({
 	}
 
 	let snapshotdir = this.workdir.get_child('snapshots');
-	this._src_db = new JsonDB.JsonDB(snapshotdir, this.prefix + '-src-snapshot');
+	this._src_db = new JsonDB.JsonDB(snapshotdir.get_child(this.prefix));
         let [path, modified] = this._src_db.store(this._snapshot, cancellable);
         if (modified) {
             print("New source snapshot: " + path.get_path());
@@ -140,12 +138,3 @@ const Resolve = new Lang.Class({
 	}
     }
 });
-
-function main(argv) {
-    let ecode = 1;
-    var resolve = new Resolve();
-    GLib.idle_add(GLib.PRIORITY_DEFAULT,
-		  function() { try { resolve.execute(argv); ecode = 0; } finally { loop.quit(); }; return false; });
-    loop.run();
-    return ecode;
-}
