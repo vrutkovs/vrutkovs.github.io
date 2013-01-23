@@ -113,11 +113,23 @@ const Autobuilder = new Lang.Class({
 	return this._status;
     },
 
-    queueResolve: function(components) {
-	this._queued_force_resolve.push.apply(this._queued_force_resolve, components);
-	print("queued resolves: " + this._queued_force_resolve);
-	if (!this._resolve_taskset.isRunning())
-	    this._fetch();
+    queueResolve: function(srcUrls) {
+	let matchingComponents = [];
+	let snapshotData = this._src_db.loadFromPath(this._source_snapshot_path, null);
+	let snapshot = new Snapshot.Snapshot(snapshotData, this._source_snapshot_path);
+	for (let i = 0; i < srcUrls.length; i++) {
+	    let matches = snapshot.getMatchingSrc(srcUrls[i]);
+	    for (let j = 0; j < matches.length; j++)
+		matchingComponents.push(matches[j]['name']);
+	}
+	if (matchingComponents.length > 0) {
+	    this._queued_force_resolve.push.apply(this._queued_force_resolve, matchingComponents);
+	    print("queued resolves: " + matchingComponents.join(' '));
+	    if (!this._resolve_taskset.isRunning())
+		this._fetch();
+	} else {
+	    print("Ignored fetch requests for unknown URLs: " + srcUrls.join(','));
+	}
     },
     
     _fetchAll: function() {

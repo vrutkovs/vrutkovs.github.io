@@ -105,6 +105,17 @@ const Snapshot = new Lang.Class({
 	return r;
     },
 
+    getMatchingSrc: function(src, allowNone) {
+	let result = [];
+	for (let i = 0; i < this._componentNames.length; i++) {
+	    let name = this._componentNames[i];
+	    let component = this.getComponent(name, false);
+	    if (component['src'] == src)
+		result.push(component);
+	}
+	return result;
+    },
+
     getExpanded: function(name) {
 	return this._expandComponent(this.getComponent(name));
     }
