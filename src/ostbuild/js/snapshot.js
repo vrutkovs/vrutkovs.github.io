@@ -99,8 +99,7 @@ const Snapshot = new Lang.Class({
     },
 
     getComponent: function(name, allowNone) {
-	let d = _componentDict(this.data);
-	let r = d[name] || null;
+	let r = this._componentDict[name] || null;
 	if (!r && !allowNone)
 	    throw new Error("No component " + name + " in snapshot");
 	return r;
