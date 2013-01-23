@@ -753,6 +753,9 @@
                              "libpwquality-python-bindings.patch"]
                 }, 
 
+		{"src": "git:git://gitorious.org/colord/colord-gtk.git",
+		 "name": "colord-gtk" },
+
 		{"src": "gnome:gnome-control-center",
 		 "config-opts": ["--disable-documentation",
 				 "--disable-cups"]},
