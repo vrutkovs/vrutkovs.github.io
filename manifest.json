@@ -774,6 +774,7 @@
                 {"src": "git:git://git.kernel.org/pub/scm/boot/dracut/dracut.git",
 		 "config-opts": ["--disable-documentation",
 		                 "--enable-systemd"],
+		 "tag": "ae4758ce0d0ceeddabe4a78dd575c7b42c349a88",
 		 "patches": ["dracut-Support-OSTree.patch",
 		             "dracut-systemd-configure.patch"]},
 
