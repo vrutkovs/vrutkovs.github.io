@@ -72,4 +72,9 @@ jsostbuiltins_DATA= \
 	src/ostbuild/js/builtins/shell.js \
 	$(NULL)
 
+jsosttasksdir=$(jsostbuilddir)/tasks
+jsosttasks_DATA= \
+	src/ostbuild/js/tasks/task-checksum.js \
+	$(NULL)
+
 endif
