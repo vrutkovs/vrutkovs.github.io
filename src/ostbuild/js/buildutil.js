@@ -19,6 +19,8 @@ const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 
+const GSystem = imports.gi.GSystem;
+
 const BUILD_ENV = {
     'HOME' : '/', 
     'HOSTNAME' : 'ostbuild',
@@ -42,50 +44,7 @@ function parseSrcKey(srckey) {
     return [keytype, uri];
 }
 
-function resolveComponent(manifest, componentMeta) {
-    let result = {};
-    Lang.copyProperties(componentMeta, result);
-    let origSrc = componentMeta['src'];
 
-    let didExpand = false;
-    let vcsConfig = manifest['vcsconfig'];
-    for (let vcsprefix in vcsConfig) {
-	let expansion = vcsConfig[vcsprefix];
-        let prefix = vcsprefix + ':';
-        if (origSrc.indexOf(prefix) == 0) {
-            result['src'] = expansion + origSrc.substr(prefix.length);
-            didExpand = true;
-            break;
-	}
-    }
-
-    let name = componentMeta['name'];
-    let src, idx, name;
-    if (name == undefined) {
-        if (didExpand) {
-            src = origSrc;
-            idx = src.lastIndexOf(':');
-            name = src.substr(idx+1);
-        } else {
-            src = result['src'];
-            idx = src.lastIndexOf('/');
-            name = src.substr(idx+1);
-	}
-	let i = name.lastIndexOf('.git');
-        if (i != -1 && i == name.length - 4) {
-            name = name.substr(0, name.length - 4);
-	}
-        name = name.replace(/\//g, '-');
-        result['name'] = name;
-    }
-
-    let branchOrTag = result['branch'] || result['tag'];
-    if (!branchOrTag) {
-        result['branch'] = 'master';
-    }
-
-    return result;
-}
 
 function getPatchPathsForComponent(patchdir, component) {
     let patches = component['patches'];
@@ -126,4 +85,40 @@ function findUserChrootPath() {
 function getBaseUserChrootArgs() {
     let path = findUserChrootPath();
     return [path.get_path(), '--unshare-pid', '--unshare-ipc', '--unshare-net'];
+}
+
+function compareVersions(a, b) {
+    let adot = a.indexOf('.');
+    while (adot != -1) {
+	let bdot = b.indexOf('.');
+	if (bdot == -1)
+	    return 1;
+	let aSub = parseInt(a.substr(0, adot));
+	let bSub = parseInt(b.substr(0, bdot));
+	if (aSub > bSub)
+	    return 1;
+	else if (aSub < bSub)
+	    return -1;
+	a = a.substr(adot + 1);
+	b = b.substr(bdot + 1);
+	adot = a.indexOf('.');
+    }
+    if (b.indexOf('.') != -1)
+	return -1;
+    let aSub = parseInt(a);
+    let bSub = parseInt(b);
+    if (aSub > bSub)
+	return 1;
+    else if (aSub < bSub)
+	return -1;
+    return 0;
+}
+
+function atomicSymlinkSwap(linkPath, newTarget, cancellable) {
+    let parent = linkPath.get_parent();
+    let tmpLinkPath = parent.get_child('current-new.tmp');
+    GSystem.shutil_rm_rf(tmpLinkPath, cancellable);
+    let relpath = parent.get_relative_path(newTarget);
+    tmpLinkPath.make_symbolic_link(relpath, cancellable);
+    GSystem.file_rename(tmpLinkPath, linkPath, cancellable);
 }

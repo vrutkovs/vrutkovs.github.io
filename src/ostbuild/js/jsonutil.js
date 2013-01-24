@@ -27,6 +27,44 @@ function writeJsonToStream(stream, data, cancellable) {
     stream.write_bytes(new GLib.Bytes(buf), cancellable);
 }
 
+function writeJsonToStreamAsync(stream, data, cancellable, onComplete) {
+    let buf = JSON.stringify(data, null, "  ");
+    stream.write_bytes_async(new GLib.Bytes(buf), GLib.PRIORITY_DEFAULT,
+			     cancellable, function(stream, result) {
+				 let err = null;
+				 try {
+				     stream.write_bytes_finish(result);
+				 } catch (e) {
+				     err = e;
+				 } 
+				 onComplete(err != null, err);
+			     });
+}
+
+function loadJsonFromStream(stream, cancellable) {
+    let membuf = Gio.MemoryOutputStream.new_resizable();
+    membuf.splice(stream, Gio.OutputStreamSpliceFlags.CLOSE_TARGET, cancellable);
+    let bytes = membuf.steal_as_bytes();
+    return JSON.parse(bytes.toArray().toString());
+}
+
+function loadJsonFromStreamAsync(stream, cancellable, onComplete) {
+    let membuf = Gio.MemoryOutputStream.new_resizable();
+    membuf.splice_async(stream, Gio.OutputStreamSpliceFlags.CLOSE_TARGET, GLib.PRIORITY_DEFAULT,
+			cancellable, function(stream, result) {
+			    let err = null;
+			    let res = null;
+			    try {
+				stream.splice_finish(result);
+				let bytes = membuf.steal_as_bytes();
+				res = JSON.parse(bytes.toArray().toString());
+			    } catch (e) {
+				err = e;
+			    }
+			    onComplete(res, err);
+			});
+}
+
 function writeJsonFileAtomic(path, data, cancellable) {
     let s = path.replace(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
     writeJsonToStream(s, data, cancellable);

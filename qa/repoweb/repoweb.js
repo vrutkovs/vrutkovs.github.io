@@ -1,5 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
+const DEFAULT_PREFIX = 'gnomeos-3.8';
+
 function htmlescape(str) {
     var pre = document.createElement('pre');
     var text = document.createTextNode(str);
@@ -26,22 +28,19 @@ function get_page_arg(key) {
 }
 
 var repoDataSignal = {};
-var repoData = null;
+var currentBuildMeta = null;
 var prefix = null;
 
-function repoweb_on_data_loaded(data) {
-    console.log("data loaded");
-    repoData = data;
-    prefix = repoData['prefix'];
-    $(repoDataSignal).trigger("loaded");
-}
-
-function repoweb_init() {
-    var id = get_page_arg("prefix");
-    if (id == null)
-        id = "default";
-    var url = "work/autobuilder-" + id + ".json";
-    $.getJSON(url, repoweb_on_data_loaded);
+function repowebInit() {
+    prefix = get_page_arg("prefix");
+    if (prefix == null)
+        prefix = DEFAULT_PREFIX;
+    var url;
+    url = "work/tasks/build/" + prefix + "/current/meta.json";
+    $.getJSON(url, function(data) {
+        currentBuildMeta = data;
+        $(repoDataSignal).trigger("current-buildmeta-loaded");
+    });
 }
 
 function timeago(d, now) {
@@ -58,22 +57,6 @@ function timeago(d, now) {
         if (unitItem[1] == -1 || diffSeconds < unitItem[1]) {
             return "" + (Math.floor(diffSeconds / divisor)) + " " + unitItem[0] + " ago";
         }
-    }
-}
-
-function buildDiffComponentAppend(container, description, a) {
-    var additional = 0;
-    if (a.length > 10) {
-        a = a.slice(0, 10); 
-        additional = a.length - 10;
-    }
-    var p = document.createElement('p');
-    container.appendChild(p);
-    p.appendChild(document.createTextNode(description + ": " + a.join(", ")));
-    if (additional > 0) {
-        var b = document.createElement('b');
-        p.appendChild(b);
-        b.appendChild.document.createTextNode(" and " + additional + " more");
     }
 }
 
@@ -139,41 +122,31 @@ function renderBuild(container, build) {
 
 }
 
-function updateResolve() {
-    $("#resolve-summary").empty();
-    var summary = $("#resolve-summary").get(0);
+function repowebIndexInit() {
+    repowebInit();
+    $(repoDataSignal).on("current-buildmeta-loaded", function () {
+	var buildMetaNode = $("#build-meta").get(0);
 
-    var div = document.createElement('div');
-    summary.appendChild(div);
-    div.appendChild(document.createTextNode("Current version: "));
-    var a = document.createElement('a');
-    div.appendChild(a);
-    a.setAttribute('href', 'work/snapshots/' + repoData['version-path']);
-    a.setAttribute('rel', 'external');
-    a.appendChild(document.createTextNode(repoData['version']));
-}
-
-function repoweb_index_init() {
-    repoweb_init();
-    $(repoDataSignal).on("loaded", function () {
-
-	var buildSummary = $("#build-summary").get(0);
-        var buildData = repoData.build;
-        for (var i = buildData.length - 1; i >= 0; i--) {
-            var build = buildData[i];
-            renderBuild(buildSummary, build);
-        }
-        if (buildData.length > 0) {
-            var build = buildData[0];
-            $("#buildstatus").removeClass("buildstatus-happy");
-            $("#buildstatus").removeClass("buildstatus-sad");
-            if (build['state'] == 'failed') 
-               $("#buildstatus").addClass("buildstatus-sad");
-            else
-               $("#buildstatus").addClass("buildstatus-happy");
+        $(buildMetaNode).empty();
+        var ref = 'work/tasks/build/' + prefix;
+        if (currentBuildMeta.success)
+            ref += '/successful';
+        else
+            ref += '/failed';
+        ref += '/' + currentBuildMeta.taskVersion;
+        var a = document.createElement('a');
+        a.setAttribute('href', ref);
+        a.setAttribute('rel', 'external');
+        a.appendChild(document.createTextNode(currentBuildMeta.taskVersion));
+        buildMetaNode.appendChild(a);
+        buildMetaNode.appendChild(document.createTextNode(': ' + (currentBuildMeta.success ? "success" : "failed ")));
+        
+        $("#build-icon").removeClass("buildstatus-happy");
+        $("#build-icon").removeClass("buildstatus-sad");
+        if (currentBuildMeta.success) {
+            $("#build-icon").addClass("buildstatus-happy");
         } else {
-               $("#buildstatus").addClass("buildstatus-happy");
+            $("#build-icon").addClass("buildstatus-sad");
         }
-	$(buildSummary).listview('refresh');
     });
 }

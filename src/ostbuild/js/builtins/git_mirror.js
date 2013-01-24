@@ -41,6 +41,7 @@ const GitMirror = new Lang.Class({
         this.parser.addArgument('--prefix');
         this.parser.addArgument('--manifest');
         this.parser.addArgument('--snapshot');
+        this.parser.addArgument('--timeout-sec', { help: "Cache fetch results for provided number of seconds" });
         this.parser.addArgument('--fetch', {action:'storeTrue',
 				       help:"Also do a git fetch for components"});
         this.parser.addArgument(['-k', '--keep-going'], {action:'storeTrue',
@@ -51,17 +52,13 @@ const GitMirror = new Lang.Class({
     execute: function(args, loop, cancellable) {
         let parser = new ArgParse.ArgumentParser();
 
+	if (!args.timeout_sec)
+	    args.timeout_sec = 0;
+
         if (args.manifest != null) {
-            let snapshotData = JsonUtil.loadJson(Gio.File.new_for_path(args.manifest), cancellable);
-	    let resolvedComponents = [];
-	    let components = snapshotData['components'];
-	    for (let i = 0; i < components.length; i++) {
-		resolvedComponents.push(BuildUtil.resolveComponent(snapshotData, components[i]));
-	    }
-            snapshotData['components'] = resolvedComponents;
-            snapshotData['patches'] = BuildUtil.resolveComponent(snapshotData, snapshotData['patches']);
-            snapshotData['base'] = BuildUtil.resolveComponent(snapshotData, snapshotData['base']);
-	    this._snapshot = new Snapshot.Snapshot(snapshotData, null);
+	    let manifestPath = Gio.File.new_for_path(args.manifest)
+            let manifestData = JsonUtil.loadJson(manifestPath, cancellable);
+	    this._snapshot = new Snapshot.Snapshot(manifestData, manifestPath, { prepareResolve: true });
         } else {
 	    this._initSnapshot(args.prefix, args.snapshot, cancellable);
 	}
@@ -74,18 +71,15 @@ const GitMirror = new Lang.Class({
 	}
 
 	componentNames.forEach(Lang.bind(this, function (name) {
-            let component = this._snapshot.getComponent(name);
-            let src = component['src']
-            let [keytype, uri] = Vcs.parseSrcKey(src);
-            let branch = component['branch'];
-            let tag = component['tag'];
-            let branchOrTag = branch || tag;
+	    let [keytype, uri, branchOrTag] = this._snapshot.getVcsInfo(name);
 
             if (!args.fetch) {
                 Vcs.ensureVcsMirror(this.mirrordir, keytype, uri, branchOrTag, cancellable);
 	    } else {
 		print("Running git fetch for " + name);
-		Vcs.fetch(this.mirrordir, keytype, uri, branchOrTag, cancellable, {keepGoing:args.keep_going});
+		Vcs.fetch(this.mirrordir, keytype, uri, branchOrTag, cancellable,
+			  { keepGoing:args.keep_going,
+			    timeoutSec: args.timeout_sec });
 	    }
 	}));
     }

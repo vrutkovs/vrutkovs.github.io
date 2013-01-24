@@ -99,6 +99,16 @@ const JsonDB = new Lang.Class({
 	return JsonUtil.loadJson(this._path.get_child(path.get_basename()), cancellable);
     },
 
+    _updateIndex: function(cancellable) {
+        let files = this._getAll();
+	let fnames = [];
+	for (let i = 0; i < files.length; i++) {
+	    fnames.push(files[i][3]);
+	}
+	let index = { files: fnames };
+	JsonUtil.writeJsonFileAtomic(this._path.get_child('index.json'), index, cancellable);
+    },
+
     store: function(obj, cancellable) {
         let files = this._getAll();
 	let latest = null;
@@ -132,6 +142,8 @@ const JsonDB = new Lang.Class({
 		GSystem.file_unlink(this._path.get_child(files[i][3]), cancellable);
 	    }
 	}
+
+	this._updateIndex(cancellable);
 
         return [targetPath, true];
     }

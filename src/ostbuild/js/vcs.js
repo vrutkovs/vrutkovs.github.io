@@ -173,22 +173,40 @@ function _listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable) {
 
 function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
 			 params) {
-    params = Params.parse(params, {fetch: false,
-				   fetchKeepGoing: false});
+    params = Params.parse(params, { fetch: false,
+				    fetchKeepGoing: false,
+				    timeoutSec: 0 });
+    let fetch = params.fetch;
     let mirror = getMirrordir(mirrordir, keytype, uri);
     let tmpMirror = mirror.get_parent().get_child(mirror.get_basename() + '.tmp');
     let didUpdate = false;
     let lastFetchPath = getLastfetchPath(mirrordir, keytype, uri, branch);
     let lastFetchContents = null;
-    if (lastFetchPath.query_exists(cancellable)) {
+    let currentTime = GLib.DateTime.new_now_utc();
+    let lastFetchContents = null;
+    let lastFetchInfo = null;
+    try {
+	lastFetchInfo = lastFetchPath.query_info('time::modified', Gio.FileQueryInfoFlags.NONE, cancellable);
+    } catch (e) {
+	if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND))
+	    throw e;
+    }
+    if (lastFetchInfo != null) {
 	lastFetchContents = GSystem.file_load_contents_utf8(lastFetchPath, cancellable).replace(/[ \n]/g, '');
+	if (params.timeoutSec > 0) {
+	    let lastFetchTime = GLib.DateTime.new_from_unix_local(lastFetchInfo.get_attribute_uint64('time::modified'));
+	    let diff = currentTime.difference(lastFetchTime) / 1000 / 1000;
+	    if (diff < params.timeoutSec) {
+		fetch = false;
+	    }
+	}
     }
     GSystem.shutil_rm_rf(tmpMirror, cancellable);
     if (!mirror.query_exists(cancellable)) {
         ProcUtil.runSync(['git', 'clone', '--mirror', uri, tmpMirror.get_path()], cancellable);
         ProcUtil.runSync(['git', 'config', 'gc.auto', '0'], cancellable, {cwd: tmpMirror});
         GSystem.file_rename(tmpMirror, mirror, cancellable);
-    } else if (params.fetch) {
+    } else if (fetch) {
 	try {
             ProcUtil.runSync(['git', 'fetch'], cancellable, {cwd:mirror});
 	} catch (e) {
@@ -210,17 +228,24 @@ function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
 	});
     }
     
-    if (changed) {
+    if (changed || (fetch && params.timeoutSec > 0)) {
 	lastFetchPath.replace_contents(currentVcsVersion, null, false, 0, cancellable); 
     }
 
     return mirror;
 }
 
+function uncacheRepository(mirrordir, keytype, uri, branch, cancellable) {
+    let lastFetchPath = getLastfetchPath(mirrordir, keytype, uri, branch);
+    GSystem.shutil_rm_rf(lastFetchPath, cancellable);
+}
+
 function fetch(mirrordir, keytype, uri, branch, cancellable, params) {
-    params = Params.parse(params, {keepGoing: false});
+    params = Params.parse(params, {keepGoing: false, timeoutSec: 0});
     ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
-		      {fetch:true, fetchKeepGoing: params.keepGoing});
+		      { fetch:true,
+			fetchKeepGoing: params.keepGoing,
+			timeoutSec: params.timeoutSec });
 }
 
 function describeVersion(dirpath, branch) {

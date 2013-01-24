@@ -23,7 +23,7 @@ const Format = imports.format;
 const GSystem = imports.gi.GSystem;
 
 const Builtin = imports.builtin;
-const SubTask = imports.subtask;
+const Task = imports.task;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
@@ -54,14 +54,12 @@ const Autobuilder = new Lang.Class({
 
 	this._stages = ['resolve', 'build', 'builddisks', 'smoke'];
 
-	this._build_needed = true;
-	this._do_builddisks = false;
-	this._do_qa = false;
-	this._full_resolve_needed = true;
-	this._queued_force_resolve = [];
-	this._resolve_timeout = 0;
-	this._source_snapshot_path = null;
-	this._prev_source_snapshot_path = null;
+	this._buildNeeded = true;
+	this._fullResolveNeeded = true;
+	this._resolveNeeded = false;
+	this._resolveTimeout = 0;
+	this._sourceSnapshotPath = null;
+	this._prevSourceSnapshotPath = null;
     },
 
     execute: function(args, loop, cancellable) {
@@ -69,14 +67,17 @@ const Autobuilder = new Lang.Class({
 
 	this._autoupdate_self = args.autoupdate_self;
 	if (!args.stage)
-	    args.stage = 'smoke';
+	    args.stage = 'build';
 	this._stageIndex = this._stages.indexOf(args.stage);
 	if (this._stageIndex < 0)
 	    throw new Error("Unknown stage " + args.stage);
 	this._do_builddisks = this._stageIndex >= this._stages.indexOf('builddisks');
 	this._do_smoke = this._stageIndex >= this._stages.indexOf('smoke');
 
-	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
+	this._resolveTaskName = 'resolve/' + this.prefix;
+	this._buildTaskName = 'build/' + this.prefix;
+	this._bdiffTaskName = 'bdiff/' + this.prefix;
+
 	this._manifestPath = Gio.File.new_for_path('manifest.json');
 
 	this._ownId = Gio.DBus.session.own_name('org.gnome.OSTreeBuild', Gio.BusNameOwnerFlags.NONE,
@@ -89,35 +90,42 @@ const Autobuilder = new Lang.Class({
 	this._snapshot_dir = this.workdir.get_child('snapshots').get_child(this.prefix);
 	this._src_db = new JsonDB.JsonDB(this._snapshot_dir);
 
-	let taskdir = this.workdir.get_child('tasks');
-	this._resolve_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-resolve'));
-	this._build_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-build'));
-	this._builddisks_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-build-disks'));
-	this._smoke_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-smoke'));
+	this._taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
+						  { onEmpty: Lang.bind(this, this._onTasksComplete) });
+	this._taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
 
-	this._source_snapshot_path = this._src_db.getLatestPath();
+	this._sourceSnapshotPath = this._src_db.getLatestPath();
 
-	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
-
-	this._resolve_timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
-							 60 * 10, Lang.bind(this, this._fetchAll));
-	this._fetchAll();
-	if (this._source_snapshot_path != null)
-	    this._run_build();
+	this._resolveTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+							 60 * 10, Lang.bind(this, this._triggerFullResolve));
+	this._runResolve();
+	if (this._sourceSnapshotPath != null)
+	    this._runBuild();
 
 	this._updateStatus();
 
 	loop.run();
     },
 
+    _onTasksComplete: function() {
+    },
+
+    _onTaskCompleted: function(taskmaster, task, success, error) {
+	if (task.name == this._resolveTaskName) {
+	    this._onResolveExited(task, success, error);
+	} else if (task.name == this._buildTaskName) {
+	    this._onBuildExited(task, success, error);
+	}
+	this._updateStatus();
+    },
+
     _updateStatus: function() {
 	let newStatus = "";
-	if (this._resolve_taskset.isRunning())
-	    newStatus += "[resolving] ";
-	if (this._build_taskset.isRunning())
-	    newStatus += " [building] ";
-	if (this._builddisks_taskset.isRunning())
-	    newStatus += " [disks] ";
+	let taskstateList = this._taskmaster.getTaskState();
+	for (let i = 0; i < taskstateList.length; i++) {
+	    let taskstate = taskstateList[i];
+	    newStatus += (taskstate.task.name + " ");
+	}
 	if (newStatus == "")
 	    newStatus = "[idle]";
 	if (newStatus != this._status) {
@@ -125,8 +133,6 @@ const Autobuilder = new Lang.Class({
 	    print(this._status);
 	    this._impl.emit_property_changed('Status', new GLib.Variant("s", this._status));
 	}
-
-	this._writeStatusFile();
     },
 
     get Status() {
@@ -135,234 +141,92 @@ const Autobuilder = new Lang.Class({
 
     queueResolve: function(srcUrls) {
 	let matchingComponents = [];
-	let snapshotData = this._src_db.loadFromPath(this._source_snapshot_path, null);
-	let snapshot = new Snapshot.Snapshot(snapshotData, this._source_snapshot_path);
+	let snapshotData = this._src_db.loadFromPath(this._sourceSnapshotPath, null);
+	let snapshot = new Snapshot.Snapshot(snapshotData, this._sourceSnapshotPath);
+	let matched = false;
 	for (let i = 0; i < srcUrls.length; i++) {
 	    let matches = snapshot.getMatchingSrc(srcUrls[i]);
-	    for (let j = 0; j < matches.length; j++)
-		matchingComponents.push(matches[j]['name']);
+	    for (let j = 0; j < matches.length; j++) {
+		this._queuedForceResolve.push.apply(this._queuedForceResolve, matches[i]['name']);
+		matched = true;
+	    }
 	}
-	if (matchingComponents.length > 0) {
-	    this._queued_force_resolve.push.apply(this._queued_force_resolve, matchingComponents);
-	    print("queued resolves: " + matchingComponents.join(' '));
-	    if (!this._resolve_taskset.isRunning())
-		this._fetch();
-	} else {
-	    print("Ignored fetch requests for unknown URLs: " + srcUrls.join(','));
-	}
+	if (matched)
+	    this._resolveNeeded = true;
+	this._runResolve();
     },
     
-    _fetchAll: function() {
-	this._full_resolve_needed = true;
-	if (!this._resolve_taskset.isRunning())
-	    this._fetch();
+    _triggerFullResolve: function() {
+	this._fullResolveNeeded = true;
+	this._runResolve();
 	return true;
     },
 
-    _fetch: function() {
+    _runResolve: function() {
 	let cancellable = null;
+	
+	if (!(this._resolveNeeded || this._fullResolveNeeded))
+	    return;
+
+	if (this._taskmaster.isTaskQueued(this._resolveTaskName))
+	    return;
 
 	if (this._autoupdate_self)
 	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable)
 
-	let args = ['ostbuild', 'resolve', '--manifest=manifest.json',
-		    '--fetch', '--fetch-keep-going'];
-	let isFull;
-	if (this._full_resolve_needed) {
-	    this._full_resolve_needed = false;
-	    isFull = true;
-	} else if (this._queued_force_resolve.length > 0) {
-	    args.push.apply(args, this._queued_force_resolve);
-	    isFull = false;
+	if (this._fullResolveNeeded) {
+	    this._fullResolveNeeded = false;
+	    this._taskmaster.pushTask(this._resolveTaskName,
+				      { fetchAll: true });
 	} else {
-	    throw new Error("_fetch() when not needed");
+	    this._taskmaster.pushTask(this._resolveTaskName,
+				      { fetchComponents: this._queuedForceResolve });
 	}
-	this._queued_force_resolve = [];
-	let context = new GSystem.SubprocessContext({ argv: args });
-	let workdir = this._resolve_taskset.prepare();
-	let tmpManifest = workdir.get_child(this._manifestPath.get_basename());
-	GSystem.file_linkcopy(this._manifestPath, tmpManifest, Gio.FileCopyFlags.OVERWRITE, cancellable);	
-	let t = this._resolve_taskset.start(context,
-					    cancellable,
-					    Lang.bind(this, this._onResolveExited));
-	print(Format.vprintf("Resolve task %s started (%s)", [t.versionstr, isFull ? "full" : "incremental"]));
+	this._queuedForceResolve = [];
 
 	this._updateStatus();
-
-	return false;
     },
 
     _onResolveExited: function(resolveTask, success, msg) {
 	print(Format.vprintf("resolve exited; success=%s msg=%s", [success, msg]))
-	this._prev_source_snapshot_path = this._source_snapshot_path;
-	this._source_snapshot_path = this._src_db.getLatestPath();
-	let changed = (this._prev_source_snapshot_path == null ||
-		       !this._prev_source_snapshot_path.equal(this._source_snapshot_path));
+	this._prevSourceSnapshotPath = this._sourceSnapshotPath;
+	this._sourceSnapshotPath = this._src_db.getLatestPath();
+	let changed = (this._prevSourceSnapshotPath == null ||
+		       !this._prevSourceSnapshotPath.equal(this._sourceSnapshotPath));
         if (changed)
-            print(Format.vprintf("New version is %s", [this._source_snapshot_path.get_path()]))
-	if (!this._build_needed)
-	    this._build_needed = changed;
-	if (this._build_needed && !this._build_taskset.isRunning())
-	    this._run_build();
-
-	if (this._full_resolve_needed || this._queued_force_resolve.length > 0) {
-	    this._fetch();
-	}
-
-	this._updateStatus();
-    },
-    
-    _run_build: function() {
-	let cancellable = null;
-	if (this._build_taskset.isRunning()) throw new Error();
-	if (!this._build_needed) throw new Error();
-
-	this._build_needed = false;
-
-	let snapshotName = this._source_snapshot_path.get_basename();
-
-	let workdir = this._build_taskset.prepare();
-	let tmpSnapshotPath = workdir.get_child(snapshotName);
-	GSystem.file_linkcopy(this._source_snapshot_path, tmpSnapshotPath,
-			      Gio.FileCopyFlags.OVERWRITE, cancellable);	
-
-	let version = this._src_db.parseVersionStr(this._source_snapshot_path.get_basename());
-	let meta = {'version': version,
-		    'version-path': this._snapshot_dir.get_relative_path(this._source_snapshot_path)};
-	let metaPath = workdir.get_child('meta.json');
-	JsonUtil.writeJsonFileAtomic(metaPath, meta, cancellable);
-	
-	let args = ['ostbuild', 'build', '--snapshot=' + snapshotName];
-
-	let context = new GSystem.SubprocessContext({ argv: args });
-	let task = this._build_taskset.start(context,
-					     cancellable,
-					     Lang.bind(this, this._onBuildExited));
-	print(Format.vprintf("Build task %s started", [task.versionstr]));
-
-	this._updateStatus();
-    },
-
-    _run_builddisks: function() {
-	let cancellable = null;
-
-	if (!this._do_builddisks || this._builddisks_taskset.isRunning())
-	    return;
-
-	let args = ['ostbuild', 'build-disks'];
-
-	let context = new GSystem.SubprocessContext({ argv: args });
-	let task = this._builddisks_taskset.start(context,
-						  cancellable,
-						  Lang.bind(this, this._onBuildDisksExited));
-	print(Format.vprintf("Builddisks task %s started", [task.versionstr]));
-
-	this._updateStatus();
-    },
-
-    _run_smoke: function() {
-	let cancellable = null;
-
-	if (!this._do_smoke || this._smoke_taskset.isRunning())
-	    return;
-
-	let args = ['ostbuild', 'qa-smoketest'];
-
-	let context = new GSystem.SubprocessContext({ argv: args });
-	let task = this._smoke_taskset.start(context,
-					     cancellable,
-					     Lang.bind(this, this._onSmokeExited));
-	print(Format.vprintf("Smoke task %s started", [task.versionstr]));
-
+            print(Format.vprintf("New version is %s", [this._sourceSnapshotPath.get_path()]))
+	if (!this._buildNeeded)
+	    this._buildNeeded = changed;
+	this._runBuild();
+	this._runResolve();
 	this._updateStatus();
     },
 
     _onBuildExited: function(buildTaskset, success, msg) {
-	print(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
-	if (this._build_needed)
-	    this._run_build()
-	if (success)
-	    this._run_builddisks();
-	
+       print(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
+       if (this._buildNeeded)
+           this._runBuild()
+       
+       this._updateStatus();
+    },
+    
+    _runBuild: function() {
+	let cancellable = null;
+	if (this._taskmaster.isTaskQueued(this._buildTaskName))
+	    return;
+	if (!this._buildNeeded)
+	    return;
+
+	this._buildNeeded = false;
+	this._taskmaster.pushTask(this._buildTaskName);
 	this._updateStatus();
     },
 
-    _onBuildDisksExited: function(buildTaskset, success, msg) {
-	print(Format.vprintf("builddisks exited; success=%s msg=%s", [success, msg]))
+    _runBdiff: function() {
+	if (this._taskmaster.isTaskQueued(this._bdiffTaskName))
+	    return;
+
+	this._taskmaster.pushTask(this._bdiffTaskName);
 	this._updateStatus();
-
-	if (success)
-	    this._run_smoke();
-
-	this._updateStatus();
-    },
-
-    _getBuildDiffForTask: function(task) {
-	let cancellable = null;
-        if (task.build_diff != undefined)
-            return task.build_diff;
-        let metaPath = task.path.get_child('meta.json');
-	if (!metaPath.query_exists(null)) {
-	    task.build_diff = null;
-	    return task.build_diff;
-	}
-	let meta = JsonUtil.loadJson(metaPath, cancellable);
-        let snapshotPath = this._snapshot_dir.get_child(meta['version-path']);
-        let prevSnapshotPath = this._src_db.getPreviousPath(snapshotPath);
-        if (prevSnapshotPath == null) {
-            task.build_diff = null;
-        } else {
-            task.build_diff = Snapshot.snapshotDiff(this._src_db.loadFromPath(snapshotPath, cancellable),
-                                                    this._src_db.loadFromPath(prevSnapshotPath, cancellable));
-	}
-	return task.build_diff;
-    },
-
-    _buildHistoryToJson: function() {
-	let cancellable = null;
-        let history = this._build_taskset.getHistory();
-	let l = history.length;
-        let MAXITEMS = 5;
-        let entries = [];
-	for (let i = Math.max(l - MAXITEMS, 0); i >= 0 && i < l; i++) {
-	    let item = history[i];
-            let data = {v: item.versionstr,
-			state: item.state,
-			timestamp: item.timestamp};
-            entries.push(data);
-            let metaPath = item.path.get_child('meta.json');
-            if (metaPath.query_exists(cancellable)) {
-		data['meta'] = JsonUtil.loadJson(metaPath, cancellable);
-	    }
-            data['diff'] = this._getBuildDiffForTask(item);
-	}
-	return entries;
-    },
-
-    _writeStatusFile: function() {
-	let cancellable = null;
-        let status = {'prefix': this.prefix};
-        if (this._source_snapshot_path != null) {
-            let version = this._src_db.parseVersionStr(this._source_snapshot_path.get_basename());
-            status['version'] = version;
-            status['version-path'] = this._snapshot_dir.get_relative_path(this._source_snapshot_path);
-        } else {
-            status['version'] = '';
-	}
-        
-        status['build'] = this._buildHistoryToJson();
-        
-        if (this._build_proc != null) {
-	    let buildHistory = this._build_taskset.getHistory();
-            let activeBuild = buildHistory[buildHistory.length-1];
-	    let buildStatus = status['build'];
-	    let activeBuildJson = buildStatus[buildStatus.length-1];
-            let statusPath = activeBuild.path.get_child('status.json');
-            if (statusPath.query_exists(null)) {
-                activeBuildJson['build-status'] = JsonUtil.loadJson(statusPath);
-	    }
-	}
-	
-	JsonUtil.writeJsonFileAtomic(this._status_path, status, cancellable);
     }
 });

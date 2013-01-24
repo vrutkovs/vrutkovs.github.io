@@ -21,14 +21,17 @@ const Lang = imports.lang;
 
 const JsonDB = imports.jsondb;
 const JsonUtil = imports.jsonutil;
+const Vcs = imports.vcs;
 const Params = imports.params;
 
 function _componentDict(snapshot) {
     let r = {};
     let components = snapshot['components'];
-    for (let i = 0; i< components.length; i++) {
+    for (let i = 0; i < components.length; i++) {
 	let component = components[i];
 	let name = component['name'];
+	if (r[name])
+            throw new Error("Duplicate component name " + name);
         r[name] = component;
     }
     let patches = snapshot['patches'];
@@ -66,13 +69,67 @@ function snapshotDiff(a, b) {
 const Snapshot = new Lang.Class({
     Name: 'Snapshot',
     
-    _init: function(data, path) {
+    _init: function(data, path, params) {
+	params = Params.parse(params, { prepareResolve: false });
 	this.data = data;
 	this.path = path;
+	if (params.prepareResolve) {
+	    data['patches'] = this._resolveComponent(data, data['patches']);
+	    data['base'] = this._resolveComponent(data, data['base']);
+	    for (let i = 0; i < data['components'].length; i++) {
+		let component = this._resolveComponent(data, data['components'][i]);
+		data['components'][i] = component;
+	    }
+	}
 	this._componentDict = _componentDict(data);
 	this._componentNames = [];
 	for (let k in this._componentDict)
 	    this._componentNames.push(k);
+    },
+
+    _resolveComponent: function(manifest, componentMeta) {
+	let result = {};
+	Lang.copyProperties(componentMeta, result);
+	let origSrc = componentMeta['src'];
+
+	let didExpand = false;
+	let vcsConfig = manifest['vcsconfig'];
+	for (let vcsprefix in vcsConfig) {
+	    let expansion = vcsConfig[vcsprefix];
+            let prefix = vcsprefix + ':';
+            if (origSrc.indexOf(prefix) == 0) {
+		result['src'] = expansion + origSrc.substr(prefix.length);
+		didExpand = true;
+		break;
+	    }
+	}
+
+	let name = componentMeta['name'];
+	let src, idx, name;
+	if (name == undefined) {
+            if (didExpand) {
+		src = origSrc;
+		idx = src.lastIndexOf(':');
+		name = src.substr(idx+1);
+            } else {
+		src = result['src'];
+		idx = src.lastIndexOf('/');
+		name = src.substr(idx+1);
+	    }
+	    let i = name.lastIndexOf('.git');
+            if (i != -1 && i == name.length - 4) {
+		name = name.substr(0, name.length - 4);
+	    }
+            name = name.replace(/\//g, '-');
+            result['name'] = name;
+	}
+
+	let branchOrTag = result['branch'] || result['tag'];
+	if (!branchOrTag) {
+            result['branch'] = 'master';
+	}
+
+	return result;
     },
 
     _expandComponent: function(component) {
@@ -98,6 +155,10 @@ const Snapshot = new Lang.Class({
 	return this._componentNames;
     },
 
+    getComponentMap: function() {
+	return this._componentDict;
+    },
+
     getComponent: function(name, allowNone) {
 	let r = this._componentDict[name] || null;
 	if (!r && !allowNone)
@@ -118,5 +179,15 @@ const Snapshot = new Lang.Class({
 
     getExpanded: function(name) {
 	return this._expandComponent(this.getComponent(name));
+    },
+
+    getVcsInfo: function(name) {
+	let component = this.getComponent(name);
+        let src = component['src']
+        let [keytype, uri] = Vcs.parseSrcKey(src);
+        let branch = component['branch'];
+        let tag = component['tag'];
+        let branchOrTag = branch || tag;
+	return [keytype, uri, branchOrTag];
     }
 });

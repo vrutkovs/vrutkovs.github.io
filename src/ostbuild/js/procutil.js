@@ -92,7 +92,7 @@ function _runSyncGetOutputInternal(argv, cancellable, params, splitLines) {
 	    let [line, len] = dataIn.read_line_utf8(cancellable);
 	    if (line == null)
 		break;
-	    result += line;
+	    result += (line + '\n');
 	}
     }
     _wait_sync_check_internal(proc, cancellable);
