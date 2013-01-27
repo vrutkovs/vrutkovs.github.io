@@ -74,15 +74,16 @@ if (ARGV.length < 1) {
 	let argv = ARGV.concat();
 	argv.shift();
 
-	let ecode = 1;
 	let loop = GLib.MainLoop.new(null, true);
 	let cls = getClass(name);
 	let instance = new cls;
 	let cancellable = null;
 	GLib.idle_add(GLib.PRIORITY_DEFAULT,
 		      function() {
+			  ecode = 1;
 			  try {
-			      instance.main(argv, loop, cancellable); ecode = 0;
+			      instance.main(argv, loop, cancellable);
+			      ecode = 0;
 			  } finally {
 			      loop.quit();
 			  }
