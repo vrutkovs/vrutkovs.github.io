@@ -47,7 +47,7 @@ const QaSmoketest = new Lang.Class({
     _onQemuExited: function(proc, result) {
         let [success, status] = ProcUtil.asyncWaitCheckFinish(proc, result);
         this._qemu = null;
-        loop.quit();
+        this._loop.quit();
         if (!success) {
             this._failed = true;
             print("Qemu exited with status " + status);
@@ -60,7 +60,7 @@ const QaSmoketest = new Lang.Class({
             print("Did not see MESSAGE_ID=" + msgid);
         }
         this._failed = true;
-        loop.quit();
+        this._loop.quit();
     },
 
     _onJournalOpen: function(file, result) {
@@ -74,7 +74,7 @@ const QaSmoketest = new Lang.Class({
         } catch (e) {
             print("Open failed: " + e);
             this._failed = true;
-            loop.quit();
+            this._loop.quit();
         }
     },
     
@@ -85,7 +85,7 @@ const QaSmoketest = new Lang.Class({
             [line, len] = stream.read_line_finish_utf8(result);
         } catch (e) {
             this._failed = true;
-            loop.quit();
+            this._loop.quit();
             throw e;
         }
         if (line) {
@@ -103,7 +103,7 @@ const QaSmoketest = new Lang.Class({
                         if (messageId == this.FailedMessageIDs[i]) {
                             print("Found failure message ID " + messageId);
                             this._failed = true;
-                            loop.quit();
+                            this._loop.quit();
                             matched = true;
                             break;
                         }
@@ -116,7 +116,7 @@ const QaSmoketest = new Lang.Class({
                                                         Lang.bind(this, this._onJournalReadLine));
             } else {
                 print("Found all required message IDs, exiting");
-                loop.quit();
+                this._loop.quit();
             }
         }
     },
@@ -141,6 +141,7 @@ const QaSmoketest = new Lang.Class({
     },
 
     execute: function(args, loop, cancellable) {
+        this._loop = loop;
         this._failed = false;
         this._journalStream = null;
         this._journalDataStream = null;
