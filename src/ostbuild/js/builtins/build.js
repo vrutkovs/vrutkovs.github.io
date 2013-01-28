@@ -793,7 +793,8 @@ const Build = new Lang.Class({
 	    }
 	}
 
-	let buildDataPath = this.workdir.get_child(this.prefix + '-buildresult.json');
+	let buildresultDir = this.workdir.get_child('builds').get_child(prefix);
+	let builddb = new JsonDB.JsonDB(buildresultDir);
 	let targetRevisions = {};
 	let buildData = { snapshotName: this._snapshot.path.get_basename(),
 			  snapshot: this._snapshot.data,
@@ -804,6 +805,7 @@ const Build = new Lang.Class({
             let [treename, ostreeRev] = this._composeOneTarget(target, componentBuildRevs, cancellable);
 	    targetRevisions[treename] = ostreeRev;
 	}
-	JsonUtil.writeJsonFileAtomic(buildDataPath, buildData, cancellable);
+	let [path, modified] = builddb.store(buildData, cancellable);
+	print("Build complete: " + path.get_path());
     }
 });
