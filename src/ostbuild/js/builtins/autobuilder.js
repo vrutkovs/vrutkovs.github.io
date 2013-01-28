@@ -47,17 +47,23 @@ const Autobuilder = new Lang.Class({
     
     _init: function() {
 	this.parent();
+
+        this.parser.addArgument('--prefix');
+        this.parser.addArgument('--autoupdate-self', { action: 'storeTrue' });
+
 	this._build_needed = true;
 	this._full_resolve_needed = true;
 	this._queued_force_resolve = [];
-	this._autoupdate_self = true;
 	this._resolve_timeout = 0;
 	this._source_snapshot_path = null;
 	this._prev_source_snapshot_path = null;
     },
 
     execute: function(args, loop, cancellable) {
-	this._initSnapshot(null, null, cancellable);
+	this._initSnapshot(args.prefix, null, cancellable);
+
+	this._autoupdate_self = args.autoupdate_self;
+
 	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
 	this._manifestPath = Gio.File.new_for_path('manifest.json');
 
