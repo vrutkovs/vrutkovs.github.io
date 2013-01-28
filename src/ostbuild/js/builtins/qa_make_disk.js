@@ -46,48 +46,7 @@ const QaMakeDisk = new Lang.Class({
 
         let tmppath = path.get_parent().get_child(path.get_basename() + '.tmp');
         GSystem.shutil_rm_rf(tmppath, cancellable);
-        let sizeMb = 8 * 1024;
-        let bootsizeMb = 200;
-        let swapsizeMb = 64;
-
-        let guestfishProcess;
-        
-        ProcUtil.runSync(['qemu-img', 'create', '-f', 'qcow2', tmppath.get_path(), '' + sizeMb + 'M'], cancellable);
-        let makeDiskCmd = 'launch\n\
-part-init /dev/vda mbr\n\
-blockdev-getsize64 /dev/vda\n\
-blockdev-getss /dev/vda\n';
-        let gf = new GuestFish.GuestFish(tmppath, {partitionOpts: [], readWrite: true});
-        let lines = gf.run(makeDiskCmd, cancellable);
-        if (lines.length != 2)
-            throw new Error("guestfish returned unexpected output lines (" + lines.length + ", expected 2");
-        let diskBytesize = parseInt(lines[0]);
-        let diskSectorsize = parseInt(lines[1]);
-        print(Format.vprintf("bytesize: %s sectorsize: %s", [diskBytesize, diskSectorsize]));
-        let bootsizeSectors = bootsizeMb * 1024 / diskSectorsize * 1024;
-        let swapsizeSectors = swapsizeMb * 1024 / diskSectorsize * 1024;
-        let rootsizeSectors = diskBytesize / diskSectorsize - bootsizeSectors - swapsizeSectors - 64;
-        let bootOffset = 64;
-        let swapOffset = bootOffset + bootsizeSectors;
-        let rootOffset = swapOffset + swapsizeSectors;
-        let endOffset = rootOffset + rootsizeSectors;
-
-        let partconfig = Format.vprintf('launch\n\
-part-add /dev/vda p %s %s\n\
-part-add /dev/vda p %s %s\n\
-part-add /dev/vda p %s %s\n\
-mkfs ext4 /dev/vda1\n\
-set-e2label /dev/vda1 gnostree-boot\n\
-mkswap-L gnostree-swap /dev/vda2\n\
-mkfs ext4 /dev/vda3\n\
-set-e2label /dev/vda3 gnostree-root\n\
-mount /dev/vda3 /\n\
-mkdir /boot\n\
-', [bootOffset, swapOffset - 1,
-    swapOffset, rootOffset - 1,
-    rootOffset, endOffset - 1]);
-        print("partition config: ", partconfig);
-        lines = gf.run(partconfig, cancellable);
+        LibQA.createDisk(tmppath, cancellable);
         GSystem.file_rename(tmppath, path, cancellable);
         print("Created: " + path.get_path());
     }

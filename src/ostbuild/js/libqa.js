@@ -39,9 +39,59 @@ function newReadWriteMount(diskpath, cancellable) {
     return [gfmnt, mntdir];
 }
 
+function createDisk(diskpath, cancellable) {
+    let sizeMb = 8 * 1024;
+    let bootsizeMb = 200;
+    let swapsizeMb = 64;
+
+    let guestfishProcess;
+    
+    ProcUtil.runSync(['qemu-img', 'create', '-f', 'qcow2', diskpath.get_path(), '' + sizeMb + 'M'], cancellable);
+    let makeDiskCmd = 'launch\n\
+part-init /dev/vda mbr\n\
+blockdev-getsize64 /dev/vda\n\
+blockdev-getss /dev/vda\n';
+    let gf = new GuestFish.GuestFish(diskpath, {partitionOpts: [], readWrite: true});
+    let lines = gf.run(makeDiskCmd, cancellable);
+    if (lines.length != 2)
+        throw new Error("guestfish returned unexpected output lines (" + lines.length + ", expected 2");
+    let diskBytesize = parseInt(lines[0]);
+    let diskSectorsize = parseInt(lines[1]);
+    print(Format.vprintf("bytesize: %s sectorsize: %s", [diskBytesize, diskSectorsize]));
+    let bootsizeSectors = bootsizeMb * 1024 / diskSectorsize * 1024;
+    let swapsizeSectors = swapsizeMb * 1024 / diskSectorsize * 1024;
+    let rootsizeSectors = diskBytesize / diskSectorsize - bootsizeSectors - swapsizeSectors - 64;
+    let bootOffset = 64;
+    let swapOffset = bootOffset + bootsizeSectors;
+    let rootOffset = swapOffset + swapsizeSectors;
+    let endOffset = rootOffset + rootsizeSectors;
+
+    let partconfig = Format.vprintf('launch\n\
+part-add /dev/vda p %s %s\n\
+part-add /dev/vda p %s %s\n\
+part-add /dev/vda p %s %s\n\
+mkfs ext4 /dev/vda1\n\
+set-e2label /dev/vda1 gnostree-boot\n\
+mkswap-L gnostree-swap /dev/vda2\n\
+mkfs ext4 /dev/vda3\n\
+set-e2label /dev/vda3 gnostree-root\n\
+mount /dev/vda3 /\n\
+mkdir /boot\n\
+', [bootOffset, swapOffset - 1,
+    swapOffset, rootOffset - 1,
+    rootOffset, endOffset - 1]);
+    print("partition config: ", partconfig);
+    gf.run(partconfig, cancellable);
+}
+
 function createDiskSnapshot(diskpath, newdiskpath, cancellable) {
     ProcUtil.runSync(['qemu-img', 'create', '-f', 'qcow2', '-o', 'backing_file=' + diskpath.get_path(),
 		      newdiskpath.get_path()], cancellable);
+}
+
+function copyDisk(srcpath, destpath, cancellable) {
+    ProcUtil.runSync(['qemu-img', 'convert', '-O', 'qcow2', srcpath.get_path(),
+		      destpath.get_path()], cancellable);
 }
 
 function getQemuPath() {
@@ -176,7 +226,7 @@ function _getInitramfsPath(mntdir, kernelRelease) {
     return path;
 };
 
-function pullDeploy(mntdir, srcrepo, osname, target, cancellable) {
+function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
     let bootdir = mntdir.get_child('boot');
     let ostreedir = mntdir.get_child('ostree');
     let ostree_osdir = ostreedir.resolve_relative_path('deploy/' + osname);
@@ -202,13 +252,19 @@ function pullDeploy(mntdir, srcrepo, osname, target, cancellable) {
     // or the like.
     GSystem.shutil_rm_rf(ostree_osdir, cancellable);
 
+    let revOrTarget;
+    if (revision)
+	revOrTarget = revision;
+    else
+	revOrTarget = target;
+    
     ProcUtil.runSync(adminCmd.concat(['os-init', osname]), cancellable,
                      {logInitiation: true, env: adminEnv});
     ProcUtil.runSync(['ostree', '--repo=' + ostreedir.get_child('repo').get_path(),
-                      'pull-local', srcrepo.get_path(), target], cancellable,
+                      'pull-local', srcrepo.get_path(), revOrTarget], cancellable,
                      {logInitiation: true, env: adminEnv});
-
-    ProcUtil.runSync(adminCmd.concat(['deploy', '--no-kernel', osname, target]), cancellable,
+    
+    ProcUtil.runSync(adminCmd.concat(['deploy', '--no-kernel', osname, target, revOrTarget]), cancellable,
                      {logInitiation: true, env: adminEnv});
     ProcUtil.runSync(adminCmd.concat(['update-kernel', '--no-bootloader', osname]), cancellable,
                      {logInitiation: true, env: adminEnv});

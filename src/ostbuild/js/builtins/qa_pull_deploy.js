@@ -41,6 +41,7 @@ const QaPullDeploy = new Lang.Class({
         this.parser.addArgument('srcrepo');
         this.parser.addArgument('osname');
         this.parser.addArgument('target');
+        this.parser.addArgument('revision');
     },
 
     execute: function(args, loop, cancellable) {
@@ -55,7 +56,7 @@ const QaPullDeploy = new Lang.Class({
         gfmnt.mount(this._mntdir, cancellable);
         try {
             LibQA.pullDeploy(this._mntdir, Gio.File.new_for_path(args.srcrepo),
-                             args.osname, args.target, cancellable);
+                             args.osname, args.target, args.revision, cancellable);
         } finally {
             gfmnt.umount(cancellable);
         }
