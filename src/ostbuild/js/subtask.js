@@ -34,6 +34,7 @@ const TaskHistoryEntry = new Lang.Class({
 	let match = VERSION_RE.exec(path.get_basename());
 	this.major = parseInt(match[1]);
 	this.minor = parseInt(match[2]);
+	this.versionstr = Format.vprintf('%d.%d', [this.major, this.minor]);
 	this.timestamp = null;
 	this.logfile_path = null;
 	this.start_timestamp = null;

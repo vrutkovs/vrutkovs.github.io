@@ -185,8 +185,7 @@ const Autobuilder = new Lang.Class({
 	let t = this._resolve_taskset.start(context,
 					    cancellable,
 					    Lang.bind(this, this._onResolveExited));
-	print(Format.vprintf("Resolve task %s.%s started (%s)", [t.major, t.minor,
-								 isFull ? "full" : "incremental"]));
+	print(Format.vprintf("Resolve task %s started (%s)", [t.versionstr, isFull ? "full" : "incremental"]));
 
 	this._updateStatus();
 
@@ -239,7 +238,7 @@ const Autobuilder = new Lang.Class({
 	let task = this._build_taskset.start(context,
 					     cancellable,
 					     Lang.bind(this, this._onBuildExited));
-	print(Format.vprintf("Build task %s.%s started", [task.major, task.minor]));
+	print(Format.vprintf("Build task %s started", [task.versionstr]));
 
 	this._updateStatus();
     },
@@ -256,7 +255,7 @@ const Autobuilder = new Lang.Class({
 	let task = this._builddisks_taskset.start(context,
 						  cancellable,
 						  Lang.bind(this, this._onBuildDisksExited));
-	print(Format.vprintf("Builddisks task %s.%s started", [task.major, task.minor]));
+	print(Format.vprintf("Builddisks task %s started", [task.versionstr]));
 
 	this._updateStatus();
     },
@@ -273,7 +272,7 @@ const Autobuilder = new Lang.Class({
 	let task = this._smoke_taskset.start(context,
 					     cancellable,
 					     Lang.bind(this, this._onSmokeExited));
-	print(Format.vprintf("Smoke task %s.%s started", [task.major, task.minor]));
+	print(Format.vprintf("Smoke task %s started", [task.versionstr]));
 
 	this._updateStatus();
     },
@@ -327,7 +326,7 @@ const Autobuilder = new Lang.Class({
         let entries = [];
 	for (let i = Math.max(l - MAXITEMS, 0); i >= 0 && i < l; i++) {
 	    let item = history[i];
-            let data = {v: Format.vprintf('%d.%d', [item.major, item.minor]),
+            let data = {v: item.versionstr,
 			state: item.state,
 			timestamp: item.timestamp};
             entries.push(data);
