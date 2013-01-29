@@ -80,6 +80,7 @@ const Autobuilder = new Lang.Class({
 	let taskdir = this.workdir.get_child('tasks');
 	this._resolve_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-resolve'));
 	this._build_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-build'));
+	this._builddisks_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-build-disks'));
 
 	this._source_snapshot_path = this._src_db.getLatestPath();
 
@@ -98,14 +99,14 @@ const Autobuilder = new Lang.Class({
 
     _updateStatus: function() {
 	let newStatus = "";
-	if (!this._resolve_taskset.isRunning() && !this._build_taskset.isRunning()) {
-	    newStatus = "idle";
-	} else {
-	    if (this._resolve_taskset.isRunning())
-		newStatus += "[resolving] ";
-	    if (this._build_taskset.isRunning())
-		newStatus += "[building] ";
-	}
+	if (this._resolve_taskset.isRunning())
+	    newStatus += "[resolving] ";
+	if (this._build_taskset.isRunning())
+	    newStatus += " [building] ";
+	if (this._builddisks_taskset.isRunning())
+	    newStatus += " [disks] ";
+	if (newStatus == "")
+	    newStatus = "[idle]";
 	if (newStatus != this._status) {
 	    this._status = newStatus;
 	    print(this._status);
@@ -230,11 +231,33 @@ const Autobuilder = new Lang.Class({
 	this._updateStatus();
     },
 
+    _run_builddisks: function() {
+	let cancellable = null;
+	if (this._builddisks_taskset.isRunning()) throw new Error();
+
+	let args = ['ostbuild', 'build-disks'];
+
+	let context = new GSystem.SubprocessContext({ argv: args });
+	let task = this._builddisks_taskset.start(context,
+						  cancellable,
+						  Lang.bind(this, this._onBuildDisksExited));
+	print(Format.vprintf("Builddisks task %s.%s started", [task.major, task.minor]));
+
+	this._updateStatus();
+    },
+
     _onBuildExited: function(buildTaskset, success, msg) {
 	print(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
 	if (this._build_needed)
 	    this._run_build()
+	if (success && !this._builddisks_taskset.isRunning())
+	    this._run_builddisks();
 	
+	this._updateStatus();
+    },
+
+    _onBuildDisksExited: function(buildTaskset, success, msg) {
+	print(Format.vprintf("builddisks exited; success=%s msg=%s", [success, msg]))
 	this._updateStatus();
     },
 
