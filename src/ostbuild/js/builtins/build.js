@@ -654,6 +654,24 @@ const Build = new Lang.Class({
 	this._initSnapshot(args.prefix, args.snapshot, cancellable);
 	this.args = args;
 
+	let buildresultDir = this.workdir.get_child('builds').get_child(this.prefix);
+	let builddb = new JsonDB.JsonDB(buildresultDir);
+
+	let targetSourceVersion = builddb.parseVersionStr(this._snapshot.path.get_basename())
+
+	let latestBuildPath = builddb.getLatestPath();
+	if (latestBuildPath != null) {
+	    let lastBuiltSourceData = builddb.loadFromPath(latestBuildPath, cancellable);
+	    let lastBuiltSourceVersion = builddb.parseVersionStr(lastBuiltSourceData['snapshotName']);
+	    if (lastBuiltSourceVersion == targetSourceVersion) {
+		print("Already built source snapshot " + lastBuiltSourceVersion);
+		return;
+	    } else {
+		print("Last successful build was " + lastBuiltSourceVersion);
+	    }
+	}
+	print("building " + targetSourceVersion);
+
 	this.repo = this.workdir.get_child('repo');
 
         GSystem.file_ensure_directory(this.repo, true, cancellable);
@@ -793,8 +811,6 @@ const Build = new Lang.Class({
 	    }
 	}
 
-	let buildresultDir = this.workdir.get_child('builds').get_child(prefix);
-	let builddb = new JsonDB.JsonDB(buildresultDir);
 	let targetRevisions = {};
 	let buildData = { snapshotName: this._snapshot.path.get_basename(),
 			  snapshot: this._snapshot.data,
