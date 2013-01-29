@@ -654,16 +654,25 @@ const Build = new Lang.Class({
 	this._initSnapshot(args.prefix, args.snapshot, cancellable);
 	this.args = args;
 
+        let components = this._snapshot.data['components'];
+
 	let buildresultDir = this.workdir.get_child('builds').get_child(this.prefix);
 	let builddb = new JsonDB.JsonDB(buildresultDir);
 
 	let targetSourceVersion = builddb.parseVersionStr(this._snapshot.path.get_basename())
 
+	let haveLocalComponent = false;
+        for (let i = 0; i < components.length; i++) {
+	    let component = components[i];
+	    if (component['src'].indexOf('local:') == 0)
+		haveLocalComponent = true;
+	}
+
 	let latestBuildPath = builddb.getLatestPath();
 	if (latestBuildPath != null) {
 	    let lastBuiltSourceData = builddb.loadFromPath(latestBuildPath, cancellable);
 	    let lastBuiltSourceVersion = builddb.parseVersionStr(lastBuiltSourceData['snapshotName']);
-	    if (lastBuiltSourceVersion == targetSourceVersion) {
+	    if (!haveLocalComponent && lastBuiltSourceVersion == targetSourceVersion) {
 		print("Already built source snapshot " + lastBuiltSourceVersion);
 		return;
 	    } else {
@@ -679,8 +688,6 @@ const Build = new Lang.Class({
             ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(), 'init', '--archive'],
 			     cancellable);
 	}
-
-        let components = this._snapshot.data['components'];
 
         let prefix = this._snapshot.data['prefix'];
         let basePrefix = this._snapshot.data['base']['name'] + '/' + prefix;
