@@ -50,8 +50,13 @@ const Autobuilder = new Lang.Class({
 
         this.parser.addArgument('--prefix');
         this.parser.addArgument('--autoupdate-self', { action: 'storeTrue' });
+        this.parser.addArgument('--stage');
+
+	this._stages = ['resolve', 'build', 'builddisks', 'smoke'];
 
 	this._build_needed = true;
+	this._do_builddisks = false;
+	this._do_qa = false;
 	this._full_resolve_needed = true;
 	this._queued_force_resolve = [];
 	this._resolve_timeout = 0;
@@ -63,6 +68,13 @@ const Autobuilder = new Lang.Class({
 	this._initSnapshot(args.prefix, null, cancellable);
 
 	this._autoupdate_self = args.autoupdate_self;
+	if (!args.stage)
+	    args.stage = 'smoke';
+	this._stageIndex = this._stages.indexOf(args.stage);
+	if (this._stageIndex < 0)
+	    throw new Error("Unknown stage " + args.stage);
+	this._do_builddisks = this._stageIndex >= this._stages.indexOf('builddisks');
+	this._do_smoke = this._stageIndex >= this._stages.indexOf('smoke');
 
 	this._status_path = this.workdir.get_child('autobuilder-' + this.prefix + '.json');
 	this._manifestPath = Gio.File.new_for_path('manifest.json');
@@ -81,6 +93,7 @@ const Autobuilder = new Lang.Class({
 	this._resolve_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-resolve'));
 	this._build_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-build'));
 	this._builddisks_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-build-disks'));
+	this._smoke_taskset = new SubTask.TaskSet(taskdir.get_child(this.prefix + '-smoke'));
 
 	this._source_snapshot_path = this._src_db.getLatestPath();
 
@@ -233,7 +246,9 @@ const Autobuilder = new Lang.Class({
 
     _run_builddisks: function() {
 	let cancellable = null;
-	if (this._builddisks_taskset.isRunning()) throw new Error();
+
+	if (!this._do_builddisks || this._builddisks_taskset.isRunning())
+	    return;
 
 	let args = ['ostbuild', 'build-disks'];
 
@@ -246,11 +261,28 @@ const Autobuilder = new Lang.Class({
 	this._updateStatus();
     },
 
+    _run_smoke: function() {
+	let cancellable = null;
+
+	if (!this._do_smoke || this._smoke_taskset.isRunning())
+	    return;
+
+	let args = ['ostbuild', 'qa-smoketest'];
+
+	let context = new GSystem.SubprocessContext({ argv: args });
+	let task = this._smoke_taskset.start(context,
+					     cancellable,
+					     Lang.bind(this, this._onSmokeExited));
+	print(Format.vprintf("Smoke task %s.%s started", [task.major, task.minor]));
+
+	this._updateStatus();
+    },
+
     _onBuildExited: function(buildTaskset, success, msg) {
 	print(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
 	if (this._build_needed)
 	    this._run_build()
-	if (success && !this._builddisks_taskset.isRunning())
+	if (success)
 	    this._run_builddisks();
 	
 	this._updateStatus();
@@ -258,6 +290,11 @@ const Autobuilder = new Lang.Class({
 
     _onBuildDisksExited: function(buildTaskset, success, msg) {
 	print(Format.vprintf("builddisks exited; success=%s msg=%s", [success, msg]))
+	this._updateStatus();
+
+	if (success)
+	    this._run_smoke();
+
 	this._updateStatus();
     },
 
