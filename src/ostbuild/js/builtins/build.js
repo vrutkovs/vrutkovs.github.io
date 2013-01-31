@@ -383,7 +383,7 @@ const Build = new Lang.Class({
             childArgs.push('--patches-path=' + this.args.patches_path);
         else if (patchdir)
             childArgs.push('--patches-path=' + patchdir.get_path());
-        ProcUtil.runSync(childArgs, cancellable);
+        ProcUtil.runSync(childArgs, cancellable, { logInitiation: true });
 
         GSystem.file_unlink(tempMetadataPath, cancellable);
 
@@ -431,6 +431,7 @@ const Build = new Lang.Class({
 	let t;
 	try {
 	    t = buildTaskset.start(context, cancellable, Lang.bind(this, this._onBuildComplete, loop));
+	    print("Started child process " + context.argv.map(GLib.shell_quote).join(' '));
 	    loop.run();
 	} finally {
 	    mainContext.pop_thread_default();
@@ -622,7 +623,8 @@ const Build = new Lang.Class({
 	Lang.copyProperties(BuildUtil.BUILD_ENV, env);
         env['DL_DIR'] = downloads.get_path();
         env['SSTATE_DIR'] = sstateDir.get_path();
-        ProcUtil.runSync(cmd, cancellable, {env:ProcUtil.objectToEnvironment(env)});
+        ProcUtil.runSync(cmd, cancellable, { logInitiation: true,
+					     env:ProcUtil.objectToEnvironment(env) });
 
 	let componentTypes = ['runtime', 'devel'];
         for (let i = 0; i < componentTypes.length; i++) {
