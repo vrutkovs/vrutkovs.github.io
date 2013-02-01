@@ -121,8 +121,7 @@
 		 "tag": "VER-2-4-8",
 		 "patches": ["freetype-autogen.patch"]},
 
-   		{"src": "fd:fontconfig",
-		 "tag": "fb3b410998aba8835999e2ca7003a180431cfaf4"},
+   		{"src": "fd:fontconfig"},
 
 		{"src": "fd:xorg/util/macros",
 		 "component": "devel"},
