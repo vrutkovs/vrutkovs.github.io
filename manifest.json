@@ -629,6 +629,7 @@
 		                 "--disable-vapigen"]},
 
 		{"src": "gnome:vala",
+		 "patches": ["vala-vapigen-ignore-node.patch"],
 		 "config-opts": ["--enable-vapigen"]},
 
 		{"src": "gnome:libgee",

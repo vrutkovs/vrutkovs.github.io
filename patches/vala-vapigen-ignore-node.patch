@@ -1,0 +1,29 @@
+From 15c59a42ad492c925a52d7d850c441b7c09fac5f Mon Sep 17 00:00:00 2001
+From: "Jasper St. Pierre" <jstpierre@mecheye.net>
+Date: Sat, 2 Feb 2013 04:56:39 -0500
+Subject: [PATCH] valagirparser: Make vala's GIR parser understand the new
+ instance-parameter tag
+
+---
+ vala/valagirparser.vala | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/vala/valagirparser.vala b/vala/valagirparser.vala
+index 0a90886..354d10b 100644
+--- a/vala/valagirparser.vala
++++ b/vala/valagirparser.vala
+@@ -2901,6 +2901,11 @@ public class Vala.GirParser : CodeVisitor {
+ 					continue;
+ 				}
+ 
++				if (reader.name == "instance-parameter") {
++					skip_element ();
++					continue;
++				}
++
+ 				int array_length_idx, closure_idx, destroy_idx;
+ 				string scope;
+ 				string default_param_name = null;
+-- 
+1.8.1
+
