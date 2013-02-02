@@ -93,6 +93,7 @@
 		             "hwdata-no-spec-file.patch"]},
 
                 {"src": "gnome:gobject-introspection",
+		 "tag": "7cfc4ce3321dd98b33d89d4065eeb66280e0b24a",
 		 "config-opts": ["--disable-tests"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
