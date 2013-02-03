@@ -558,6 +558,7 @@
 		
 		{"src": "git:git://gitorious.org/colord/master.git",
 		 "name": "colord",
+		 "tag": "6ffe2f6aae4bdc8331cab1fd9379ed8aef759749",
 		 "config-opts": ["--disable-print-profiles"],
 		 "patches": ["colord-disable-private-tmp.patch"]},
 
