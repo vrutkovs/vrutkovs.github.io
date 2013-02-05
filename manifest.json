@@ -482,7 +482,8 @@
 
 		{"src": "fd-fprint:fprintd"},
 
-		{"src": "fd-p11:p11-kit"},
+		{"src": "fd-p11:p11-kit",
+		 "config-opts": ["--without-system-anchors"]},
 
 		{"src": "gnome:gcr"},
 
