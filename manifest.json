@@ -339,6 +339,8 @@
 		{"src": "fd:xorg/xserver",
 		 "patches": ["xorg-xserver-autogen.patch"]},
 
+		{"src": "fd:xcb/util"},
+
 		{"src": "fd:xorg/driver/xf86-input-keyboard"},
 
 		{"src": "fd:xorg/driver/xf86-input-mouse"},
@@ -350,8 +352,6 @@
 		{"src": "fd:xorg/driver/xf86-video-intel"},
 
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
-
-		{"src": "fd:xcb/util"},
 
 		{"src": "fd:startup-notification",
 		 "patches": ["startup-notification-autogen.patch"]},
