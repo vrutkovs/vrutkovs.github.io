@@ -506,7 +506,7 @@
 		 "config-opts": ["--disable-gtk-theme"]},
 
 		{"src": "gnome:cogl",
-		 "branch": "cogl-1.12"},
+		 "branch": "cogl-1.14"},
 
 		{"src": "gnome:clutter",
 		 "branch": "clutter-1.14"},
