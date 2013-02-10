@@ -30,6 +30,7 @@
 
 import time
 import os
+import re
 import shutil
 import tempfile
 import json
@@ -51,67 +52,50 @@ class GNOMEOSTree(callbacks.Plugin):
         schedule.addPeriodicEvent(self._query_new_build, 1, now=False)
         self._irc = irc
         self._last_version = None
+        self._jsondb_re = re.compile(r'^(\d+\.\d+)-([0-9a-f]+)\.json$')
 
     def _broadcast(self, msg):
         for channel in self._irc.state.channels:
             self._irc.queueMsg(ircmsgs.privmsg(channel, msg))
 
     def _query_new_build(self, status=False):
-        path = os.path.expanduser('~/ostbuild/work/autobuilder-default.json')
-        f = open(path)
-        data = json.load(f)
+        prefix = 'gnomeos-3.8'
+        workdir = os.path.expanduser('~/ostbuild/work/')
+        current_build_path = os.path.join(workdir, 'tasks/build', prefix, 'current')
+        meta_path = os.path.join(current_build_path, 'meta.json')
+        f = open(meta_path)
+        build_meta = json.load(f)
         f.close()
-        
-        builds = data['build']
-        if len(builds) == 0:
-            if status:
-                self._broadcast("No builds")
+
+        version = None
+        for name in os.listdir(current_build_path):
+            match = self._jsondb_re.search(name)
+            if match is None:
+                continue
+            version = match.group(1)
+            break
+        if version is None:
+            print("No source snapshot found in build directory")
             return
-        latest = None
-        latest_failed = None
-        # find the first successful build
-        for build in reversed(builds):
-            if build['state'] == 'running':
-                continue
-            latest = build
-            break
-        # find the first failed build
-        for build in reversed(builds):
-            if build['state'] != 'failed':
-                continue
-            latest_failed = build
-            break
-        version = latest['meta']['version']
-        version_matches = version == self._last_version
-        if (not status and version_matches):
+
+        version_unchanged = version == self._last_version
+        if (not status and version_unchanged):
             return
 
         self._last_version = version
-        if (not status and not version_matches):
+        if (not status and not version_unchanged):
             msg = "New build"
         else:
             msg = "Current build"
-            if status and builds[-1]['state'] == 'running':
-                building = builds[-1]
-                msg = "Active build: %s; %s" % (building['build-status']['description'], msg)
-        if latest['state'] == 'failed' and latest['meta']['version'] != latest_failed['meta']['version']:
-            msg += " %s: %s (fails since: %s)." % (version, latest['state'], latest_failed['meta']['version'])
-        else:
-            msg += " %s: %s." % (version, latest['state'])
-        diff = latest['diff']
-        if len(diff[0]) > 0:
-            msg += " Latest added modules: %s." % (', '.join(diff[0]), )
-        if len(diff[1]) > 0:
-            msg += " Latest updated modules: %s." % (', '.join(diff[1]), )
-        if len(diff[2]) > 0:
-            msg += " Latest removed modules: %s." % (', '.join(diff[2]), )
+        success = build_meta['success']
+        success_str = success and 'successful' or 'failed'
+        msg += " %s: %s." % (version, success_str)
 
-        msg += " http://ostree.gnome.org/work/tasks/%s-build/%s/log" % (data['prefix'],
-                                                                        latest['v'])
+        msg += " http://ostree.gnome.org/work/tasks/build/%s/%s/%s/output.txt" % (prefix, success_str, build_meta['taskVersion'])
 
-        if latest['state'] == 'failed':
+        if not success:
             msg = ircutils.mircColor(msg, fg='red')
-        elif latest['state'] == 'success':
+        else:
             msg = ircutils.mircColor(msg, fg='green')
 
         self._broadcast(msg)
