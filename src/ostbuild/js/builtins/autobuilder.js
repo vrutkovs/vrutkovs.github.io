@@ -56,7 +56,6 @@ const Autobuilder = new Lang.Class({
 
 	this._buildNeeded = true;
 	this._fullResolveNeeded = true;
-	this._resolveNeeded = false;
 	this._resolveTimeout = 0;
 	this._sourceSnapshotPath = null;
 	this._prevSourceSnapshotPath = null;
@@ -143,16 +142,12 @@ const Autobuilder = new Lang.Class({
 	let matchingComponents = [];
 	let snapshotData = this._src_db.loadFromPath(this._sourceSnapshotPath, null);
 	let snapshot = new Snapshot.Snapshot(snapshotData, this._sourceSnapshotPath);
-	let matched = false;
 	for (let i = 0; i < srcUrls.length; i++) {
 	    let matches = snapshot.getMatchingSrc(srcUrls[i]);
 	    for (let j = 0; j < matches.length; j++) {
 		this._queuedForceResolve.push.apply(this._queuedForceResolve, matches[i]['name']);
-		matched = true;
 	    }
 	}
-	if (matched)
-	    this._resolveNeeded = true;
 	this._runResolve();
     },
     
@@ -165,7 +160,7 @@ const Autobuilder = new Lang.Class({
     _runResolve: function() {
 	let cancellable = null;
 	
-	if (!(this._resolveNeeded || this._fullResolveNeeded))
+	if (!(this._queuedForceResolve.length > 0 || this._fullResolveNeeded))
 	    return;
 
 	if (this._taskmaster.isTaskQueued(this._resolveTaskName))
