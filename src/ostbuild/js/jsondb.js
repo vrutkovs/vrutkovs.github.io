@@ -33,7 +33,7 @@ const JsonDB = new Lang.Class({
 	this._maxVersions = 5;
     },
 
-    parseVersion: function(basename) {
+    _parseVersion: function(basename) {
 	let match = this._re.exec(basename);
 	if (!match)
 	    throw new Error("No JSONDB version in " + basename);
@@ -41,7 +41,7 @@ const JsonDB = new Lang.Class({
     },
 
     parseVersionStr: function(basename) {
-	let [major, minor] = this.parseVersion(basename);
+	let [major, minor] = this._parseVersion(basename);
 	return Format.vprintf('%d.%d', [major, minor]);
     },
 
@@ -78,7 +78,7 @@ const JsonDB = new Lang.Class({
 
     getPreviousPath: function(path) {
         let name = path.get_basename();
-	let [target_major, target_minor] = this.parseVersion(name);
+	let [target_major, target_minor] = this._parseVersion(name);
 	let files = this._getAll();
         let prev = null;
         let found = false;
