@@ -59,6 +59,7 @@ const Autobuilder = new Lang.Class({
 	this._resolveTimeout = 0;
 	this._sourceSnapshotPath = null;
 	this._prevSourceSnapshotPath = null;
+	this._queuedForceResolve = [];
     },
 
     execute: function(args, loop, cancellable) {
