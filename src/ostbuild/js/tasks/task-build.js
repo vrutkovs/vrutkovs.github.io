@@ -532,7 +532,7 @@ const TaskBuild = new Lang.Class({
                          {logInitiation: true});
         GSystem.file_unlink(contentsTmpPath, cancellable);
 
-        let contentsPath = composeRootdir.get_child('contents.json');
+        let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
         JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
 
         let treename = 'trees/' + target['name'];
