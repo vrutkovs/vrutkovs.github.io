@@ -1,0 +1,23 @@
+From 90794bf1931ecd90a2a473ec9379579535c2a207 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Mon, 11 Feb 2013 05:02:54 -0500
+Subject: [PATCH] Don't install dhclient.conf
+
+The sample config file here is full of odd crap, and actually
+breaks NetworkManager.  Just don't install it.
+---
+ client/Makefile.am |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/client/Makefile.am b/client/Makefile.am
+index 57c6ac9..4bb1234 100644
+--- a/client/Makefile.am
++++ b/client/Makefile.am
+@@ -1,4 +1,3 @@
+-dist_sysconf_DATA = dhclient.conf
+ sbin_PROGRAMS = dhclient
+ dhclient_SOURCES = clparse.c dhclient.c dhc6.c \
+ 		   scripts/bsdos scripts/freebsd scripts/linux scripts/macos \
+-- 
+1.7.1
+
