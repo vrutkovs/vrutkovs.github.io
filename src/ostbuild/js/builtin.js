@@ -38,8 +38,8 @@ const Builtin = new Lang.Class({
 	this.parser = new ArgParse.ArgumentParser(this.DESCRIPTION);
         
 	this.config = Config.get();
-	this.workdir = Gio.File.new_for_path(this.config.getGlobal('workdir'));
-	this.mirrordir = Gio.File.new_for_path(this.config.getGlobal('mirrordir'));
+	this.workdir = Gio.File.parse_name(this.config.getGlobal('workdir'));
+	this.mirrordir = Gio.File.parse_name(this.config.getGlobal('mirrordir'));
 	this.patchdir = this.workdir.get_child('patches');
 	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
 	this.repo = this.workdir.get_child('repo');
