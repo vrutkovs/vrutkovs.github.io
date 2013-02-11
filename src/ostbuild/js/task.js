@@ -106,8 +106,6 @@ const TaskMaster = new Lang.Class({
     },
 
     pushTask: function(taskName, parameters) {
-	if (this.isTaskQueued(taskName))
-	    return;
 	let [taskDef, vars] = this._taskset.getTask(taskName);
 	let instance = new taskDef(this, taskName, vars, parameters);
 	instance.onComplete = Lang.bind(this, this._onComplete, instance);
@@ -118,12 +116,16 @@ const TaskMaster = new Lang.Class({
     isTaskQueued: function(taskName) {
 	for (let i = 0; i < this._pendingTasksList.length; i++) {
 	    let pending = this._pendingTasksList[i];
-	    if (pending.TaskName == taskName)
+	    if (pending.name == taskName)
 		return true;
 	}
+	return this.isTaskExecuting(taskName);
+    },
+
+    isTaskExecuting: function(taskName) {
 	for (let i = 0; i < this._executing.length; i++) {
 	    let executingTask = this._executing[i];
-	    if (executingTask.TaskName == taskName)
+	    if (executingTask.name == taskName)
 		return true;
 	}
 	return false;
@@ -178,7 +180,8 @@ const TaskMaster = new Lang.Class({
 
     _reschedule: function() {
 	while (this._executing.length < this.maxConcurrent &&
-	       this._pendingTasksList.length > 0) {
+	       this._pendingTasksList.length > 0 &&
+	       !this.isTaskExecuting(this._pendingTasksList[0].name)) {
 	    let task = this._pendingTasksList.shift();
 	    task._executeInSubprocessInternal(this.cancellable);
 	    this._executing.push(task);
