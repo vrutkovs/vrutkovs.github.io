@@ -787,6 +787,8 @@
 
 		{"src": "gnome:pygobject"},
 
+		{"src": "gnome:pyatspi2"},
+
 		{"src": "gnome:caribou"},
 
 		{"src": "git:git://git.fedorahosted.org/grubby.git",
