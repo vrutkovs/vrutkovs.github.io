@@ -293,7 +293,7 @@ LABEL=gnostree-swap swap swap defaults 0 0\n';
     let grubConfPath = grubDir.get_child('grub.conf');
     let grubConf = Format.vprintf('default=0\n\
 timeout=3\n\
-title %s\n\
+title OSTree: %s\n\
 root (hd0,0)\n\
 kernel /%s root=LABEL=gnostree-root ostree=%s/current\n\
 initrd /%s\n', [osname, bootRelativeKernelPath, osname, bootRelativeInitramfsPath]);
