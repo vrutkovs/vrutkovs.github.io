@@ -671,14 +671,14 @@
 		{"src": "gnome:gjs"},
 
                 {"src": "ibus:ibus.git",
-		 "patches": ["ibus-builddir.patch",
-			     "ibus-introspection-syntax.patch"],
+		 "patches": ["ibus-builddir.patch"],
 		 "config-opts": ["--disable-tests", 
 				 "--disable-gconf",
 				 "--enable-dconf",
 				 "--enable-introspection",
 				 "--enable-vala",
-				 "--disable-ui"]},
+				 "--disable-ui",
+				 "--disable-setup"]},
 
 		{"src": "fd-telepathy:telepathy-glib",
 		 "config-opts": ["--enable-vala-bindings",
