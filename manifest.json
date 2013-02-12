@@ -787,7 +787,10 @@
 
 		{"src": "gnome:pygobject"},
 
-		{"src": "gnome:caribou"}
+		{"src": "gnome:caribou"},
+
+		{"src": "git:git://git.fedorahosted.org/grubby.git",
+		 "patches": ["grubby-buildapi.patch"]}
 
 	],
     
