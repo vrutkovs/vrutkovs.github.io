@@ -354,11 +354,13 @@ const TaskBuild = new Lang.Class({
 
 	// Move symbolic links for shared libraries to devel
 	let libdir = buildResultDir.resolve_relative_path('usr/lib');
-	FileUtil.walkDir(libdir, { nameRegex: /\.so$/,
-				   fileType: Gio.FileType.SYMBOLIC_LINK },
-			 Lang.bind(this, function(filePath, cancellable) {
-			     this._installAndUnlink(buildResultDir, filePath, develPath, cancellable);
-			 }), cancellable);
+	if (libdir.query_exists(null)) {
+	    FileUtil.walkDir(libdir, { nameRegex: /\.so$/,
+				       fileType: Gio.FileType.SYMBOLIC_LINK },
+			     Lang.bind(this, function(filePath, cancellable) {
+				 this._installAndUnlink(buildResultDir, filePath, develPath, cancellable);
+			     }), cancellable);
+	}
 
 	for (let i = 0; i < DEVEL_DIRS.length; i++) {
 	    let path = DEVEL_DIRS[i];
