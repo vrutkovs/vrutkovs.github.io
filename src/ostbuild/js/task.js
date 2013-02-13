@@ -238,6 +238,7 @@ const TaskDef = new Lang.Class({
 		continue;
 	    results.push(name);
 	}
+	e.close(cancellable);
 	results.sort(BuildUtil.compareVersions);
 	return results;
     },
