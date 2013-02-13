@@ -567,7 +567,7 @@ const TaskBuild = new Lang.Class({
         return ostreeRevision;
     },
 
-    _composeOneTarget: function(target, componentBuildRevs, cancellable) {
+    _checkoutOneTree: function(target, componentBuildRevs, cancellable) {
         let base = target['base'];
         let baseName = this.osname + '/bases/' + base['name'];
         let runtimeName = this.osname +'/bases/' + base['runtime'];
@@ -629,7 +629,7 @@ const TaskBuild = new Lang.Class({
         dataOut.close(cancellable);
 
         ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
-			  'checkout', '--user-mode', '--no-triggers', '--union', 
+			  'checkout', '--user-mode', '--union', 
 			  '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()],
 			 cancellable,
                          {logInitiation: true});
@@ -638,8 +638,16 @@ const TaskBuild = new Lang.Class({
         let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
         JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
 
-        let treename = this.osname + '/' + target['name'];
-        
+	let shareOstree = composeRootdir.resolve_relative_path('usr/share/ostree');
+	GSystem.file_ensure_directory(shareOstree, true, cancellable);
+	let triggersRunPath = shareOstree.get_child('triggers-run');
+	triggersRunPath.create(Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable).close(cancellable);
+	
+	return [composeRootdir, relatedTmpPath];
+    },
+
+    _commitComposedTree: function(targetName, composeRootdir, relatedTmpPath, cancellable) {
+        let treename = this.osname + '/' + targetName;
         let ostreeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
 								    'commit', '-b', treename, '-s', 'Compose',
 								    '--owner-uid=0', '--owner-gid=0', '--no-xattrs', 
@@ -650,6 +658,52 @@ const TaskBuild = new Lang.Class({
         GSystem.file_unlink(relatedTmpPath, cancellable);
         GSystem.shutil_rm_rf(composeRootdir, cancellable);
 	return [treename, ostreeRevision];
+    },
+
+    _generateInitramfs: function(architecture, composeRootdir, cancellable) {
+	let e = composeRootdir.get_child('boot').enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+	let info;
+	let kernelPath = null;
+	while ((info = e.next_file(cancellable)) != null) {
+	    let name = info.get_name();
+	    if (name.indexOf('vmlinuz-') != 0)
+		continue;
+	    kernelPath = e.get_child(info);
+	    break;
+	}
+	if (kernelPath === null)
+	    throw new Error("Couldn't find vmlinuz- in compose root");
+
+	let kernelName = kernelPath.get_basename();
+	let releaseIdx = kernelName.indexOf('-');
+	let kernelRelease = kernelName.substr(releaseIdx + 1);
+
+	let cwd = Gio.File.new_for_path('.');
+	let workdir = cwd.get_child('tmp-initramfs-' + architecture);
+	let varTmp = workdir.resolve_relative_path('var/tmp');
+	GSystem.file_ensure_directory(varTmp, true, cancellable);
+	let varDir = varTmp.get_parent();
+	let tmpDir = workdir.resolve_relative_path('tmp');
+	GSystem.file_ensure_directory(tmpDir, true, cancellable);
+	let initramfsTmp = tmpDir.get_child('initramfs-ostree.img');
+	let args = ['linux-user-chroot', '--mount-readonly', '/',
+		    '--mount-proc', '/proc',
+		    '--mount-bind', '/dev', '/dev',
+		    '--mount-bind', varDir.get_path(), '/var',
+		    '--mount-bind', tmpDir.get_path(), '/tmp',
+		    composeRootdir.get_path(),
+		    'dracut', '--tmpdir=/tmp', '-f', '/tmp/initramfs-ostree.img',
+		    kernelRelease];
+		    
+	let context = new GSystem.SubprocessContext({ argv: args });
+	print("Starting child process " + JSON.stringify(context.argv));
+	let proc = new GSystem.Subprocess({ context: context });
+	proc.init(cancellable);
+	proc.wait_sync_check(cancellable);
+
+	GSystem.file_chmod(initramfsTmp, 420, cancellable);
+
+	return [kernelRelease, initramfsTmp];
     },
 
     /* Build the Yocto base system. */
@@ -727,6 +781,14 @@ const TaskBuild = new Lang.Class({
 	GSystem.shutil_rm_rf(checkoutdir, cancellable);
 	
 	this._writeComponentCache(buildname, basemeta, cancellable);
+    },
+
+    _findTargetInList: function(name, targetList) {
+	for (let i = 0; i < targetList.length; i++) {
+	    if (targetList[i]['name'] == name)
+		return targetList[i];
+	}
+	throw new Error("Failed to find target " + name);
     },
 
     execute: function(cancellable) {
@@ -916,11 +978,43 @@ const TaskBuild = new Lang.Class({
 	let buildData = { snapshotName: this._snapshot.path.get_basename(),
 			  snapshot: this._snapshot.data,
 			  targets: targetRevisions };
-        for (let i = 0; i < targetsList.length; i++) {
-	    let target = targetsList[i];
-            print(Format.vprintf("Composing %s from %d components", [target['name'], target['contents'].length]));
-            let [treename, ostreeRev] = this._composeOneTarget(target, componentBuildRevs, cancellable);
+
+	// First loop over the -devel trees per architecture, and
+	// generate an initramfs.
+	let archInitramfsImages = {};
+        for (let i = 0; i < architectures.length; i++) {
+	    let architecture = architectures[i];
+	    let develTargetName = 'buildmaster/' + architecture + '-devel';
+	    let develTarget = this._findTargetInList(develTargetName, targetsList);
+
+	    let [composeRootdir, relatedTmpPath] = this._checkoutOneTree(develTarget, componentBuildRevs, cancellable);
+	    
+	    let [kernelRelease, initramfsPath] = this._generateInitramfs(architecture, composeRootdir, cancellable);
+	    archInitramfsImages[architecture] = [kernelRelease, initramfsPath];
+	    let initramfsTargetName = 'initramfs-' + kernelRelease + '.img';
+	    let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsTargetName);
+	    GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
+	    let [treename, ostreeRev] = this._commitComposedTree(develTargetName, composeRootdir, relatedTmpPath, cancellable);
 	    targetRevisions[treename] = ostreeRev;
+	}
+
+	// Now loop over the other targets per architecture, reusing
+	// the initramfs cached from -devel generation.
+	let nonDevelTargets = ['runtime'];
+	for (let i = 0; i < nonDevelTargets.length; i++) {
+	    let target = nonDevelTargets[i];
+            for (let j = 0; j < architectures.length; j++) {
+		let architecture = architectures[j];
+		let runtimeTargetName = 'buildmaster/' + architecture + '-' + target;
+		let runtimeTarget = this._findTargetInList(runtimeTargetName, targetsList);
+
+		let [composeRootdir, relatedTmpPath] = this._checkoutOneTree(runtimeTarget, componentBuildRevs, cancellable);
+		let [kernelRelease, initramfsPath] = archInitramfsImages[architecture];
+		let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsPath.get_basename());
+		GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
+		let [treename, ostreeRev] = this._commitComposedTree(runtimeTargetName, composeRootdir, relatedTmpPath, cancellable);
+		targetRevisions[treename] = ostreeRev;
+	    }
 	}
 	let [path, modified] = builddb.store(buildData, cancellable);
 	print("Build complete: " + path.get_path());
