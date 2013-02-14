@@ -301,7 +301,8 @@ const TaskBuild = new Lang.Class({
 	    let minimalMode = 436; // u+rw,g+rw,o+r
 	    if (srcInfo.get_file_type() == Gio.FileType.DIRECTORY)
 		minimalMode |= 64; // u+x
-	    GSystem.file_chmod(srcFile, minimalMode, cancellable);
+	    let mode = srcInfo.get_attribute_uint32('unix::mode');
+	    GSystem.file_chmod(srcFile, mode | minimalMode, cancellable);
 	}
 
 	if (srcInfo.get_file_type() == Gio.FileType.DIRECTORY) {
@@ -315,7 +316,7 @@ const TaskBuild = new Lang.Class({
 	    e.close(cancellable);
 	    srcFile.delete(cancellable);
 	} else {
-	    GSystem.file_linkcopy(srcFile, destFile, 0, cancellable);
+	    GSystem.file_linkcopy(srcFile, destFile, Gio.FileCopyFlags.ALL_METADATA, cancellable);
 	    GSystem.file_unlink(srcFile, cancellable);
 	} 
     },
