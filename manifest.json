@@ -796,7 +796,9 @@
 
 	],
     
-    "build-epoch": {"version": 1,
-		    "component-names": ["vala"]}
+    "build-epoch": {"version": 2,
+		    "component-names": ["clutter",
+					"mutter",
+				        "gnome-shell"]}
 
 }
