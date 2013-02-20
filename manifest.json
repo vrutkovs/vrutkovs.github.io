@@ -351,6 +351,8 @@
 
 		{"src": "fd:xorg/driver/xf86-video-intel"},
 
+		{"src": "fd:xorg/driver/xf86-video-ati"},
+
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
 		{"src": "fd:startup-notification",
