@@ -21,17 +21,12 @@ const Format = imports.format;
 
 const BUILTINS = ['autobuilder',
                   'checkout',
-                  'prefix',
                   'git-mirror',
-                  'resolve',
-                  'build',
-                  'build-disks',
                   'make',
-                  'shell',
-                  'run-task',
                   'qa-make-disk',
 		  'qa-pull-deploy',
-		  'qa-smoketest'];
+                  'run-task',
+                  'shell'];
 
 function getModule(unixName) {
     return imports.builtins[unixName.replace(/-/g, '_')];

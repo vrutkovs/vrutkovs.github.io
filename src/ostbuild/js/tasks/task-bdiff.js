@@ -29,7 +29,6 @@ const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
-const Config = imports.config;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
@@ -38,7 +37,7 @@ const TaskBdiff = new Lang.Class({
     Name: "TaskBdiff",
     Extends: Task.TaskDef,
 
-    TaskPattern: [/bdiff\/(.*?)$/, 'prefix'],
+    TaskPattern: [/bdiff$/],
 
     TaskAfterPrefix: '/build/',
 
@@ -81,11 +80,9 @@ const TaskBdiff = new Lang.Class({
     },
 
     execute: function(cancellable) {
-	let prefix = this.vars['prefix'];
-
 	this.subworkdir = Gio.File.new_for_path('.');
 
-	let builddb = this._getResultDb('build/' + prefix);
+	let builddb = this._getResultDb('build');
         let latestPath = builddb.getLatestPath();
 	if (!latestPath)
 	    throw new Error("No builds!")
@@ -149,7 +146,7 @@ const TaskBdiff = new Lang.Class({
 			    diffstat: diffstat });
 	}
 
-	let bdiffdb = this._getResultDb('bdiff/' + prefix); 
+	let bdiffdb = this._getResultDb('bdiff'); 
 	bdiffdb.store(result, cancellable);
     }
 });

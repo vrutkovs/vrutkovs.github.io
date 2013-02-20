@@ -122,3 +122,14 @@ function atomicSymlinkSwap(linkPath, newTarget, cancellable) {
     tmpLinkPath.make_symbolic_link(relpath, cancellable);
     GSystem.file_rename(tmpLinkPath, linkPath, cancellable);
 }
+
+function checkIsWorkDirectory(dir) {
+    let manifest = dir.get_child('manifest.json');
+    if (!manifest.query_exists(null)) {
+	throw new Error("No manifest.json found in " + dir.get_path());
+    }
+    let dotGit = dir.get_child('.git');
+    if (dotGit.query_exists(null)) {
+	throw new Error(".git found in " + dir.get_path() + "; are you in a gnome-ostree checkout?");
+    }
+}

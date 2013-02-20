@@ -22,7 +22,6 @@ const Format = imports.format;
 
 const Builtin = imports.builtin;
 const ProcUtil = imports.procutil;
-const Config = imports.config;
 const Snapshot = imports.snapshot;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
@@ -38,7 +37,7 @@ const GitMirror = new Lang.Class({
     
     _init: function() {
 	this.parent();
-        this.parser.addArgument('--prefix');
+        this.parser.addArgument('--workdir');
         this.parser.addArgument('--manifest');
         this.parser.addArgument('--snapshot');
         this.parser.addArgument('--timeout-sec', { help: "Cache fetch results for provided number of seconds" });
@@ -50,6 +49,8 @@ const GitMirror = new Lang.Class({
     },
 
     execute: function(args, loop, cancellable) {
+	this._initWorkdir(args.workdir, cancellable);
+
         let parser = new ArgParse.ArgumentParser();
 
 	if (!args.timeout_sec)
@@ -60,7 +61,7 @@ const GitMirror = new Lang.Class({
             let manifestData = JsonUtil.loadJson(manifestPath, cancellable);
 	    this._snapshot = new Snapshot.Snapshot(manifestData, manifestPath, { prepareResolve: true });
         } else {
-	    this._initSnapshot(args.prefix, args.snapshot, cancellable);
+	    this._initSnapshot(null, args.snapshot, cancellable);
 	}
 
 	let componentNames;

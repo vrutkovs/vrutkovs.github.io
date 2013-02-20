@@ -27,7 +27,6 @@ const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
-const Config = imports.config;
 const Params = imports.params;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
@@ -107,9 +106,9 @@ const Checkout = new Lang.Class({
     _init: function() {
 	this.parent();
 	this.parser.addArgument('--overwrite', {action:'storeTrue'});
-	this.parser.addArgument('--prefix');
 	this.parser.addArgument('--patches-path');
 	this.parser.addArgument('--metadata-path');
+	this.parser.addArgument('--workdir');
 	this.parser.addArgument('--snapshot');
 	this.parser.addArgument('--checkoutdir');
 	this.parser.addArgument('--clean', {action: 'storeTrue'});
@@ -117,10 +116,7 @@ const Checkout = new Lang.Class({
     },
 
     execute: function(args, loop, cancellable) {
-	this._initSnapshot(args.prefix, args.snapshot, cancellable);
-
-	if (!this.mirrordir.query_exists(cancellable))
-	    throw new Error("Need mirrordir: "+ this.mirrordir.get_path());
+	this._initSnapshot(args.workdir, args.snapshot, cancellable);
 
         let componentName = args.component;
 

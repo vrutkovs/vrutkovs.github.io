@@ -28,7 +28,6 @@ const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
-const Config = imports.config;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
@@ -46,6 +45,7 @@ const Make = new Lang.Class({
     },
 
     execute: function(args, loop, cancellable) {
+	this._initWorkdir(null, cancellable);
 	this._loop = loop;
 	this._failed = false;
 	let taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),

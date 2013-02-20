@@ -42,7 +42,6 @@ jsostbuild_DATA= \
 	src/ostbuild/js/argparse.js \
 	src/ostbuild/js/buildutil.js \
 	src/ostbuild/js/builtin.js \
-	src/ostbuild/js/config.js \
 	src/ostbuild/js/fileutil.js \
 	src/ostbuild/js/task.js \
 	src/ostbuild/js/jsondb.js \
@@ -66,7 +65,6 @@ jsostbuiltins_DATA= \
 	src/ostbuild/js/builtins/make.js \
 	src/ostbuild/js/builtins/qa_make_disk.js \
 	src/ostbuild/js/builtins/qa_pull_deploy.js \
-	src/ostbuild/js/builtins/prefix.js \
 	src/ostbuild/js/builtins/run_task.js \
 	src/ostbuild/js/builtins/shell.js \
 	$(NULL)

@@ -22,7 +22,6 @@ const Lang = imports.lang;
 const Signals = imports.signals;
 
 const GSystem = imports.gi.GSystem;
-const Config = imports.config;
 const Params = imports.params;
 const JsonUtil = imports.jsonutil;
 const JsonDB = imports.jsondb;
@@ -210,10 +209,20 @@ const TaskDef = new Lang.Class({
 	this.vars = vars;
 	this.parameters = Params.parse(parameters, this.DefaultParameters);
 
-	this.config = Config.get();
-	this.workdir = Gio.File.parse_name(this.config.getGlobal('workdir'));
+	if (taskmaster !== null)
+	    this.workdir = taskmaster.path.get_parent();
+	else
+	    this.workdir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_WORKDIR'));
+
+	BuildUtil.checkIsWorkDirectory(this.workdir);
+
 	this.resultdir = this.workdir.get_child('results');
-	this.mirrordir = Gio.File.parse_name(this.config.getGlobal('mirrordir'));
+	GSystem.file_ensure_directory(this.resultdir, true, null);
+	this.mirrordir = this.workdir.get_child('src');
+	GSystem.file_ensure_directory(this.mirrordir, true, null);
+	this.cachedir = this.workdir.resolve_relative_path('cache/raw');
+	GSystem.file_ensure_directory(this.cachedir, true, null);
+
 	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
 	this.repo = this.workdir.get_child('repo');
     },
@@ -321,6 +330,9 @@ const TaskDef = new Lang.Class({
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
 	context.set_cwd(this._workdir.get_path());
 	context.set_stdin_disposition(GSystem.SubprocessStreamDisposition.PIPE);
+	let childEnv = GLib.get_environ();
+	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
+	context.set_environment(childEnv);
 	if (this.PreserveStdout) {
 	    let outPath = this._workdir.get_child('output.txt');
 	    context.set_stdout_file_path(outPath.get_path());

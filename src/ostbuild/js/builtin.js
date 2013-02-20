@@ -22,12 +22,12 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
-const Config = imports.config;
 const Params = imports.params;
 const JsonUtil = imports.jsonutil;
 const ArgParse = imports.argparse;
 const JsonDB = imports.jsondb;
 const Snapshot = imports.snapshot;
+const BuildUtil = imports.buildutil;
 
 const Builtin = new Lang.Class({
     Name: 'Builtin',
@@ -36,38 +36,42 @@ const Builtin = new Lang.Class({
 
     _init: function() {
 	this.parser = new ArgParse.ArgumentParser(this.DESCRIPTION);
-        
-	this.config = Config.get();
-	this.workdir = Gio.File.parse_name(this.config.getGlobal('workdir'));
-	this.mirrordir = Gio.File.parse_name(this.config.getGlobal('mirrordir'));
+	this._workdirInitialized = false;
+    },
+
+    _initWorkdir: function(workdir, cancellable) {
+	if (this._workdirInitialized)
+	    return;
+	this._workdirInitialized = true;
+	if (workdir === null)
+	    workdir = Gio.File.new_for_path('.');
+	else if (typeof(workdir) == 'string')
+	    workdir = Gio.File.new_for_path(workdir);
+	
+	BuildUtil.checkIsWorkDirectory(workdir);
+	
+	this.workdir = workdir;
+	this.mirrordir = workdir.get_child('src');
+	GSystem.file_ensure_directory(this.mirrordir, true, cancellable);
 	this.patchdir = this.workdir.get_child('patches');
 	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
 	this.repo = this.workdir.get_child('repo');
     },
 
-    _initPrefix: function(prefix) {
-	if (!prefix)
-	    this.prefix = Config.get().getPrefix();
-	else
-	    this.prefix = prefix;
-    },
-
-    _initSnapshot: function(prefix, snapshotPath, cancellable) {
+    _initSnapshot: function(workdir, snapshotPath, cancellable) {
+	this._initWorkdir(workdir, cancellable);
 	let snapshotDir = this.workdir.get_child('snapshots');
 	let path, data;
-	if (!prefix && !snapshotPath)
-	    prefix = Config.get().getPrefix();
-	if (prefix) {
-	    this.prefix = prefix;
-	    let db = new JsonDB.JsonDB(snapshotDir.get_child(prefix));
-	    path = db.getLatestPath();
-	    data = db.loadFromPath(path, cancellable);
-	} else {
+	if (snapshotPath !== null) {
 	    path = Gio.File.new_for_path(snapshotPath);
 	    data = JsonUtil.loadJson(path, cancellable);
-	    this.prefix = data['prefix'];
+	} else {
+	    let db = new JsonDB.JsonDB(snapshotDir);
+	    path = db.getLatestPath();
+	    data = db.loadFromPath(path, cancellable);
 	}
 	this._snapshot = new Snapshot.Snapshot(data, path);
+	this.prefix = this._snapshot.data['prefix'];
     },
 
     main: function(argv, loop, cancellable) {

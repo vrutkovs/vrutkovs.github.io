@@ -38,8 +38,8 @@ function getMirrordir(mirrordir, keytype, uri, params) {
             rest = uri;
     }
     let prefix = params.prefix ? params.prefix + '/' : '';
-    return mirrordir.resolve_relative_path(prefix + keytype + '/' +
-					   scheme + '/' + rest);
+    let relpath = prefix + keytype + '/' + scheme + '/' + rest;
+    return mirrordir.resolve_relative_path(relpath);
 }
 
 function _fixupSubmoduleReferences(mirrordir, cwd, cancellable) {

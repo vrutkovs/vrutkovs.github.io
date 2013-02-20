@@ -28,7 +28,6 @@ const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
-const Config = imports.config;
 
 const loop = GLib.MainLoop.new(null, true);
 
@@ -48,7 +47,6 @@ const Autobuilder = new Lang.Class({
     _init: function() {
 	this.parent();
 
-        this.parser.addArgument('--prefix');
         this.parser.addArgument('--autoupdate-self', { action: 'storeTrue' });
         this.parser.addArgument('--stage');
 
@@ -63,7 +61,7 @@ const Autobuilder = new Lang.Class({
     },
 
     execute: function(args, loop, cancellable) {
-	this._initSnapshot(args.prefix, null, cancellable);
+	this._initSnapshot(null, null, cancellable);
 
 	this._autoupdate_self = args.autoupdate_self;
 	if (!args.stage)
@@ -74,9 +72,9 @@ const Autobuilder = new Lang.Class({
 	this._do_builddisks = this._stageIndex >= this._stages.indexOf('builddisks');
 	this._do_smoke = this._stageIndex >= this._stages.indexOf('smoke');
 
-	this._resolveTaskName = 'resolve/' + this.prefix;
-	this._buildTaskName = 'build/' + this.prefix;
-	this._bdiffTaskName = 'bdiff/' + this.prefix;
+	this._resolveTaskName = 'resolve'
+	this._buildTaskName = 'build'
+	this._bdiffTaskName = 'bdiff';
 
 	this._manifestPath = Gio.File.new_for_path('manifest.json');
 
@@ -87,7 +85,7 @@ const Autobuilder = new Lang.Class({
 	this._impl = Gio.DBusExportedObject.wrapJSObject(AutoBuilderIface, this);
 	this._impl.export(Gio.DBus.session, '/org/gnome/OSTreeBuild/AutoBuilder');
 
-	this._snapshot_dir = this.workdir.get_child('snapshots').get_child(this.prefix);
+	this._snapshot_dir = this.workdir.get_child('snapshots');
 	this._src_db = new JsonDB.JsonDB(this._snapshot_dir);
 
 	this._taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),

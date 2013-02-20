@@ -28,7 +28,6 @@ const Task = imports.task;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
-const Config = imports.config;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
@@ -37,21 +36,20 @@ const TaskResolve = new Lang.Class({
     Name: "TaskResolve",
     Extends: Task.TaskDef,
 
-    TaskPattern: [/resolve\/(.*?)$/, 'prefix'],
+    TaskPattern: [/resolve$/],
 
     DefaultParameters: {fetchAll: false,
 			fetchComponents: [],
 		        timeoutSec: 10},
 
     execute: function(cancellable) {
-        this.prefix = this.vars['prefix'];
-        let manifest = this.config.getGlobal('manifest');
-	let manifestPath = Gio.File.new_for_path(manifest);
+        let manifestPath = this.workdir.get_child('manifest.json');
 	let data = JsonUtil.loadJson(manifestPath, cancellable);
         this._snapshot = new Snapshot.Snapshot(data, manifestPath, { prepareResolve: true });
 	
         let gitMirrorArgs = ['ostbuild', 'git-mirror', '--timeout-sec=' + this.parameters.timeoutSec,
-			     '--manifest=' + manifest];
+			     '--workdir=' + this.workdir.get_path(),
+			     '--manifest=' + manifestPath.get_path()];
         if (this.parameters.fetchAll || this.parameters.fetchComponents.length > 0) {
             gitMirrorArgs.push('--fetch');
             gitMirrorArgs.push('-k');
@@ -73,7 +71,7 @@ const TaskResolve = new Lang.Class({
 	}
 
 	let snapshotdir = this.workdir.get_child('snapshots');
-	this._src_db = new JsonDB.JsonDB(snapshotdir.get_child(this.prefix));
+	this._src_db = new JsonDB.JsonDB(snapshotdir);
         let [path, modified] = this._src_db.store(this._snapshot.data, cancellable);
         if (modified) {
             print("New source snapshot: " + path.get_path());

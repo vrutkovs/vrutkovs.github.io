@@ -30,7 +30,6 @@ const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
-const Config = imports.config;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const ArgParse = imports.argparse;
@@ -47,7 +46,7 @@ const TaskBuild = new Lang.Class({
     Name: "TaskBuild",
     Extends: Task.TaskDef,
 
-    TaskPattern: [/build\/(.*?)$/, 'prefix'],
+    TaskPattern: [/build$/],
 
     TaskAfterPrefix: '/resolve/',
 
@@ -160,6 +159,7 @@ const TaskBuild = new Lang.Class({
 	GSystem.shutil_rm_rf(cachedRootTmp, cancellable);
         ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
 			  'checkout', '--user-mode', '--union',
+			  '--workdir=' + this.workdir.get_path(),
 			  '--from-file=' + tmpPath.get_path(), cachedRootTmp.get_path()], cancellable);
         GSystem.file_unlink(tmpPath, cancellable);
 
@@ -479,6 +479,7 @@ const TaskBuild = new Lang.Class({
 
         let componentSrc = buildWorkdir.get_child(basename);
         let childArgs = ['ostbuild', 'checkout', '--snapshot=' + this._snapshot.path.get_path(),
+			 '--workdir=' + this.workdir.get_path(),
 			 '--checkoutdir=' + componentSrc.get_path(),
 			 '--metadata-path=' + tempMetadataPath.get_path(),
 			 '--overwrite', basename];
@@ -734,27 +735,26 @@ const TaskBuild = new Lang.Class({
     },
 
     execute: function(cancellable) {
-	let prefix = this.vars['prefix'];
-
 	this.subworkdir = Gio.File.new_for_path('.');
 
         this.forceBuildComponents = {};
         this.cachedPatchdirRevision = null;
 
-	this.prefix = prefix;
-	this.patchdir = this.workdir.get_child('patches');
 	let snapshotDir = this.workdir.get_child('snapshots');
-	let srcdb = new JsonDB.JsonDB(snapshotDir.get_child(prefix));
+	let srcdb = new JsonDB.JsonDB(snapshotDir);
 	let snapshotPath = srcdb.getLatestPath();
 	let workingSnapshotPath = this.subworkdir.get_child(snapshotPath.get_basename());
 	GSystem.file_linkcopy(snapshotPath, workingSnapshotPath, Gio.FileCopyFlags.OVERWRITE,
 			      cancellable);
 	let data = srcdb.loadFromPath(workingSnapshotPath, cancellable);
 	this._snapshot = new Snapshot.Snapshot(data, workingSnapshotPath);
+	this.prefix = this._snapshot.data['prefix'];
+
+	this.patchdir = this.workdir.get_child('patches');
 
         let components = this._snapshot.data['components'];
 
-	let builddb = this._getResultDb('build/' + this.prefix);
+	let builddb = this._getResultDb('build');
 
 	let targetSourceVersion = builddb.parseVersionStr(this._snapshot.path.get_basename());
 
@@ -832,7 +832,7 @@ const TaskBuild = new Lang.Class({
 	    }
 	}
 
-        this._componentBuildCachePath = this.workdir.get_child('component-builds.json');
+        this._componentBuildCachePath = this.cachedir.get_child('component-builds.json');
         if (this._componentBuildCachePath.query_exists(cancellable)) {
             this._componentBuildCache = JsonUtil.loadJson(this._componentBuildCachePath, cancellable);
         } else {

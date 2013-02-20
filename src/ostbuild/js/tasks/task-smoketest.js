@@ -141,7 +141,7 @@ const SmoketestOne = new Lang.Class({
         }
     },
 
-    execute: function(subworkdir, prefix, diskPath, cancellable) {
+    execute: function(subworkdir, diskPath, cancellable) {
         print("Smoke testing disk " + diskPath.get_path());
         this._loop = GLib.MainLoop.new(null, true);
         this._done = false;
@@ -220,12 +220,10 @@ const TaskSmoketest = new Lang.Class({
     Name: 'TaskSmoketest',
     Extends: Task.TaskDef,
 
-    TaskPattern: [/smoketest\/(.*?)$/, 'prefix'],
+    TaskPattern: [/smoketest$/],
 
     execute: function(cancellable) {
-        let prefix = this.vars['prefix'];
-
-	      let imageDir = this.workdir.get_child('images').get_child(prefix);
+	      let imageDir = this.workdir.get_child('images');
 	      let currentImages = imageDir.get_child('current');
 
         let e = currentImages.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
@@ -239,7 +237,7 @@ const TaskSmoketest = new Lang.Class({
             let subworkdir = Gio.File.new_for_path(workdirName);
             GSystem.file_ensure_directory(subworkdir, true, cancellable);
             let smokeTest = new SmoketestOne();
-            smokeTest.execute(subworkdir, prefix, currentImages.get_child(name), cancellable);
+            smokeTest.execute(subworkdir, currentImages.get_child(name), cancellable);
         }
     }
 });

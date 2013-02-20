@@ -30,7 +30,6 @@ const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
 const LibQA = imports.libqa;
 const JsonDB = imports.jsondb;
-const Config = imports.config;
 const JsonUtil = imports.jsonutil;
 const GuestFish = imports.guestfish;
 
@@ -40,7 +39,7 @@ const TaskBuildDisks = new Lang.Class({
     Name: 'TaskBuildDisks',
     Extends: Task.TaskDef,
 
-    TaskPattern: [/builddisks\/(.*?)$/, 'prefix'],
+    TaskPattern: [/builddisks$/],
 
     TaskAfterPrefix: '/build/',
 
@@ -48,16 +47,14 @@ const TaskBuildDisks = new Lang.Class({
     _VERSION_RE: /^(\d+)\.(\d+)$/,
 
     execute: function(cancellable) {
-        let prefix = this.vars['prefix'];
-
         let subworkdir = Gio.File.new_for_path('.');
 
-	      let baseImageDir = this.workdir.get_child('images').get_child(prefix);
+	      let baseImageDir = this.workdir.get_child('images');
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
 	      let currentImageLink = baseImageDir.get_child('current');
 	      let previousImageLink = baseImageDir.get_child('previous');
 
-	      let builddb = this._getResultDb('build/' + prefix);
+	      let builddb = this._getResultDb('build');
 
         let latestPath = builddb.getLatestPath();
         let buildVersion = builddb.parseVersionStr(latestPath.get_basename());
@@ -80,7 +77,7 @@ const TaskBuildDisks = new Lang.Class({
         for (let targetName in targets) {
             let targetRevision = buildData['targets'][targetName];
 	          let squashedName = targetName.replace(/\//g, '_');
-	          let diskName = prefix + '-' + squashedName + '-disk.qcow2';
+	          let diskName = osname + '-' + squashedName + '-disk.qcow2';
             let diskPath = workImageDir.get_child(diskName);
             let prevPath = currentImageLink.get_child(diskName);
             GSystem.shutil_rm_rf(diskPath, cancellable);
