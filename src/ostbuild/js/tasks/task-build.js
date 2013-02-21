@@ -159,7 +159,6 @@ const TaskBuild = new Lang.Class({
 	GSystem.shutil_rm_rf(cachedRootTmp, cancellable);
         ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
 			  'checkout', '--user-mode', '--union',
-			  '--workdir=' + this.workdir.get_path(),
 			  '--from-file=' + tmpPath.get_path(), cachedRootTmp.get_path()], cancellable);
         GSystem.file_unlink(tmpPath, cancellable);
 
