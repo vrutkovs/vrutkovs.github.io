@@ -663,7 +663,8 @@ const TaskBuild = new Lang.Class({
     _buildBase: function(architecture, cancellable) {
         let basemeta = this._snapshot.getExpanded(this._snapshot.data['base']['name']);
 	let basename = basemeta['name'];
-        let checkoutdir = this.workdir.get_child('checkouts').get_child(basemeta['name']);
+	let buildWorkdir = this.subworkdir.get_child('build-' + basemeta['name'] + '-' + architecture);
+        let checkoutdir = buildWorkdir.get_child(basemeta['name']);
 	GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
 
 	let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
