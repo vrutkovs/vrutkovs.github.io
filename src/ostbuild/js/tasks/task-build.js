@@ -76,7 +76,7 @@ const TaskBuild = new Lang.Class({
 
 	let prefix = this._snapshot.data['prefix'];
         let buildname = Format.vprintf('%s/%s/%s', [prefix, componentName, architecture]);
-        let buildrootCachedir = this.workdir.resolve_relative_path('roots/' + buildname);
+        let buildrootCachedir = this.cachedir.resolve_relative_path('roots/' + buildname);
         GSystem.file_ensure_directory(buildrootCachedir, true, cancellable);
 
         let components = this._snapshot.data['components']
