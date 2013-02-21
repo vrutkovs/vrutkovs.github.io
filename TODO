@@ -1,89 +1,40 @@
-Use a well-known CI tool
-========================
+Highlevel stuff:
 
-Right now the CI on the server is two scripts:
+* Application story
 
-while true; do ostbulid resolve --fetch > /srv/public_html/log_files/resolve.log; done
-while true; do ostbuild build --skip-vcs-matches > /srv/public_html/log_files/build.log; done
+* SELinux tooling (and ideally a really basic policy); this would
+  help demo the xattr support
 
-This is pretty lame...we should use BuildBot or something.
+* Split debuginfo
 
-Formalize scripts for creating a build server
-=============================================
+* Installed tests: We have a "smoketest" now, but what we really
+  want is to allow individual components to install tests, and
+  then run them inside qemu (in a logged in session).
 
-Basically make it trivial to spin up an EC2 instance with all this
-stuff.  This would be incredibly useful for a lot of reasons - it'd
-help people install stuff on their local computer, and even cooler, we
-could implement "Try Servers" where we spin up a build server on
-demand when builders want to test their own code.
+* "ostbuild clone" - take a build directory (ideally while it's
+  running), and efficiently clone it.  This will allow things like
+  try servers and patch queue processing.
 
-Improve QA web page
-===================
+* Script build server install; basically make it trivial to spin up an
+  EC2 instance with all this stuff.
 
-Right now there's a really basic, lame web page that lives in
-gnome-ostree/qa/repoweb.  We should extend this - for example, have it
-show the recent commits, be able to browse filesystem diffs.
+* Improve QA web page: Allow browsing multiple builds, look at build
+  diff, etc.
 
-Note I hate running code in response to a HTTP request - I much prefer
-generating cached data.  Hence the model where we generate a data.json
-files that are rendered by the browser.
+* Automatic reverse dependency rebuilds on soname bumps
 
-3 different builders
-====================
+* Support importing tarballs?
 
-We should have 3 different builds:
 
-* fastbuild - when a module changes, only rebuild it.
-* reverse-dependencies - when a module changes, rebuild everything that depends on it (jhbuild default)
-* scratch - periodically rebuild *everything* from source
+Code internals:
 
-Apps
-====
+* Use ccache
 
-Add glick runtime?  But we need to have a story for how they're built
-too.
+* Automatic task chaining - when resolve completes, run build.
+  When build completes, run bdiff and builddisks.  Etc.
 
-jhbuild moduleset
-====
-
-Right now the 3.6 moduleset mostly follows jhbuild; we should ensure
-that whenever something is added to jhbuild, we also update the
-gnomeos-3.6.json manifest.
-
-Networking
-==========
-
-* Colin is working on writable /etc
-* Complete glibc patch to have /lib/passwd and /lib/shadow
-
-Update to a more modern system
-===================
-
-* Pull in systemd, drop ConsoleKit
-* Sync up with Fedora more - drain spec files into GNOME Build API that's upstreamable
-* Upstream the patch sets we already have
-
-Smoke, integration tests
-========================
-
-The main smoke test I want is "does the system show GDM".  Possibly
-redirect syslog to the qemu serial console, and check that way?  Or
-have a flag to tell systemd to write status to the serial console when
-it's started all targets (including GDM) successfully?
-
-Integration testing would be fantastic; we need some way to ship over
-test code, run it, and then get results.  Look at
-http://autotest.github.com/
-
-Build more things in ostbuild
-=============================
-
-We should turn the Yocto base into a bootstrap system, rather than a
-provider of core.  So for example, while Yocto may build udev, we
-should rpm -e it before committing to the base tree.
-
-Move more stuff into GNOME git
-==============================
-
-We should move the poky repository.  Ideally we wouldn't need patches
-on top of core, and we could just be an additional layer.
+* Subtasks - allow parallelizing execution inside a task.  There
+  are a few issues with this, but the biggest is what to do with
+  task output?  We should probably have something like the systemd
+  journal that logs output associated with a task, but allows a unified
+  view of the output ordered by time.
