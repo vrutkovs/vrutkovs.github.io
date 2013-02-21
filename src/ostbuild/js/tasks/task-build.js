@@ -645,7 +645,7 @@ const TaskBuild = new Lang.Class({
         let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
         JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
 
-        let treename = 'trees/' + target['name'];
+        let treename = this.osname + '/' + target['name'];
         
         let ostreeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
 								    'commit', '-b', treename, '-s', 'Compose',
@@ -747,7 +747,10 @@ const TaskBuild = new Lang.Class({
 			      cancellable);
 	let data = srcdb.loadFromPath(workingSnapshotPath, cancellable);
 	this._snapshot = new Snapshot.Snapshot(data, workingSnapshotPath);
-	this.prefix = this._snapshot.data['prefix'];
+        let prefix = this._snapshot.data['prefix'];
+	this.prefix = prefix;
+        let osname = this._snapshot.data['osname'];
+	this.osname = osname;
 
 	this.patchdir = this.workdir.get_child('patches');
 
@@ -785,7 +788,6 @@ const TaskBuild = new Lang.Class({
 			     cancellable);
 	}
 
-        let prefix = this._snapshot.data['prefix'];
         let basePrefix = this._snapshot.data['base']['name'] + '/' + prefix;
         let architectures = this._snapshot.data['architectures'];
 
@@ -870,7 +872,7 @@ const TaskBuild = new Lang.Class({
 		let architecture = architectures[i];
                 let target = {};
                 targetsList.push(target);
-                target['name'] = prefix + '-' + architecture + '-' + targetComponentType;
+                target['name'] = 'buildmaster/' + architecture + '-' + targetComponentType;
 
                 let runtimeRef = basePrefix + '-' + architecture + '-runtime';
                 let buildrootRef = basePrefix + '-' + architecture + '-devel';
