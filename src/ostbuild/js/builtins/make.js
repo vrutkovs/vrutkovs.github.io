@@ -51,6 +51,7 @@ const Make = new Lang.Class({
 	let taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
 					     { onEmpty: Lang.bind(this, this._onTasksComplete) });
 	this._taskmaster = taskmaster;
+	taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
 	let params = {};
 	for (let i = 0; i < args.parameters.length; i++) { 
@@ -69,7 +70,17 @@ const Make = new Lang.Class({
 	    print("Success!")
     },
 
+    _onTaskExecuting: function(taskmaster, task) {
+	let workdir = task._workdir;
+	print("Task " + task.name + " executing in " + workdir.get_path());
+	let output = workdir.get_child('output.txt');
+	let context = new GSystem.SubprocessContext({ argv: ['tail', '-f', output.get_path() ] });
+	this._tail = new GSystem.Subprocess({ context: context });
+	this._tail.init(null);
+    },
+
     _onTaskCompleted: function(taskmaster, task, success, error) {
+	this._tail.request_exit();
 	if (success) {
 	    print("Task " + task.name + " complete: " + task._workdir.get_path());
 	} else {

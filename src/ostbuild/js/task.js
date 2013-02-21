@@ -183,7 +183,7 @@ const TaskMaster = new Lang.Class({
 	       !this.isTaskExecuting(this._pendingTasksList[0].name)) {
 	    let task = this._pendingTasksList.shift();
 	    task._executeInSubprocessInternal(this.cancellable);
-	    print("Task " + task.name + " running in " + task._workdir.get_path());
+	    this.emit('task-executing', task);
 	    this._executing.push(task);
 	}
     }
