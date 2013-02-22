@@ -1,7 +1,5 @@
 // -*- indent-tabs-mode: nil -*-
 
-const DEFAULT_PREFIX = 'gnomeos-3.8';
-
 function htmlescape(str) {
     var pre = document.createElement('pre');
     var text = document.createTextNode(str);
@@ -29,14 +27,10 @@ function get_page_arg(key) {
 
 var repoDataSignal = {};
 var currentBuildMeta = null;
-var prefix = null;
 
 function repowebInit() {
-    prefix = get_page_arg("prefix");
-    if (prefix == null)
-        prefix = DEFAULT_PREFIX;
     var url;
-    url = "work/tasks/build/" + prefix + "/current/meta.json";
+    url = "work/tasks/build/current/meta.json";
     $.getJSON(url, function(data) {
         currentBuildMeta = data;
         $(repoDataSignal).trigger("current-buildmeta-loaded");
@@ -98,7 +92,7 @@ function renderBuild(container, build) {
     container.appendChild(li);
     var a = document.createElement('a');
     li.appendChild(a);
-    a.setAttribute('href', 'work/tasks/' + prefix + '-build/' + build['v'] + '/log');
+    a.setAttribute('href', 'work/tasks/build/' + build['v'] + '/log');
     a.setAttribute('rel', 'external');
 
     var state = build['state'];
@@ -128,7 +122,7 @@ function repowebIndexInit() {
 	var buildMetaNode = $("#build-meta").get(0);
 
         $(buildMetaNode).empty();
-        var ref = 'work/tasks/build/' + prefix;
+        var ref = 'work/tasks/build/';
         if (currentBuildMeta.success)
             ref += '/successful';
         else
