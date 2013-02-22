@@ -224,7 +224,7 @@ function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
 	_listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable).forEach(function (elt) {
 	    let [subChecksum, subName, subUrl] = elt;
 	    print("Processing submodule " + subName + " at " + subChecksum + " from " + subUrl);
-            ensureVcsMirror(mirrordir, keytype, subUrl, subChecksum, cancellable, {fetch:fetch});
+            ensureVcsMirror(mirrordir, keytype, subUrl, subChecksum, cancellable, params);
 	});
     }
     
