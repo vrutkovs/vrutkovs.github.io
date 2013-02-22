@@ -59,9 +59,8 @@ class GNOMEOSTree(callbacks.Plugin):
             self._irc.queueMsg(ircmsgs.privmsg(channel, msg))
 
     def _query_new_build(self, status=False):
-        prefix = 'gnomeos-3.8'
         workdir = os.path.expanduser('~/ostbuild/work/')
-        current_build_path = os.path.join(workdir, 'tasks/build', prefix, 'current')
+        current_build_path = os.path.join(workdir, 'tasks/build/current')
         meta_path = os.path.join(current_build_path, 'meta.json')
         f = open(meta_path)
         build_meta = json.load(f)
@@ -91,7 +90,7 @@ class GNOMEOSTree(callbacks.Plugin):
         success_str = success and 'successful' or 'failed'
         msg += " %s: %s." % (version, success_str)
 
-        msg += " http://ostree.gnome.org/work/tasks/build/%s/%s/%s/output.txt" % (prefix, success_str, build_meta['taskVersion'])
+        msg += " http://ostree.gnome.org/work/tasks/build/%s/%s/output.txt" % (success_str, build_meta['taskVersion'])
 
         if not success:
             msg = ircutils.mircColor(msg, fg='red')
