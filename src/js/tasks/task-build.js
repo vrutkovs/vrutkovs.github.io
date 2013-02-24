@@ -665,22 +665,6 @@ const TaskBuild = new Lang.Class({
 	let basename = basemeta['name'];
 	let buildWorkdir = this.subworkdir.get_child('build-' + basemeta['name'] + '-' + architecture);
         let checkoutdir = buildWorkdir.get_child(basemeta['name']);
-	GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
-
-	let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
-        if (ftype == Gio.FileType.SYMBOLIC_LINK)
-	    GSystem.file_unlink(checkoutdir, cancellable);
-
-        let [keytype, uri] = Vcs.parseSrcKey(basemeta['src']);
-        if (keytype == 'local') {
-	    GSystem.shutil_rm_rf(checkoutdir, cancellable);
-	    checkoutdir.make_symbolic_link(uri, cancellable);
-        } else {
-            Vcs.getVcsCheckout(this.mirrordir, keytype, uri, checkoutdir,
-                               basemeta['revision'], cancellable,
-                               {overwrite:false});
-	}
-
         let builddirName = Format.vprintf('build-%s-%s', [basemeta['name'], architecture]);
         let builddir = this.workdir.get_child(builddirName);
 
@@ -700,6 +684,23 @@ const TaskBuild = new Lang.Class({
 		print(Format.vprintf("%s was %s, now at revision %s", [builddirName, builtRevision, basemeta['revision']]));
 	    }
 	} 
+
+	let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+        if (ftype == Gio.FileType.SYMBOLIC_LINK)
+	    GSystem.file_unlink(checkoutdir, cancellable);
+
+	GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
+
+        let [keytype, uri] = Vcs.parseSrcKey(basemeta['src']);
+        if (keytype == 'local') {
+	    GSystem.shutil_rm_rf(checkoutdir, cancellable);
+	    checkoutdir.make_symbolic_link(uri, cancellable);
+        } else {
+            Vcs.getVcsCheckout(this.mirrordir, keytype, uri, checkoutdir,
+                               basemeta['revision'], cancellable,
+                               {overwrite:false});
+	}
+
 
         // Just keep reusing the old working directory downloads and sstate
         let oldBuilddir = this.workdir.get_child('build-' + basemeta['name']);
@@ -732,6 +733,7 @@ const TaskBuild = new Lang.Class({
 	}
 
 	builtRevisionPath.replace_contents(basemeta['revision'], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+	GSystem.shutil_rm_rf(checkoutdir, cancellable);
     },
 
     execute: function(cancellable) {
