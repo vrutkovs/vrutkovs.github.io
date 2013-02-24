@@ -540,7 +540,8 @@
 		{"src": "gnome:mobile-broadband-provider-info"},
 
 		{"src": "gnome:network-manager-applet",
-		 "config-opts": ["--enable-more-warnings=no"]},
+		 "config-opts": ["--enable-more-warnings=no",
+		                 "--disable-migration"]},
 
 		{"src": "fd-pulse:pulseaudio",
 		 "branch": "stable-2.x",
