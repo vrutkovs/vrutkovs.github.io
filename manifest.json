@@ -16,6 +16,7 @@
                 "fd": "git:git://anongit.freedesktop.org/git/",
                 "fd-dbus": "git:git://anongit.freedesktop.org/git/dbus/",
                 "fd-NM": "git:git://anongit.freedesktop.org/git/NetworkManager/",
+                "fd-MM": "git:git://anongit.freedesktop.org/git/ModemManager/",
                 "fd-mesa": "git:git://anongit.freedesktop.org/git/mesa/",
                 "fd-pulse": "git:git://anongit.freedesktop.org/git/pulseaudio/",
                 "fd-xdg": "git:git://anongit.freedesktop.org/git/xdg/",
@@ -410,6 +411,13 @@
 				 "--disable-doc",
 				 "--enable-more-warnings=yes",
 				 "--enable-modify-system"]},
+
+		{"src": "fd:libqmi"},
+
+		{"src": "fd-MM:ModemManager.git",
+		 "patches": ["MM-builddir-include.patch"],
+		 "config-opts": ["--with-udev-base-dir=/usr/lib/udev",
+		                 "--disable-more-warnings"]},
 
 		{"src": "0pointer:libatasmart.git"},
 
