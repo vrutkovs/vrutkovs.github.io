@@ -220,7 +220,8 @@ const TaskSmoketest = new Lang.Class({
     Name: 'TaskSmoketest',
     Extends: Task.TaskDef,
 
-    TaskPattern: [/smoketest$/],
+    TaskName: "smoketest",
+    TaskAfter: ['builddisks'],
 
     execute: function(cancellable) {
 	      let imageDir = this.workdir.get_child('images');

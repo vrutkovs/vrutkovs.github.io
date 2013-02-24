@@ -76,6 +76,13 @@ const JsonDB = new Lang.Class({
 	return this._path.get_child(all[0][3]);
     },
 
+    getLatestVersion: function() {
+	let path = this.getLatestPath();
+	if (path == null)
+	    return null;
+	return this.parseVersionStr(path.get_basename());
+    },
+
     getPreviousPath: function(path) {
         let name = path.get_basename();
 	let [target_major, target_minor] = this._parseVersion(name);

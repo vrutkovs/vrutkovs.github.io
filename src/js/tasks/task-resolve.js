@@ -36,11 +36,23 @@ const TaskResolve = new Lang.Class({
     Name: "TaskResolve",
     Extends: Task.TaskDef,
 
-    TaskPattern: [/resolve$/],
+    TaskName: "resolve",
 
     DefaultParameters: {fetchAll: false,
 			fetchComponents: [],
 		        timeoutSec: 10},
+
+    _getDb: function() {
+	if (this._db == null) {
+	    let snapshotdir = this.workdir.get_child('snapshots');
+	    this._db = new JsonDB.JsonDB(snapshotdir);
+	}
+	return this._db;
+    },
+
+    queryVersion: function() {
+	return this._getDb().getLatestVersion();
+    },
 
     execute: function(cancellable) {
         let manifestPath = this.workdir.get_child('manifest.json');
@@ -70,9 +82,7 @@ const TaskResolve = new Lang.Class({
             component['revision'] = revision;
 	}
 
-	let snapshotdir = this.workdir.get_child('snapshots');
-	this._src_db = new JsonDB.JsonDB(snapshotdir);
-        let [path, modified] = this._src_db.store(this._snapshot.data, cancellable);
+        let [path, modified] = this._getDb().store(this._snapshot.data, cancellable);
         if (modified) {
             print("New source snapshot: " + path.get_path());
         } else {

@@ -39,9 +39,8 @@ const TaskBuildDisks = new Lang.Class({
     Name: 'TaskBuildDisks',
     Extends: Task.TaskDef,
 
-    TaskPattern: [/builddisks$/],
-
-    TaskAfterPrefix: '/build/',
+    TaskName: "builddisks",
+    TaskAfter: ['build'],
 
     // Legacy
     _VERSION_RE: /^(\d+)\.(\d+)$/,

@@ -37,9 +37,8 @@ const TaskBdiff = new Lang.Class({
     Name: "TaskBdiff",
     Extends: Task.TaskDef,
 
-    TaskPattern: [/bdiff$/],
-
-    TaskAfterPrefix: '/build/',
+    TaskName: "bdiff",
+    TaskAfter: ['build'],
 
     _gitLogToJson: function(repoDir, specification) {
 	let log = ProcUtil.runSyncGetOutputLines(['git', 'log', '--format=email', specification],

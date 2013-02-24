@@ -62,20 +62,29 @@ const TaskSet = new Lang.Class({
 	params = Params.parse(params, { allowNone: false })
 	for (let i = 0; i < this._tasks.length; i++) {
 	    let taskDef = this._tasks[i];
-            let pattern = taskDef.prototype.TaskPattern;
-            let re = pattern[0];
-            let match = re.exec(taskName);
-            if (!match)
-		continue;
-            let vars = {};
-            for (let i = 1; i < pattern.length; i++) {
-		vars[pattern[i]] = match[i];
-            }
-	    return [taskDef, vars];
+            let curName = taskDef.prototype.TaskName
+	    if (curName == taskName)
+		return taskDef;
 	}
 	if (!params.allowNone)
 	    throw new Error("No task definition matches " + taskName);
 	return null;
+    },
+
+    getTasksAfter: function(taskName) {
+	let ret = [];
+	for (let i = 0; i < this._tasks.length; i++) {
+	    let taskDef = this._tasks[i];
+	    let after = taskDef.prototype.TaskAfter;
+	    for (let j = 0; j < after.length; j++) {
+		let a = after[j];
+		if (a == taskName) {
+		    ret.push(taskDef);
+		    break;
+		}
+	    }
+	}
+	return ret;
     },
 
     getInstance: function() {
@@ -89,8 +98,10 @@ const TaskMaster = new Lang.Class({
     Name: 'TaskMaster',
 
     _init: function(path, params) {
-	params = Params.parse(params, {onEmpty: null});
+        params = Params.parse(params, { onEmpty: null, 
+				        processAfter: true });
 	this.path = path;
+	this._processAfter = params.processAfter;
 	this.maxConcurrent = GLib.get_num_processors();
 	this._onEmpty = params.onEmpty;
 	this.cancellable = null;
@@ -102,23 +113,36 @@ const TaskMaster = new Lang.Class({
 	this._caughtError = false;
 
 	this._taskset = TaskSet.prototype.getInstance();
+
+	this._taskVersions = {};
+    },
+
+    _pushTaskDef: function(taskDef, parameters) {
+	let name = taskDef.prototype.TaskName;
+	if (!this._isTaskPending(name)) {
+	    let instance = new taskDef(this, name, [], parameters);
+	    instance.onComplete = Lang.bind(this, this._onComplete, instance);
+	    this._pendingTasksList.push(instance);
+	    this._queueRecalculate();
+	}
     },
 
     pushTask: function(taskName, parameters) {
-	let [taskDef, vars] = this._taskset.getTask(taskName);
-	let instance = new taskDef(this, taskName, vars, parameters);
-	instance.onComplete = Lang.bind(this, this._onComplete, instance);
-	this._pendingTasksList.push(instance);
-	this._queueRecalculate();
+	let taskDef = this._taskset.getTask(taskName);
+	this._pushTaskDef(taskDef, parameters);
     },
 
-    isTaskQueued: function(taskName) {
+    _isTaskPending: function(taskName) {
 	for (let i = 0; i < this._pendingTasksList.length; i++) {
 	    let pending = this._pendingTasksList[i];
 	    if (pending.name == taskName)
 		return true;
 	}
-	return this.isTaskExecuting(taskName);
+	return false;
+    },
+
+    isTaskQueued: function(taskName) {
+	return this._isTaskPending(taskName) || this.isTaskExecuting(taskName);
     },
 
     isTaskExecuting: function(taskName) {
@@ -162,7 +186,6 @@ const TaskMaster = new Lang.Class({
     },
 
     _onComplete: function(success, error, task) {
-	this.emit('task-complete', task, success, error);
 	let idx = -1;
 	for (let i = 0; i < this._executing.length; i++) {
 	    let executingTask = this._executing[i];
@@ -174,6 +197,24 @@ const TaskMaster = new Lang.Class({
 	if (idx == -1)
 	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + task.TaskName);
 	this._executing.splice(idx, 1);
+	this.emit('task-complete', task, success, error);
+	if (this._processAfter) {
+	    let changed = true;
+	    let version = task.queryVersion();
+	    if (version !== null) {
+		let oldVersion = this._taskVersions[task.name];
+		if (oldVersion == version)
+		    changed = false;
+		else if (oldVersion != null)
+		    print("task " + task.name + " new version: " + version);
+	    }
+	    if (changed) {
+		let tasksAfter = this._taskset.getTasksAfter(task.name);
+		for (let i = 0; i < tasksAfter.length; i++) {
+		    this._pushTaskDef(tasksAfter[i], {});
+		}
+	    }
+	}
 	this._queueRecalculate();
     },
 
@@ -182,6 +223,10 @@ const TaskMaster = new Lang.Class({
 	       this._pendingTasksList.length > 0 &&
 	       !this.isTaskExecuting(this._pendingTasksList[0].name)) {
 	    let task = this._pendingTasksList.shift();
+	    let version = task.queryVersion();
+	    if (version !== null) {
+		this._taskVersions[task.name] = version;
+	    }
 	    task._executeInSubprocessInternal(this.cancellable);
 	    this.emit('task-executing', task);
 	    this._executing.push(task);
@@ -194,6 +239,7 @@ const TaskDef = new Lang.Class({
     Name: 'TaskDef',
 
     TaskPattern: null,
+    TaskAfter: [],
 
     PreserveStdout: true,
     RetainFailed: 1,
@@ -258,6 +304,10 @@ const TaskDef = new Lang.Class({
 	    let child = dir.get_child(versions.shift());
 	    GSystem.shutil_rm_rf(child, cancellable);
 	}
+    },
+
+    queryVersion: function() {
+	return null;
     },
 
     execute: function(cancellable) {

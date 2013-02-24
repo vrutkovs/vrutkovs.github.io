@@ -50,9 +50,8 @@ const Autobuilder = new Lang.Class({
         this.parser.addArgument('--autoupdate-self', { action: 'storeTrue' });
         this.parser.addArgument('--stage');
 
-	this._stages = ['resolve', 'build', 'builddisks', 'smoke'];
-
 	this._buildNeeded = true;
+	this._initialResolveNeeded = true;
 	this._fullResolveNeeded = true;
 	this._resolveTimeout = 0;
 	this._sourceSnapshotPath = null;
@@ -64,17 +63,6 @@ const Autobuilder = new Lang.Class({
 	this._initSnapshot(null, null, cancellable);
 
 	this._autoupdate_self = args.autoupdate_self;
-	if (!args.stage)
-	    args.stage = 'build';
-	this._stageIndex = this._stages.indexOf(args.stage);
-	if (this._stageIndex < 0)
-	    throw new Error("Unknown stage " + args.stage);
-	this._do_builddisks = this._stageIndex >= this._stages.indexOf('builddisks');
-	this._do_smoke = this._stageIndex >= this._stages.indexOf('smoke');
-
-	this._resolveTaskName = 'resolve'
-	this._buildTaskName = 'build'
-	this._bdiffTaskName = 'bdiff';
 
 	this._manifestPath = Gio.File.new_for_path('manifest.json');
 
@@ -90,15 +78,18 @@ const Autobuilder = new Lang.Class({
 
 	this._taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
 						  { onEmpty: Lang.bind(this, this._onTasksComplete) });
+	this._taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	this._taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
 
 	this._sourceSnapshotPath = this._src_db.getLatestPath();
 
+	/* Start an initial, non-fetching resolve */
+	this._runResolve();
+	/* Flag immediately that we need a full resolve */
+	this._fullResolveNeeded = true;
+	/* And set a timeout for 10 minutes for the next full resolve */
 	this._resolveTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
 							 60 * 10, Lang.bind(this, this._triggerFullResolve));
-	this._runResolve();
-	if (this._sourceSnapshotPath != null)
-	    this._runBuild();
 
 	this._updateStatus();
 
@@ -108,11 +99,20 @@ const Autobuilder = new Lang.Class({
     _onTasksComplete: function() {
     },
 
+    _onTaskExecuting: function(taskmaster, task) {
+	let workdir = task._workdir;
+	print("Task " + task.name + " executing in " + workdir.get_path());
+	this._updateStatus();
+    },
+
     _onTaskCompleted: function(taskmaster, task, success, error) {
-	if (task.name == this._resolveTaskName) {
-	    this._onResolveExited(task, success, error);
-	} else if (task.name == this._buildTaskName) {
-	    this._onBuildExited(task, success, error);
+	if (task.name == 'resolve')
+	    this._runResolve();
+	if (success) {
+	    print("Task " + task.name + " complete: " + task._workdir.get_path());
+	} else {
+	    this._failed = true;
+	    print("Task " + task.name + " failed: " + task._workdir.get_path());
 	}
 	this._updateStatus();
     },
@@ -161,68 +161,28 @@ const Autobuilder = new Lang.Class({
     _runResolve: function() {
 	let cancellable = null;
 	
-	if (!(this._queuedForceResolve.length > 0 || this._fullResolveNeeded))
+	if (!(this._initialResolveNeeded ||
+	      this._queuedForceResolve.length > 0 ||
+	      this._fullResolveNeeded))
 	    return;
 
-	if (this._taskmaster.isTaskQueued(this._resolveTaskName))
+	if (this._taskmaster.isTaskQueued('resolve'))
 	    return;
 
 	if (this._autoupdate_self)
 	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable)
 
-	if (this._fullResolveNeeded) {
+	if (this._initialResolveNeeded) {
+	    this._initialResolveNeeded = false;
+	    this._taskmaster.pushTask('resolve', { });
+	} else if (this._fullResolveNeeded) {
 	    this._fullResolveNeeded = false;
-	    this._taskmaster.pushTask(this._resolveTaskName,
-				      { fetchAll: true });
+	    this._taskmaster.pushTask('resolve', { fetchAll: true });
 	} else {
-	    this._taskmaster.pushTask(this._resolveTaskName,
-				      { fetchComponents: this._queuedForceResolve });
+	    this._taskmaster.pushTask('resolve', { fetchComponents: this._queuedForceResolve });
 	}
 	this._queuedForceResolve = [];
 
-	this._updateStatus();
-    },
-
-    _onResolveExited: function(resolveTask, success, msg) {
-	print(Format.vprintf("resolve exited; success=%s msg=%s", [success, msg]))
-	this._prevSourceSnapshotPath = this._sourceSnapshotPath;
-	this._sourceSnapshotPath = this._src_db.getLatestPath();
-	let changed = (this._prevSourceSnapshotPath == null ||
-		       !this._prevSourceSnapshotPath.equal(this._sourceSnapshotPath));
-        if (changed)
-            print(Format.vprintf("New version is %s", [this._sourceSnapshotPath.get_path()]))
-	if (!this._buildNeeded)
-	    this._buildNeeded = changed;
-	this._runBuild();
-	this._runResolve();
-	this._updateStatus();
-    },
-
-    _onBuildExited: function(buildTaskset, success, msg) {
-       print(Format.vprintf("build exited; success=%s msg=%s", [success, msg]))
-       if (this._buildNeeded)
-           this._runBuild()
-       
-       this._updateStatus();
-    },
-    
-    _runBuild: function() {
-	let cancellable = null;
-	if (this._taskmaster.isTaskQueued(this._buildTaskName))
-	    return;
-	if (!this._buildNeeded)
-	    return;
-
-	this._buildNeeded = false;
-	this._taskmaster.pushTask(this._buildTaskName);
-	this._updateStatus();
-    },
-
-    _runBdiff: function() {
-	if (this._taskmaster.isTaskQueued(this._bdiffTaskName))
-	    return;
-
-	this._taskmaster.pushTask(this._bdiffTaskName);
 	this._updateStatus();
     }
 });

@@ -46,9 +46,8 @@ const TaskBuild = new Lang.Class({
     Name: "TaskBuild",
     Extends: Task.TaskDef,
 
-    TaskPattern: [/build$/],
-
-    TaskAfterPrefix: '/resolve/',
+    TaskName: "build",
+    TaskAfter: ['resolve'],
 
     _resolveRefs: function(refs) {
         if (refs.length == 0)

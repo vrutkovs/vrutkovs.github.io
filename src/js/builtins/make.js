@@ -40,6 +40,8 @@ const Make = new Lang.Class({
 
     _init: function() {
 	this.parent();
+	this.parser.addArgument(['-n', '--only'], { action: 'storeTrue',
+						    help: "Don't process tasks after this" });
 	this.parser.addArgument('taskname');
 	this.parser.addArgument('parameters', { nargs: '*' });
     },
@@ -48,8 +50,10 @@ const Make = new Lang.Class({
 	this._initWorkdir(null, cancellable);
 	this._loop = loop;
 	this._failed = false;
+	this._oneOnly = args.only;
 	let taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
-					     { onEmpty: Lang.bind(this, this._onTasksComplete) });
+					     { onEmpty: Lang.bind(this, this._onTasksComplete),
+					       processAfter: !args.only });
 	this._taskmaster = taskmaster;
 	taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
@@ -74,13 +78,16 @@ const Make = new Lang.Class({
 	let workdir = task._workdir;
 	print("Task " + task.name + " executing in " + workdir.get_path());
 	let output = workdir.get_child('output.txt');
-	let context = new GSystem.SubprocessContext({ argv: ['tail', '-f', output.get_path() ] });
-	this._tail = new GSystem.Subprocess({ context: context });
-	this._tail.init(null);
+	if (this._oneOnly) {
+	    let context = new GSystem.SubprocessContext({ argv: ['tail', '-f', output.get_path() ] });
+	    this._tail = new GSystem.Subprocess({ context: context });
+	    this._tail.init(null);
+	}
     },
 
     _onTaskCompleted: function(taskmaster, task, success, error) {
-	this._tail.request_exit();
+	if (this._oneOnly)
+	    this._tail.request_exit();
 	if (success) {
 	    print("Task " + task.name + " complete: " + task._workdir.get_path());
 	} else {
