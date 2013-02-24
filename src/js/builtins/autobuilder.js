@@ -144,7 +144,9 @@ const Autobuilder = new Lang.Class({
 	for (let i = 0; i < srcUrls.length; i++) {
 	    let matches = snapshot.getMatchingSrc(srcUrls[i]);
 	    for (let j = 0; j < matches.length; j++) {
-		this._queuedForceResolve.push.apply(this._queuedForceResolve, matches[i]['name']);
+		let name = matches[i]['name'];
+		this._queuedForceResolve.push.apply(this._queuedForceResolve, name);
+		print("Queued force resolve for " + name);
 	    }
 	}
 	this._runResolve();
