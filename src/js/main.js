@@ -24,7 +24,6 @@ const BUILTINS = ['autobuilder',
                   'git-mirror',
                   'make',
                   'qa-make-disk',
-		  'qa-pull-deploy',
                   'run-task',
                   'shell'];
 

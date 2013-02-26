@@ -85,9 +85,18 @@ const TaskBuildDisks = new Lang.Class({
             } else {
                 LibQA.createDisk(diskPath, cancellable);
             }
-	          ProcUtil.runSync(['ostbuild', 'qa-pull-deploy', diskPath.get_path(), 
-			                        this.repo.get_path(), osname, targetName, targetRevision],
-			                       cancellable, { logInitiation: true });
+            let mntdir = subworkdir.get_child('mnt-' + osname + '-' + squashedName);
+            GSystem.file_ensure_directory(mntdir, true, cancellable);
+            let gfmnt = new GuestFish.GuestMount(diskPath, { partitionOpts: LibQA.DEFAULT_GF_PARTITION_OPTS,
+                                                             readWrite: true });
+            gfmnt.mount(mntdir, cancellable);
+            try {
+                LibQA.pullDeploy(mntdir, this.repo, osname, targetName, targetRevision,
+                                 cancellable);
+            } finally {
+                gfmnt.umount(cancellable);
+            }
+            LibQA.grubInstall(diskPath, cancellable);
 	      }
 
         GSystem.file_rename(workImageDir, targetImageDir, cancellable);
