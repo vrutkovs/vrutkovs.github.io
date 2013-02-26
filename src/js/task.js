@@ -198,7 +198,7 @@ const TaskMaster = new Lang.Class({
 	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + task.TaskName);
 	this._executing.splice(idx, 1);
 	this.emit('task-complete', task, success, error);
-	if (this._processAfter) {
+	if (success && this._processAfter) {
 	    let changed = true;
 	    let version = task.queryVersion();
 	    if (version !== null) {
