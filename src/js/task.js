@@ -182,6 +182,18 @@ const TaskMaster = new Lang.Class({
 	    return;
 	}
 
+	let notExecuting = [];
+	let executing = [];
+	for (let i = 0; i < this._pendingTasksList.length; i++) {
+	    let pending = this._pendingTasksList[i];
+	    if (this.isTaskExecuting(pending.name))
+		executing.push(pending);
+	    else
+		notExecuting.push(pending);
+	}
+
+	this._pendingTasksList = notExecuting.concat(executing);
+
 	this._reschedule();
     },
 
