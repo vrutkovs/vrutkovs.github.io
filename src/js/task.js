@@ -240,8 +240,8 @@ const TaskMaster = new Lang.Class({
 		this._taskVersions[task.name] = version;
 	    }
 	    task._executeInSubprocessInternal(this.cancellable);
-	    this.emit('task-executing', task);
 	    this._executing.push(task);
+	    this.emit('task-executing', task);
 	}
     }
 });
