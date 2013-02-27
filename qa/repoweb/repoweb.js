@@ -27,13 +27,19 @@ function get_page_arg(key) {
 
 var repoDataSignal = {};
 var currentBuildMeta = null;
+var currentSmoketestMeta = null;
 
 function repowebInit() {
     var url;
     url = "work/tasks/build/current/meta.json";
     $.getJSON(url, function(data) {
         currentBuildMeta = data;
-        $(repoDataSignal).trigger("current-buildmeta-loaded");
+        $(repoDataSignal).trigger("current-build-meta-loaded");
+    });
+    url = "work/tasks/smoketest/current/meta.json";
+    $.getJSON(url, function(data) {
+        currentSmoketestMeta = data;
+        $(repoDataSignal).trigger("current-smoketest-meta-loaded");
     });
 }
 
@@ -118,7 +124,7 @@ function renderBuild(container, build) {
 
 function repowebIndexInit() {
     repowebInit();
-    $(repoDataSignal).on("current-buildmeta-loaded", function () {
+    $(repoDataSignal).on("current-build-meta-loaded", function () {
 	var buildMetaNode = $("#build-meta").get(0);
 
         $(buildMetaNode).empty();
@@ -142,5 +148,22 @@ function repowebIndexInit() {
         } else {
             $("#build-icon").addClass("buildstatus-sad");
         }
+    });
+    $(repoDataSignal).on("current-smoketest-meta-loaded", function () {
+	var node = $("#smoketest-meta").get(0);
+
+        $(node).empty();
+        var ref = 'work/tasks/smoketest/';
+        if (currentSmoketestMeta.success)
+            ref += '/successful';
+        else
+            ref += '/failed';
+        ref += '/' + currentSmoketestMeta.taskVersion;
+        var a = document.createElement('a');
+        a.setAttribute('href', ref);
+        a.setAttribute('rel', 'external');
+        a.appendChild(document.createTextNode(currentSmoketestMeta.taskVersion));
+        node.appendChild(a);
+        node.appendChild(document.createTextNode(': ' + (currentSmoketestMeta.success ? "success" : "failed ")));
     });
 }
