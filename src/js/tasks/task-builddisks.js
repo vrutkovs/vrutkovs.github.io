@@ -72,6 +72,7 @@ const TaskBuildDisks = new Lang.Class({
 	      let targets = buildData['targets'];
 
         let osname = buildData['snapshot']['osname'];
+        let repo = buildData['snapshot']['repo'];
 
         for (let targetName in targets) {
             let targetRevision = buildData['targets'][targetName];
@@ -93,6 +94,10 @@ const TaskBuildDisks = new Lang.Class({
             try {
                 LibQA.pullDeploy(mntdir, this.repo, osname, targetName, targetRevision,
                                  cancellable);
+                if (repo)
+                    ProcUtil.runSync(['ostree', '--repo=' + mntdir.resolve_relative_path('ostree/repo').get_path(),
+                                      'remote', 'add', osname, repo, targetName],
+                                     cancellable, { logInitiation: true });
             } finally {
                 gfmnt.umount(cancellable);
             }
