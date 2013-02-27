@@ -203,12 +203,16 @@ function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
     }
     GSystem.shutil_rm_rf(tmpMirror, cancellable);
     if (!mirror.query_exists(cancellable)) {
-        ProcUtil.runSync(['git', 'clone', '--mirror', uri, tmpMirror.get_path()], cancellable);
-        ProcUtil.runSync(['git', 'config', 'gc.auto', '0'], cancellable, {cwd: tmpMirror});
+        ProcUtil.runSync(['git', 'clone', '--mirror', uri, tmpMirror.get_path()], cancellable,
+			 { logInitiation: true });
+        ProcUtil.runSync(['git', 'config', 'gc.auto', '0'], cancellable,
+			 { cwd: tmpMirror,
+			   logInitiation: true });
         GSystem.file_rename(tmpMirror, mirror, cancellable);
     } else if (fetch) {
 	try {
-            ProcUtil.runSync(['git', 'fetch'], cancellable, {cwd:mirror});
+            ProcUtil.runSync(['git', 'fetch'], cancellable, { cwd: mirror,
+							      logInitiation: true });
 	} catch (e) {
 	    if (!params.fetchKeepGoing)
 		throw e;
