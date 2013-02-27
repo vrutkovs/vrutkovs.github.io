@@ -53,8 +53,8 @@ function _fixupSubmoduleReferences(mirrordir, cwd, cancellable) {
         line = line.substr(1);
         let [subChecksum, subName, rest] = line.split(' ');
 	let configKey = Format.vprintf('submodule.%s.url', [subName]);
-        let subUrl = ProcUtil.runSyncGetOutputUTF8(['git', 'config', '-f', '.gitmodules', configKey],
-						   cancellable, {cwd: cwd});
+        let subUrl = ProcUtil.runSyncGetOutputUTF8Stripped(['git', 'config', '-f', '.gitmodules', configKey],
+							   cancellable, {cwd: cwd});
         let localMirror = getMirrordir(mirrordir, 'git', subUrl);
 	ProcUtil.runSync(['git', 'config', configKey, 'file://' + localMirror.get_path()],
 			 cancellable, {cwd:cwd});
@@ -162,9 +162,9 @@ function _listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable) {
         if (line == '') continue;
         line = line.substr(1);
         let [subChecksum, subName, rest] = line.split(' ');
-        let subUrl = ProcUtil.runSyncGetOutputUTF8(['git', 'config', '-f', '.gitmodules',
-						    Format.vprintf('submodule.%s.url', [subName])], cancellable,
-						   {cwd: tmpCheckout});
+        let subUrl = ProcUtil.runSyncGetOutputUTF8Stripped(['git', 'config', '-f', '.gitmodules',
+							    Format.vprintf('submodule.%s.url', [subName])], cancellable,
+							   {cwd: tmpCheckout});
         submodules.push([subChecksum, subName, subUrl]);
     }
     GSystem.shutil_rm_rf(tmpCheckout, cancellable);
