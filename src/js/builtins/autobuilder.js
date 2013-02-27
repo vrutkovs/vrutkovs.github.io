@@ -54,7 +54,6 @@ const Autobuilder = new Lang.Class({
 	this._initialResolveNeeded = true;
 	this._fullResolveNeeded = true;
 	this._resolveTimeout = 0;
-	this._sourceSnapshotPath = null;
 	this._prevSourceSnapshotPath = null;
 	this._queuedForceResolve = [];
     },
@@ -80,8 +79,6 @@ const Autobuilder = new Lang.Class({
 						  { onEmpty: Lang.bind(this, this._onTasksComplete) });
 	this._taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	this._taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
-
-	this._sourceSnapshotPath = this._src_db.getLatestPath();
 
 	/* Start an initial, non-fetching resolve */
 	this._runResolve();
@@ -139,8 +136,9 @@ const Autobuilder = new Lang.Class({
 
     queueResolve: function(srcUrls) {
 	let matchingComponents = [];
-	let snapshotData = this._src_db.loadFromPath(this._sourceSnapshotPath, null);
-	let snapshot = new Snapshot.Snapshot(snapshotData, this._sourceSnapshotPath);
+	let latestPath = this._src_db.getLatestPath();
+	let snapshotData = this._src_db.loadFromPath(latestPath, null);
+	let snapshot = new Snapshot.Snapshot(snapshotData, latestPath);
 	for (let i = 0; i < srcUrls.length; i++) {
 	    let matches = snapshot.getMatchingSrc(srcUrls[i]);
 	    for (let j = 0; j < matches.length; j++) {
