@@ -30,7 +30,7 @@ const Task = imports.task;
 const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
 
-const TIMEOUT_SECONDS = 2 * 60;
+const TIMEOUT_SECONDS = 10 * 60;
 
 
 const RequiredMessageIDs = ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
