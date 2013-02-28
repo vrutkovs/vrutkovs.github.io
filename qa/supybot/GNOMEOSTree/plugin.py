@@ -66,6 +66,8 @@ class GNOMEOSTree(callbacks.Plugin):
         current_build_path = os.path.join(self._workdir, 'tasks/build/current')
         meta_path = os.path.join(current_build_path, 'meta.json')
         if not os.path.exists(meta_path):
+            if status:
+                self._broadcast("No current build completed")
             return
         f = open(meta_path)
         build_meta = json.load(f)
@@ -107,6 +109,8 @@ class GNOMEOSTree(callbacks.Plugin):
         current_smoketest_path = os.path.join(self._workdir, 'tasks/smoketest/current')
         meta_path = os.path.join(current_build_path, 'meta.json')
         if not os.path.exists(meta_path):
+            if status:
+                self._broadcast("No current smoketest completed")
             return
 
         f = open(meta_path)
@@ -116,11 +120,14 @@ class GNOMEOSTree(callbacks.Plugin):
         taskver = smoketest_meta['taskVersion']
 
         version_unchanged = taskver == self._last_smoketest_version
-        if version_unchanged:
+        if (not status and version_unchanged):
             return
 
         self._last_smoketest_version = version
-        msg = "New smoketest"
+        if (not status and not version_unchanged):
+            msg = "New smoketest"
+        else:
+            msg = "Current smoketest"
         success = smoketest_meta['success']
         success_str = success and 'successful' or 'failed'
         msg += " %s: %s. " % (version, success_str)
@@ -135,5 +142,6 @@ class GNOMEOSTree(callbacks.Plugin):
 
     def buildstatus(self, irc, msg, args):
         self._query_new_build(status=True)
+        self._query_new_smoketest(status=True)
 
 Class = GNOMEOSTree
