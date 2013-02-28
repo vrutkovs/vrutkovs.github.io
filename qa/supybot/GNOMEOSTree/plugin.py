@@ -50,6 +50,7 @@ class GNOMEOSTree(callbacks.Plugin):
         self.__parent = super(GNOMEOSTree, self)
         self.__parent.__init__(irc)
         schedule.addPeriodicEvent(self._query_new_build, 1, now=False)
+        schedule.addPeriodicEvent(self._query_new_smoketest, 1, now=False)
         self._irc = irc
         self._last_build_version = None
         self._last_smoketest_version = None
