@@ -155,7 +155,8 @@ const GuestMount = new Lang.Class({
 
         let pid = parseInt(pidStr);
 	let guestfishExited = false;
-        for (let i = 0; i < 30; i++) {
+	let guestfishTimeoutSecs = 5 * 60;
+        for (let i = 0; i < guestfishTimeoutSecs; i++) {
             let killContext = new GSystem.SubprocessContext({argv: ['kill', '-0', ''+pid]});
             killContext.set_stderr_disposition(GSystem.SubprocessStreamDisposition.NULL);
             let killProc = new GSystem.Subprocess({context: killContext});
@@ -163,7 +164,7 @@ const GuestMount = new Lang.Class({
             let [waitSuccess, ecode] = killProc.wait_sync(null);
             let [killSuccess, statusStr] = ProcUtil.getExitStatusAndString(ecode);
             if (killSuccess) {
-                print("Awaiting termination of guestfish, pid=" + pid + " timeout=" + (30 - i) + "s");
+                print("Awaiting termination of guestfish, pid=" + pid + " timeout=" + (guestfishTimeoutSecs - i) + "s");
                 GLib.usleep(GLib.USEC_PER_SEC);
             } else {
 		guestfishExited = true;
