@@ -571,6 +571,7 @@
                 {"src": "git:git://gitorious.org/gusb/gusb.git"},
 		
 		{"src": "git:git://gitorious.org/colord/master.git",
+		 "tag": "8c5c26b08f6d83089489e83ac6e3fc7568732006",
 		 "name": "colord",
 		 "config-opts": ["--disable-print-profiles"],
 		 "patches": ["colord-disable-private-tmp.patch"]},
