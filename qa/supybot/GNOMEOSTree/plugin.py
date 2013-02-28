@@ -107,7 +107,7 @@ class GNOMEOSTree(callbacks.Plugin):
 
     def _query_new_smoketest(self, status=False):
         current_smoketest_path = os.path.join(self._workdir, 'tasks/smoketest/current')
-        meta_path = os.path.join(current_build_path, 'meta.json')
+        meta_path = os.path.join(current_smoketest_path, 'meta.json')
         if not os.path.exists(meta_path):
             if status:
                 self._broadcast("No current smoketest completed")
