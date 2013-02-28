@@ -123,14 +123,14 @@ class GNOMEOSTree(callbacks.Plugin):
         if (not status and version_unchanged):
             return
 
-        self._last_smoketest_version = version
+        self._last_smoketest_version = taskver
         if (not status and not version_unchanged):
             msg = "New smoketest"
         else:
             msg = "Current smoketest"
         success = smoketest_meta['success']
         success_str = success and 'successful' or 'failed'
-        msg += " %s: %s. " % (version, success_str)
+        msg += " %s: %s. " % (taskver, success_str)
         msg += self._workurl + "tasks/smoketest/%s/%s/output.txt" % (success_str, taskver)
 
         if not success:
