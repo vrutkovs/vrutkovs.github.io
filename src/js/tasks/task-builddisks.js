@@ -31,6 +31,7 @@ const BuildUtil = imports.buildutil;
 const LibQA = imports.libqa;
 const JsonDB = imports.jsondb;
 const JsonUtil = imports.jsonutil;
+const JSUtil = imports.jsutil;
 const GuestFish = imports.guestfish;
 
 const IMAGE_RETAIN_COUNT = 2;
@@ -75,6 +76,8 @@ const TaskBuildDisks = new Lang.Class({
         let repo = buildData['snapshot']['repo'];
 
         for (let targetName in targets) {
+            if (!JSUtil.stringEndswith(targetName, '-runtime'))
+                continue;
             let targetRevision = buildData['targets'][targetName];
 	          let squashedName = targetName.replace(/\//g, '_');
 	          let diskName = osname + '-' + squashedName + '-disk.qcow2';
