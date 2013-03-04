@@ -561,6 +561,7 @@
 		{"src": "gnome:gsettings-desktop-schemas"},
 
 		{"src": "gnome:gnome-desktop",
+                 "branch": "gnome-3-8",
 		 "config-opts": ["--disable-desktop-docs"]},
 
 		{"src": "git:git://github.com/mm2/Little-CMS.git",
