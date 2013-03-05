@@ -31,7 +31,7 @@ const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
 
 const TIMEOUT_SECONDS = 10 * 60;
-
+const COMPLETE_IDLE_WAIT_SECONDS = 10;
 
 const RequiredMessageIDs = ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
                             "f77379a8490b408bbe5f6940505a777b",  // systemd-journald
@@ -45,8 +45,11 @@ const SmoketestOne = new Lang.Class({
     Name: 'SmoketestOne',
 
     _fail: function(message) {
+        if (this._failed)
+            return;
         this._failed = true;
         this._failedMessage = message;
+        this._qemuCommand({"execute": "screendump", "arguments": { "filename": "screenshot-failed.ppm" }});
     },
     
     _onQemuExited: function(proc, result) {
@@ -91,7 +94,7 @@ const SmoketestOne = new Lang.Class({
             this._loop.quit();
             throw e;
         }
-        if (this._done || this._failed)
+        if (this._foundAllMessageIds || this._failed)
             return;
         if (line) {
             let data = JSON.parse(line);
@@ -119,15 +122,16 @@ const SmoketestOne = new Lang.Class({
                 this._journalDataStream.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
                                                         Lang.bind(this, this._onJournalReadLine));
             } else {
-                print("Found all required message IDs, exiting");
-                this._done = true;
-                this._loop.quit();
+                print("Found all required message IDs");
+                this._foundAllMessageIds = true;
+                GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, COMPLETE_IDLE_WAIT_SECONDS,
+                                         Lang.bind(this, this._onFinalWait));
             }
         }
     },
 
     _onJournalChanged: function(monitor, file, otherFile, eventType) {
-        if (this._done || this._failed)
+        if (this._foundAllMessageIds || this._failed)
             return;
         if (!this._openedJournal) {
             this._openedJournal = true;
@@ -140,11 +144,41 @@ const SmoketestOne = new Lang.Class({
                                                     Lang.bind(this, this._onJournalReadLine));
         }
     },
+    
+    _ensureQemuConnection: function() {
+        if (!this._qemuSocketConn) {
+            let path = Gio.File.new_for_path('.').get_relative_path(this._subworkdir.get_child("qemu.monitor"));
+            let address = Gio.UnixSocketAddress.new_with_type(path, Gio.UnixSocketAddressType.PATH);
+            let socketClient = new Gio.SocketClient();
+            this._qemuSocketConn = socketClient.connect(address, this._cancellable);
+            this._qemuOut = Gio.DataOutputStream.new(this._qemuSocketConn.get_output_stream());
+            this._qemuIn = Gio.DataInputStream.new(this._qemuSocketConn.get_input_stream());
+            let [response, len] = this._qemuIn.read_line_utf8(this._cancellable);
+            this._qemuCommand({ "execute": "qmp_capabilities" });
+        }
+    },
+
+    _qemuCommand: function(cmd) {
+        this._ensureQemuConnection();
+        let cmdStr = JSON.stringify(cmd);
+        this._qemuOut.put_string(cmdStr, this._cancellable);
+        let [response, len] = this._qemuIn.read_line_utf8(this._cancellable);
+        print("qemu cmd=" + cmdStr + " response=" + response);
+    },
+
+    _onFinalWait: function() {
+        print("Final wait complete");
+
+        this._qemuCommand({"execute": "screendump", "arguments": { "filename": "screenshot-final.ppm" }});
+
+        this._loop.quit();
+    },
 
     execute: function(subworkdir, diskPath, cancellable) {
         print("Smoke testing disk " + diskPath.get_path());
+        this._subworkdir = subworkdir;
         this._loop = GLib.MainLoop.new(null, true);
-        this._done = false;
+        this._foundAllMessageIds = false;
         this._failed = false;
         this._journalStream = null;
         this._journalDataStream = null;
@@ -152,6 +186,7 @@ const SmoketestOne = new Lang.Class({
         this._readingJournal = false;
         this._pendingRequiredMessageIds = {};
         this._countPendingRequiredMessageIds = 0;
+        this._qemuSocket = null;
         for (let i = 0; i < RequiredMessageIDs.length; i++) {
             this._pendingRequiredMessageIds[RequiredMessageIDs[i]] = true;
             this._countPendingRequiredMessageIds += 1;
@@ -184,11 +219,14 @@ const SmoketestOne = new Lang.Class({
         qemuArgs.push.apply(qemuArgs, ['-drive', 'file=' + diskClone.get_path() + ',if=virtio',
                                        '-vnc', 'none',
                                        '-serial', 'file:' + consoleOutput.get_path(),
+                                       '-chardev', 'socket,id=charmonitor,path=qemu.monitor,server,nowait',
+                                       '-mon', 'chardev=charmonitor,id=monitor,mode=control',
                                        '-device', 'virtio-serial',
                                        '-chardev', 'file,id=journaljson,path=' + journalOutput.get_path(),
                                        '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson']);
         
         let qemuContext = new GSystem.SubprocessContext({ argv: qemuArgs });
+        qemuContext.set_cwd(subworkdir.get_path());
         let qemu = new GSystem.Subprocess({context: qemuContext});
         this._qemu = qemu;
         print("starting qemu");
