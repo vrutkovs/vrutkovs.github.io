@@ -449,6 +449,15 @@
 				 "--disable-gtk",
 				 "--disable-gtk3"]},
 
+		{"src": "git:git://github.com/mm2/Little-CMS.git",
+		 "tag": "lcms2.3"},
+
+                {"src": "git:git://gitorious.org/gusb/gusb.git"},
+		
+		{"src": "git:git://gitorious.org/colord/master.git",
+		 "name": "colord",
+		 "config-opts": ["--disable-print-profiles"]},
+
 		{"src": "gnome:gconf",
 		 "config-opts": ["--disable-orbit",
 		                 "--disable-gtk",
@@ -563,15 +572,6 @@
 		{"src": "gnome:gnome-desktop",
                  "branch": "gnome-3-8",
 		 "config-opts": ["--disable-desktop-docs"]},
-
-		{"src": "git:git://github.com/mm2/Little-CMS.git",
-		 "tag": "lcms2.3"},
-
-                {"src": "git:git://gitorious.org/gusb/gusb.git"},
-		
-		{"src": "git:git://gitorious.org/colord/master.git",
-		 "name": "colord",
-		 "config-opts": ["--disable-print-profiles"]},
 
 		{"src": "linuxwacom:libwacom",
 		 "patches": ["libwacom-autogen.patch"]},
