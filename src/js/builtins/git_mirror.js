@@ -72,13 +72,13 @@ const GitMirror = new Lang.Class({
 	}
 
 	componentNames.forEach(Lang.bind(this, function (name) {
-	    let [keytype, uri, branchOrTag] = this._snapshot.getVcsInfo(name);
+	    let component = this._snapshot.getComponent(name);
 
             if (!args.fetch) {
-                Vcs.ensureVcsMirror(this.mirrordir, keytype, uri, branchOrTag, cancellable);
+                Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
 	    } else {
 		print("Running git fetch for " + name);
-		Vcs.fetch(this.mirrordir, keytype, uri, branchOrTag, cancellable,
+		Vcs.fetch(this.mirrordir, component, cancellable,
 			  { keepGoing:args.keep_going,
 			    timeoutSec: args.timeout_sec });
 	    }

@@ -171,11 +171,22 @@ function _listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable) {
     return submodules;
 }
 
-function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
+function ensureVcsMirror(mirrordir, component, cancellable,
 			 params) {
     params = Params.parse(params, { fetch: false,
 				    fetchKeepGoing: false,
 				    timeoutSec: 0 });
+    let [keytype, uri] = parseSrcKey(component['src']);
+    if (keytype == 'git' || keytype == 'local') {
+	let branch = component['branch'] || component['tag'];
+	return this._ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params);
+    } else {
+	throw new Error("Unhandled keytype=" + keytype);
+    }
+}
+
+function _ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params) {
+    let keytype = 'git';
     let fetch = params.fetch;
     let mirror = getMirrordir(mirrordir, keytype, uri);
     let tmpMirror = mirror.get_parent().get_child(mirror.get_basename() + '.tmp');
@@ -228,7 +239,7 @@ function ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
 	_listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable).forEach(function (elt) {
 	    let [subChecksum, subName, subUrl] = elt;
 	    print("Processing submodule " + subName + " at " + subChecksum + " from " + subUrl);
-            ensureVcsMirror(mirrordir, keytype, subUrl, subChecksum, cancellable, params);
+            _ensureVcsMirrorGit(mirrordir, subUrl, subChecksum, cancellable, params);
 	});
     }
     
@@ -244,9 +255,9 @@ function uncacheRepository(mirrordir, keytype, uri, branch, cancellable) {
     GSystem.shutil_rm_rf(lastFetchPath, cancellable);
 }
 
-function fetch(mirrordir, keytype, uri, branch, cancellable, params) {
+function fetch(mirrordir, component, cancellable, params) {
     params = Params.parse(params, {keepGoing: false, timeoutSec: 0});
-    ensureVcsMirror(mirrordir, keytype, uri, branch, cancellable,
+    ensureVcsMirror(mirrordir, component, cancellable,
 		      { fetch:true,
 			fetchKeepGoing: params.keepGoing,
 			timeoutSec: params.timeoutSec });

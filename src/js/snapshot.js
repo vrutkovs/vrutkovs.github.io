@@ -179,15 +179,5 @@ const Snapshot = new Lang.Class({
 
     getExpanded: function(name) {
 	return this._expandComponent(this.getComponent(name));
-    },
-
-    getVcsInfo: function(name) {
-	let component = this.getComponent(name);
-        let src = component['src']
-        let [keytype, uri] = Vcs.parseSrcKey(src);
-        let branch = component['branch'];
-        let tag = component['tag'];
-        let branchOrTag = branch || tag;
-	return [keytype, uri, branchOrTag];
     }
 });
