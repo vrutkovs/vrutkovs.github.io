@@ -49,7 +49,7 @@ const SmoketestOne = new Lang.Class({
             return;
         this._failed = true;
         this._failedMessage = message;
-        this._qemuCommand({"execute": "screendump", "arguments": { "filename": "screenshot-failed.ppm" }});
+        this._screenshot(true);
     },
     
     _onQemuExited: function(proc, result) {
@@ -166,10 +166,37 @@ const SmoketestOne = new Lang.Class({
         print("qemu cmd=" + cmdStr + " response=" + response);
     },
 
+    _screenshot: function(isFinal) {
+        let filename;
+        if (isFinal)
+            filename = "screenshot-final.ppm";
+        else
+            filename = "screenshot-" + this._screenshotSerial + ".ppm";
+
+        this._qemuCommand({"execute": "screendump", "arguments": { "filename": filename }});
+
+        if (!isFinal) {
+            let filePath = this._subworkdir.get_child(filename);
+	          let contentsBytes = GSystem.file_map_readonly(filePath, this._cancellable);
+	          let csum = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256,
+						                                           contentsBytes);
+            
+            if (this._lastScreenshotChecksum == csum)
+                GSystem.file_unlink(filePath, this._cancellable);
+            this._lastScreenshotChecksum = csum;
+            this._screenshotSerial++;
+        }
+    },
+
+    _idleScreenshot: function() {
+        this._screenshot(false);
+        return true;
+    },
+
     _onFinalWait: function() {
         print("Final wait complete");
 
-        this._qemuCommand({"execute": "screendump", "arguments": { "filename": "screenshot-final.ppm" }});
+        this._screenshot(true);
 
         this._loop.quit();
     },
@@ -186,6 +213,8 @@ const SmoketestOne = new Lang.Class({
         this._readingJournal = false;
         this._pendingRequiredMessageIds = {};
         this._countPendingRequiredMessageIds = 0;
+        this._screenshotSerial = 0;
+        this._lastScreenshotChecksum = null;
         this._qemuSocket = null;
         for (let i = 0; i < RequiredMessageIDs.length; i++) {
             this._pendingRequiredMessageIds[RequiredMessageIDs[i]] = true;
@@ -239,6 +268,9 @@ const SmoketestOne = new Lang.Class({
 
         let timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, TIMEOUT_SECONDS,
                                                  Lang.bind(this, this._onTimeout));
+
+        let screenshotTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
+                                                 Lang.bind(this, this._idleScreenshot));
         
         this._loop.run();
 
