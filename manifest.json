@@ -652,6 +652,10 @@
 
                 {"src": "gnome:gtksourceview",
                  "config-opts": ["--enable-compile-warnings=maximum"]},
+
+                {"src": "fd:exempi",
+		 "tag": "82aa3670838622e6ee645ebecfe2abd93ec56836",
+		 "patches": ["exempi-autogen.patch"]},
       
 		{"src": "gnome:librest"},
 
@@ -773,8 +777,6 @@
 		{"src": "gnome:vte",
 		 "branch": "vte-0-34"},
 
-		{"src": "gnome:gnome-terminal"},
-
 		{"src": "git:git://git.kernel.org/pub/scm/utils/dash/dash.git"},
 
                 {"src": "git:git://git.kernel.org/pub/scm/boot/dracut/dracut.git",
@@ -801,7 +803,11 @@
                                  "--disable-man"]},
 
 		{"src": "gnome:gnome-shell-extensions",
-		 "config-opts": ["--enable-extensions=classic-mode"]}
+		 "config-opts": ["--enable-extensions=classic-mode"]},
+
+		{"src": "gnome:gnome-terminal"},
+
+		{"src": "gnome:nautilus"}
 
 	],
     
