@@ -118,24 +118,20 @@ function parseSrcKey(srckey) {
     return [keytype, uri];
 }
     
-function checkoutPatches(mirrordir, patchdir, component, cancellable, params) {
-    params = Params.parse(params, { patchesPath: null });
+function checkoutPatches(mirrordir, patchdir, component, cancellable) {
     let patches = component['patches'];
-    let patches_keytype = null;
-    let patches_uri = null;
-    if (params.patchesPath != null) {
-        patches_keytype = local;
-	patches_uri = patches_path;
-        patchdir = patches_uri;
-    } else {
-        [patches_keytype, patches_uri] = parseSrcKey(patches['src']);
-        let patchesMirror = getMirrordir(mirrordir, patches_keytype, patches_uri);
-        getVcsCheckout(mirrordir, patches_keytype, patches_uri,
-                       patchdir, patches['revision'], cancellable,
-                       {overwrite: true,
-                        quiet: true});
-    }
 
+    let [patchesKeytype, patchesUri] = parseSrcKey(patches['src']);
+    if (patchesKeytype == 'local')
+	return Gio.File.new_for_path(patchesUri);
+    else if (patchesKeytype != 'git')
+	throw new Error("Unhandled keytype " + patchesKeytype);
+
+    let patchesMirror = getMirrordir(mirrordir, patchesKeytype, patchesUri);
+    getVcsCheckout(mirrordir, patchesKeytype, patchesUri,
+                   patchdir, patches['revision'], cancellable,
+                   {overwrite: true,
+                    quiet: true});
     return patchdir;
 }
 

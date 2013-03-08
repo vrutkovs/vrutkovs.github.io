@@ -432,6 +432,7 @@ const TaskBuild = new Lang.Class({
                                                this.patchdir,
                                                expandedComponent,
 					       cancellable);
+		this.patchdir = patchdir;
                 this._cachedPatchdirRevision = patchesRevision;
 	    }
             if ((previousMetadata != null) &&
