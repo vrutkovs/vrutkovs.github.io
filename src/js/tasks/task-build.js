@@ -351,13 +351,22 @@ const TaskBuild = new Lang.Class({
 			     }), cancellable);
 	}
 
-	// Move symbolic links for shared libraries to devel
 	let libdir = buildResultDir.resolve_relative_path('usr/lib');
+
 	if (libdir.query_exists(null)) {
+	    // Move symbolic links for shared libraries to devel
 	    FileUtil.walkDir(libdir, { nameRegex: /\.so$/,
-				       fileType: Gio.FileType.SYMBOLIC_LINK },
+				       fileType: Gio.FileType.SYMBOLIC_LINK,
+				       depth: 1 },
 			     Lang.bind(this, function(filePath, cancellable) {
 				 this._installAndUnlink(buildResultDir, filePath, develPath, cancellable);
+			     }), cancellable);
+	    // Just delete static libraries.  No one should use them.
+	    FileUtil.walkDir(libdir, { nameRegex: /\.a$/,
+				       fileType: Gio.FileType.REGULAR,
+				       depth: 1 },
+			     Lang.bind(this, function(filePath, cancellable) {
+				 GSystem.file_unlink(filePath, cancellable);
 			     }), cancellable);
 	}
 

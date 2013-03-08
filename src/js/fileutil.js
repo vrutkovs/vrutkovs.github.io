@@ -20,19 +20,26 @@ const Gio = imports.gi.Gio;
 
 const Params = imports.params;
 
-function walkDirInternal(dir, matchParams, callback, cancellable, queryStr) {
+function walkDirInternal(dir, matchParams, callback, cancellable, queryStr, depth) {
     let denum = dir.enumerate_children(queryStr, Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
 				       cancellable);
     let info;
     let subdirs = [];
+
+    if (depth > 0) {
+	depth -= 1;
+    }
+
     while ((info = denum.next_file(cancellable)) != null) {
 	let name = info.get_name();
 	let child = dir.get_child(name);
 	let ftype = info.get_file_type();
 	
-	if (ftype == Gio.FileType.DIRECTORY) {
-	    subdirs.push(child);
-	    continue;
+	if (depth != 0) {
+	    if (ftype == Gio.FileType.DIRECTORY) {
+		subdirs.push(child);
+		continue;
+	    }
 	}
 
 	if (matchParams.nameRegex && matchParams.nameRegex.exec(name) === null)
@@ -47,16 +54,18 @@ function walkDirInternal(dir, matchParams, callback, cancellable, queryStr) {
     denum.close(cancellable);
 
     for (let i = 0; i < subdirs.length; i++) {
-	walkDirInternal(subdirs[i], matchParams, callback, cancellable, queryStr);
+	walkDirInternal(subdirs[i], matchParams, callback, cancellable, queryStr, depth);
     }
 }
 
 function walkDir(dir, matchParams, callback, cancellable) {
     matchParams = Params.parse(matchParams, { nameRegex: null,
 					      fileType: null,
-					      contentType: null });
+					      contentType: null,
+					      depth: -1 });
     let queryStr = 'standard::name,standard::type,unix::mode';
     if (matchParams.contentType)
 	queryStr += ',standard::fast-content-type';
-    walkDirInternal(dir, matchParams, callback, cancellable, queryStr);
+    let depth = matchParams.depth;
+    walkDirInternal(dir, matchParams, callback, cancellable, queryStr, depth);
 }
