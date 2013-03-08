@@ -1,0 +1,27 @@
+From 057dddf8b3692dd8b4ab3bbd462448f6f36762f0 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Fri, 8 Mar 2013 12:14:28 -0500
+Subject: [PATCH] autogen.sh: Honor NOCONFIGURE=1
+
+See http://people.gnome.org/~walters/docs/build-api.txt
+---
+ autogen.sh |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/autogen.sh b/autogen.sh
+index 04caa99..d6a5e73 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -44,5 +44,7 @@ if test -z "$*"; then
+ 	echo "the $0 command line."
+ fi
+ 
+-echo "Running configure..."
+-$topsrcdir/configure --enable-maintainer-mode "$@"
++if test -z "$NOCONFIGURE"; then
++	echo "Running configure..."
++	$topsrcdir/configure --enable-maintainer-mode "$@"
++fi
+-- 
+1.7.1
+
