@@ -667,8 +667,8 @@ const TaskBuild = new Lang.Class({
         let builddirName = Format.vprintf('build-%s-%s', [basemeta['name'], architecture]);
         let builddir = this.workdir.get_child(builddirName);
 
-        let forceRebuild = (this.forceBuildComponents[basename] ||
-                            basemeta['src'].indexOf('local:') == 0);
+        let forceRebuild = false; // (this.forceBuildComponents[basename] ||
+                                  // basemeta['src'].indexOf('local:') == 0);
 
 	let builtRevisionPath = builddir.get_child('built-revision');
 	if (builtRevisionPath.query_exists(cancellable)) {
