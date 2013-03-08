@@ -811,7 +811,7 @@
 
 	],
     
-    "build-epoch": {"version": 3,
-		    "component-names": ["NetworkManager", "network-manager-applet"]}
+    "build-epoch": {"version": 4,
+		    "component-names": ["spidermonkey-tarballs-as-git"]}
 
 }
