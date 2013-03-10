@@ -797,7 +797,7 @@
 
 	],
     
-    "build-epoch": {"version": 4,
-		    "component-names": ["spidermonkey-tarballs-as-git"]}
+    "build-epoch": {"version": 5,
+		    "component-names": ["harfbuzz", "webkitgtk-tarball-releases"]}
 
 }
