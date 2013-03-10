@@ -801,6 +801,6 @@
 
 	],
     
-    "build-epoch": {"version": 5,
-		    "component-names": ["harfbuzz"]}
+    "build-epoch": {"version": 6,
+		    "component-names": ["tracker"]}
 }
