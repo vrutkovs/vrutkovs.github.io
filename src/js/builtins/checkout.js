@@ -37,7 +37,7 @@ function _checkoutOneComponent(mirrordir, patchdir, component, cancellable, para
 				    clean: false,
 				    patchesPath: null,
 				    overwrite: false });
-    let [keytype, uri] = BuildUtil.parseSrcKey(component['src']);
+    let [keytype, uri] = Vcs.parseSrcKey(component['src']);
 
     let isLocal = (keytype == 'local');
 
@@ -63,8 +63,7 @@ function _checkoutOneComponent(mirrordir, patchdir, component, cancellable, para
 	    checkoutdir = Gio.File.new_for_path(component['name']);
 	    GSystem.file_ensure_directory(checkoutdir.get_parent(), true, cancellable);
 	}
-	Vcs.getVcsCheckout(mirrordir, keytype, uri, checkoutdir,
-			   component['revision'], cancellable,
+	Vcs.getVcsCheckout(mirrordir, component, checkoutdir, cancellable,
 			   { overwrite: params.overwrite });
     }
 

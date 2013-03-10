@@ -705,8 +705,7 @@ const TaskBuild = new Lang.Class({
 	    GSystem.shutil_rm_rf(checkoutdir, cancellable);
 	    checkoutdir.make_symbolic_link(uri, cancellable);
         } else {
-            Vcs.getVcsCheckout(this.mirrordir, keytype, uri, checkoutdir,
-                               basemeta['revision'], cancellable,
+            Vcs.getVcsCheckout(this.mirrordir, basemeta, checkoutdir, cancellable,
                                {overwrite:false});
 	}
 

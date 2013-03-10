@@ -22,6 +22,7 @@ const GSystem = imports.gi.GSystem;
 
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
+const JSUtil = imports.jsutil;
 
 function getMirrordir(mirrordir, keytype, uri, params) {
     params = Params.parse(params, {prefix: ''});
@@ -62,10 +63,25 @@ function _fixupSubmoduleReferences(mirrordir, cwd, cancellable) {
     return haveSubmodules;
 }
 
-function getVcsCheckout(mirrordir, keytype, uri, dest, branch, cancellable, params) {
+function getVcsCheckout(mirrordir, component, dest, cancellable, params) {
     params = Params.parse(params, {overwrite: true,
 				   quiet: false});
-    let moduleMirror = getMirrordir(mirrordir, keytype, uri);
+    
+    let [keytype, uri] = parseSrcKey(component['src']);
+    let revision;
+    let moduleMirror;
+    let addUpstream;
+    if (keytype == 'git' || keytype == 'local') {
+	revision = component['revision'];
+	moduleMirror = getMirrordir(mirrordir, keytype, uri);
+	addUpstream = true;
+    } else if (keytype == 'tarball') {
+	revision = 'tarball-import-' + component['checksum'];
+	moduleMirror = getMirrordir(mirrordir, 'tarball', component['name']);
+	addUpstream = false;
+    } else {
+	throw new Error("Unsupported src uri");
+    }
     let checkoutdirParent = dest.get_parent();
     GSystem.file_ensure_directory(checkoutdirParent, true, cancellable);
     let tmpDest = checkoutdirParent.get_child(dest.get_basename() + '.tmp');
@@ -84,11 +100,12 @@ function getVcsCheckout(mirrordir, keytype, uri, dest, branch, cancellable, para
     if (ftype != Gio.FileType.DIRECTORY) {
         ProcUtil.runSync(['git', 'clone', '-q', '--origin', 'localmirror',
 			  '--no-checkout', moduleMirror.get_path(), tmpDest.get_path()], cancellable);
-        ProcUtil.runSync(['git', 'remote', 'add', 'upstream', uri], cancellable, {cwd: tmpDest});
+	if (addUpstream)
+            ProcUtil.runSync(['git', 'remote', 'add', 'upstream', uri], cancellable, {cwd: tmpDest});
     } else {
         ProcUtil.runSync(['git', 'fetch', 'localmirror'], cancellable, {cwd: tmpDest});
     }
-    ProcUtil.runSync(['git', 'checkout', '-q', branch], cancellable, {cwd: tmpDest});
+    ProcUtil.runSync(['git', 'checkout', '-q', revision], cancellable, {cwd: tmpDest});
     ProcUtil.runSync(['git', 'submodule', 'init'], cancellable, {cwd: tmpDest});
     let haveSubmodules = _fixupSubmoduleReferences(mirrordir, tmpDest, cancellable);
     if (haveSubmodules) {
@@ -111,7 +128,7 @@ function parseSrcKey(srckey) {
         throw new Error("Invalid SRC uri=" + srckey);
     }
     let keytype = srckey.substr(0, idx);
-    if (!(keytype == 'git' || keytype == 'local')) {
+    if (!(keytype == 'git' || keytype == 'local' || keytype == 'tarball')) {
         throw new Error("Unsupported SRC uri=" + srckey);
     }
     let uri = srckey.substr(idx+1);
@@ -128,8 +145,7 @@ function checkoutPatches(mirrordir, patchdir, component, cancellable) {
 	throw new Error("Unhandled keytype " + patchesKeytype);
 
     let patchesMirror = getMirrordir(mirrordir, patchesKeytype, patchesUri);
-    getVcsCheckout(mirrordir, patchesKeytype, patchesUri,
-                   patchdir, patches['revision'], cancellable,
+    getVcsCheckout(mirrordir, patches, patchdir, cancellable,
                    {overwrite: true,
                     quiet: true});
     return patchdir;
@@ -176,6 +192,13 @@ function ensureVcsMirror(mirrordir, component, cancellable,
     if (keytype == 'git' || keytype == 'local') {
 	let branch = component['branch'] || component['tag'];
 	return this._ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params);
+    } else if (keytype == 'tarball') {
+	let name = component['name'];
+	let checksum = component['checksum'];
+	if (!checksum) {
+	    throw new Error("Component " + name + " missing checksum attribute");
+	}
+	return this._ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, params);
     } else {
 	throw new Error("Unhandled keytype=" + keytype);
     }
@@ -242,6 +265,114 @@ function _ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params) {
     if (changed || (fetch && params.timeoutSec > 0)) {
 	lastFetchPath.replace_contents(currentVcsVersion, null, false, 0, cancellable); 
     }
+
+    return mirror;
+}
+
+function _ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, params) {
+    let fetch = params.fetch;
+    let mirror = getMirrordir(mirrordir, 'tarball', name);
+    let tmpMirror = mirror.get_parent().get_child(mirror.get_basename() + '.tmp');
+    
+    if (!mirror.query_exists(cancellable)) {
+	GSystem.shutil_rm_rf(tmpMirror, cancellable);
+	GSystem.file_ensure_directory(tmpMirror, true, cancellable);
+	ProcUtil.runSync(['git', 'init', '--bare'], cancellable,
+			 { cwd: tmpMirror, logInitiation: true });
+        ProcUtil.runSync(['git', 'config', 'gc.auto', '0'], cancellable,
+			 { cwd: tmpMirror, logInitiation: true });
+	GSystem.file_rename(tmpMirror, mirror, cancellable);
+    }
+    
+    let importTag = 'tarball-import-' + checksum;
+    let gitRevision = ProcUtil.runSyncGetOutputUTF8StrippedOrNull(['git', 'rev-parse', importTag],
+								  cancellable, { cwd: mirror });
+    if (gitRevision != null) {
+	return mirror;
+    }	
+
+    // First, we get a clone of the tarball git repo
+    let tmpCheckoutPath = mirrordir.get_child('tarball-cwd-' + name);
+    GSystem.shutil_rm_rf(tmpCheckoutPath, cancellable);
+    ProcUtil.runSync(['git', 'clone', mirror.get_path(), tmpCheckoutPath.get_path()], cancellable,
+		     { logInitiation: true });
+    // Now, clean the contents out
+    ProcUtil.runSync(['git', 'rm', '-r', '--ignore-unmatch', '.'], cancellable,
+		     { cwd: tmpCheckoutPath,
+		       logInitiation: true });
+
+    // Download the tarball
+    let tmpPath = mirrordir.get_child('tarball-' + name);
+    GSystem.shutil_rm_rf(tmpPath, cancellable);
+    GSystem.file_ensure_directory(tmpPath.get_parent(), true, cancellable);
+    ProcUtil.runSync(['curl', '-o', tmpPath.get_path(), uri], cancellable,
+		     { logInitiation: true });
+
+    // And verify the checksum
+    let tarballData = GSystem.file_map_readonly(tmpPath, cancellable);
+    let actualChecksum = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, tarballData);
+    if (actualChecksum != checksum) {
+	throw new Error("Downloaded " + uri + " expected checksum=" + checksum + " actual=" + actualChecksum);
+    }
+
+    let decompOpt = null;
+    if (JSUtil.stringEndswith(uri, '.xz'))
+	decompOpt = '--xz';
+    else if (JSUtil.stringEndswith(uri, '.bz2'))
+	decompOpt = '--bzip2';
+    else if (JSUtil.stringEndswith(uri, '.gz'))
+	decompOpt = '--gzip';
+    
+    // Extract the tarball to our checkout
+    let args = ['tar', '-C', tmpCheckoutPath.get_path(), '-x'];
+    if (decompOpt !== null)
+	args.push(decompOpt);
+    args.push('-f');
+    args.push(tmpPath.get_path());
+    ProcUtil.runSync(args, cancellable, { logInitiation: true });
+
+    tarballData = null; // Clear this out in the hope the GC eliminates it
+    GSystem.file_unlink(tmpPath, cancellable);
+
+    // Automatically strip the first element if there's exactly one directory
+    let e = tmpCheckoutPath.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+					   cancellable);
+    let info;
+    let nFiles = 0;
+    let lastFileType = null;
+    let lastFile = null;
+    let lastInfo = null;
+    while ((info = e.next_file(cancellable)) != null) {
+	if (info.get_name() == '.git')
+	    continue;
+	nFiles++;
+	lastFile = e.get_child(info);
+	lastInfo = info;
+    }
+    e.close(cancellable);
+    if (nFiles == 1 && lastInfo.get_file_type() == Gio.FileType.DIRECTORY) {
+	e = lastFile.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+					cancellable);
+	while ((info = e.next_file(cancellable)) != null) {
+	    let child = e.get_child(info);
+	    if (!child.equal(lastFile))
+		GSystem.file_rename(child, tmpCheckoutPath.get_child(info.get_name()), cancellable);
+	}
+	lastFile.delete(cancellable);
+	e.close(cancellable);
+    }
+    
+    let msg = 'Automatic import of ' + uri;
+    ProcUtil.runSync(['git', 'add', '.'],
+		     cancellable, { cwd: tmpCheckoutPath });
+    ProcUtil.runSync(['git', 'commit', '-a', '--author=Automatic Tarball Importer <ostree-list@gnome.org>', '-m', msg ],
+		     cancellable, { cwd: tmpCheckoutPath });
+    ProcUtil.runSync(['git', 'tag', '-m', msg, '-a', importTag ],
+		     cancellable, { cwd: tmpCheckoutPath });
+    ProcUtil.runSync(['git', 'push', '--tags', 'origin', "master:master" ],
+		     cancellable, { cwd: tmpCheckoutPath });
+    
+    GSystem.shutil_rm_rf(tmpCheckoutPath, cancellable);
 
     return mirror;
 }

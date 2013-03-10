@@ -91,6 +91,15 @@ const Snapshot = new Lang.Class({
 	let result = {};
 	Lang.copyProperties(componentMeta, result);
 	let origSrc = componentMeta['src'];
+	let name = componentMeta['name'];
+
+	if (origSrc.indexOf('tarball:') == 0) {
+	    if (!name)
+		throw new Error("Component src " + origSrc + " has no name attribute");
+	    if (!componentMeta['checksum'])
+		throw new Error("Component src " + origSrc + " has no checksum attribute");
+	    return result;
+	}
 
 	let didExpand = false;
 	let vcsConfig = manifest['vcsconfig'];
@@ -104,8 +113,7 @@ const Snapshot = new Lang.Class({
 	    }
 	}
 
-	let name = componentMeta['name'];
-	let src, idx, name;
+	let src, idx;
 	if (name == undefined) {
             if (didExpand) {
 		src = origSrc;

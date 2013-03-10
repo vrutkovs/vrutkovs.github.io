@@ -32,20 +32,6 @@ const BUILD_ENV = {
     'TZ': 'EST5EDT'
     };
 
-function parseSrcKey(srckey) {
-    let idx = srckey.indexOf(':');
-    if (idx < 0) {
-        throw new Error("Invalid SRC uri=" + srckey);
-    }
-    let keytype = srckey.substr(0, idx);
-    if (!(keytype == 'git' || keytype == 'local')) 
-        throw new Error("Unsupported SRC uri=" + srckey);
-    let uri = srckey.substr(idx+1);
-    return [keytype, uri];
-}
-
-
-
 function getPatchPathsForComponent(patchdir, component) {
     let patches = component['patches'];
     if (!patches)
