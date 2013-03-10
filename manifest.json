@@ -613,12 +613,16 @@
 
 		{"src": "fd:geoclue",
 		 "patches": ["geoclue-autogen-Honor-NOCONFIGURE-1.patch"]},
+      
+                {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
-		{"src": "gnome:webkitgtk-tarball-releases",
+		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-1.11.91.tar.xz",
+		 "name": "webkitgtk",
+		 "checksum": "bf5419724e555bddcd2b82ebac9af47cb08e1ce0b7eb37baf30084fda74b5bee",
+		 "patches": ["webkitgtk-linking-2.patch"],
 		 "config-opts": ["--enable-introspection",
-				 "--with-gstreamer=1.0"],
-		 "patches": ["webkitgtk-disable-parallel.patch",
-			     "webkitgtk-linking.patch"]},
+				 "--enable-debug-symbols=min",
+				 "--with-gstreamer=1.0"]},
 
 		{"src": "gnome:vala-bootstrap",
 		 "bootstrap": true,
@@ -798,6 +802,5 @@
 	],
     
     "build-epoch": {"version": 5,
-		    "component-names": ["harfbuzz", "webkitgtk-tarball-releases"]}
-
+		    "component-names": ["harfbuzz"]}
 }
