@@ -191,14 +191,14 @@ function ensureVcsMirror(mirrordir, component, cancellable,
     let [keytype, uri] = parseSrcKey(component['src']);
     if (keytype == 'git' || keytype == 'local') {
 	let branch = component['branch'] || component['tag'];
-	return this._ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params);
+	return _ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params);
     } else if (keytype == 'tarball') {
 	let name = component['name'];
 	let checksum = component['checksum'];
 	if (!checksum) {
 	    throw new Error("Component " + name + " missing checksum attribute");
 	}
-	return this._ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, params);
+	return _ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, params);
     } else {
 	throw new Error("Unhandled keytype=" + keytype);
     }
