@@ -712,7 +712,8 @@
 		{"src": "gnome:cantarell-fonts",
 		 "config-opts": ["--disable-source-rebuild"]},
 
-		{"src": "fd:accountsservice"},
+		{"src": "fd:accountsservice",
+		 "config-opts": ["--enable-admin-group=sudo"]},
 
 		{"src": "gnome:gdm",
 		 "config-opts": ["--disable-documentation",
