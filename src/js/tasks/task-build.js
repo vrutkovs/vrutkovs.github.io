@@ -49,6 +49,8 @@ const TaskBuild = new Lang.Class({
     TaskName: "build",
     TaskAfter: ['resolve'],
 
+    DefaultParameters: {forceComponents: []},
+
     _resolveRefs: function(refs) {
         if (refs.length == 0)
             return [];
@@ -748,6 +750,8 @@ const TaskBuild = new Lang.Class({
 	this.subworkdir = Gio.File.new_for_path('.');
 
         this.forceBuildComponents = {};
+	for (let i = 0; i < this.parameters.forceComponents.length; i++)
+	    this.forceBuildComponents[this.parameters.forceComponents[i]] = true;
         this.cachedPatchdirRevision = null;
 
 	let snapshotDir = this.workdir.get_child('snapshots');
