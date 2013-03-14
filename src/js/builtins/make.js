@@ -42,6 +42,8 @@ const Make = new Lang.Class({
 	this.parent();
 	this.parser.addArgument(['-n', '--only'], { action: 'storeTrue',
 						    help: "Don't process tasks after this" });
+	this.parser.addArgument(['-x', '--skip'], { action: 'append',
+						    help: "Don't process tasks after this" });
 	this.parser.addArgument('taskname');
 	this.parser.addArgument('parameters', { nargs: '*' });
     },
@@ -53,7 +55,8 @@ const Make = new Lang.Class({
 	this._oneOnly = args.only;
 	let taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
 					     { onEmpty: Lang.bind(this, this._onTasksComplete),
-					       processAfter: !args.only });
+					       processAfter: !args.only,
+					       skip: args.skip });
 	this._taskmaster = taskmaster;
 	taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));

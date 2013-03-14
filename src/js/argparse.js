@@ -117,6 +117,8 @@ const ArgumentParser = new Lang.Class({
 		result[opts._varName] = null;
 	    } else if (opts.action == 'storeTrue') {
 		result[opts._varName] = false;
+	    } else if (opts.action == 'append') {
+		result[opts._varName] = [];
 	    }
 	}
 	for (let name in this._argNames) {
@@ -141,14 +143,19 @@ const ArgumentParser = new Lang.Class({
 		
 		if (!opts) this._failed();
 
-		if (opts.action == 'store') {
+		if (opts.action == 'store' || opts.action == 'append') {
+		    let val;
 		    if (equalsIdx == -1) {
 			if (i == argv.length - 1) this._failed();
-			result[opts._varName] = argv[i+1];
+			val = argv[i+1];
 			i++;
 		    } else {
-			result[opts._varName] = arg.substr(equalsIdx+1);
+			val = arg.substr(equalsIdx+1);
 		    }
+		    if (opts.action == 'store')
+			result[opts._varName] = val;
+		    else
+			result[opts._varName].push(val);
 		} else if (opts.action == 'storeTrue') {
 		    result[opts._varName] = true;
 		}

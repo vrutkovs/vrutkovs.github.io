@@ -99,9 +99,13 @@ const TaskMaster = new Lang.Class({
 
     _init: function(path, params) {
         params = Params.parse(params, { onEmpty: null, 
-				        processAfter: true });
+				        processAfter: true,
+				        skip: [] });
 	this.path = path;
 	this._processAfter = params.processAfter;
+	this._skipTasks = {};
+	for (let i = 0; i < params.skip.length; i++)
+	    this._skipTasks[params.skip[i]] = true;
 	this.maxConcurrent = GLib.get_num_processors();
 	this._onEmpty = params.onEmpty;
 	this.cancellable = null;
@@ -223,7 +227,10 @@ const TaskMaster = new Lang.Class({
 	    if (changed) {
 		let tasksAfter = this._taskset.getTasksAfter(task.name);
 		for (let i = 0; i < tasksAfter.length; i++) {
-		    this._pushTaskDef(tasksAfter[i], {});
+		    let after = tasksAfter[i];
+		    let name = after.prototype.TaskName;
+		    if (!this._skipTasks[name])
+			this._pushTaskDef(tasksAfter[i], {});
 		}
 	    }
 	}
