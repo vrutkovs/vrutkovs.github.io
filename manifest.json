@@ -339,6 +339,9 @@
 
 		{"src": "fd:xorg/driver/xf86-video-intel"},
 
+		{"src": "fd:xorg/driver/xf86-video-modesetting",
+		 "patches": ["xorg-autogen-merged.patch"]},
+
 		{"src": "fd:xorg/driver/xf86-video-ati"},
 
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
