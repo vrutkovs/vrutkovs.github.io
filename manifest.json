@@ -3,7 +3,6 @@
 
   "osname": "gnome-ostree",
   "repo": "http://ostree.gnome.org/repo",
-  "prefix": "gnomeos-3.8",
   "architectures": ["x86_64"],
   "base": {
             "name": "yocto",

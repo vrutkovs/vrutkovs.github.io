@@ -75,8 +75,7 @@ const TaskBuild = new Lang.Class({
     _composeBuildroot: function(workdir, componentName, architecture, cancellable) {
         let starttime = GLib.DateTime.new_now_utc();
 
-	let prefix = this._snapshot.data['prefix'];
-        let buildname = Format.vprintf('%s/%s/%s', [prefix, componentName, architecture]);
+        let buildname = Format.vprintf('%s/%s/%s', [this.osname, componentName, architecture]);
         let buildrootCachedir = this.cachedir.resolve_relative_path('roots/' + buildname);
         GSystem.file_ensure_directory(buildrootCachedir, true, cancellable);
 
@@ -92,9 +91,9 @@ const TaskBuild = new Lang.Class({
 
         let refToRev = {};
 
-        let archBuildrootName = Format.vprintf('bases/%s/%s-%s-devel', [this._snapshot.data['base']['name'],
-									prefix,
-									architecture]);
+        let archBuildrootName = Format.vprintf('%s/bases/%s/%s-devel', [this.osname,
+									   this._snapshot.data['base']['name'],
+									   architecture]);
 
         print("Computing buildroot contents");
 
@@ -106,7 +105,7 @@ const TaskBuild = new Lang.Class({
         let refsToResolve = [];
         for (let i = 0; i < buildDependencies.length; i++) {
 	    let dependency = buildDependencies[i];
-            let buildname = Format.vprintf('components/%s/%s/%s', [prefix, dependency['name'], architecture]);
+            let buildname = Format.vprintf('%s/components/%s/%s', [this.osname, dependency['name'], architecture]);
             refsToResolve.push(buildname);
             checkoutTrees.push([buildname, '/runtime']);
             checkoutTrees.push([buildname, '/devel']);
@@ -276,14 +275,17 @@ const TaskBuild = new Lang.Class({
         return result;
     },
 
-    _saveComponentBuild: function(buildname, expandedComponent, cancellable) {
-        let buildRef = 'components/' + buildname;
+    _writeComponentCache: function(key, data, cancellable) {
+        this._componentBuildCache[key] = data;
+        JsonUtil.writeJsonFileAtomic(this._componentBuildCachePath, this._componentBuildCache, cancellable);
+    },
+
+    _saveComponentBuild: function(buildRef, expandedComponent, cancellable) {
 	let cachedata = {};
 	Lang.copyProperties(expandedComponent, cachedata);
         cachedata['ostree'] = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
 								     'rev-parse', buildRef], cancellable);
-        this._componentBuildCache[buildname] = cachedata;
-        JsonUtil.writeJsonFileAtomic(this._componentBuildCachePath, this._componentBuildCache, cancellable);
+	this._writeComponentCache(buildRef, cachedata, cancellable);
         return cachedata['ostree'];
     },
 
@@ -402,35 +404,20 @@ const TaskBuild = new Lang.Class({
     _buildOneComponent: function(component, architecture, cancellable) {
         let basename = component['name'];
 
-
-	let prefix = this._snapshot.data['prefix'];
-        let buildname = Format.vprintf('%s/%s/%s', [prefix, basename, architecture]);
+        let buildname = Format.vprintf('%s/%s', [basename, architecture]);
         let unixBuildname = buildname.replace(/\//g, '_');
-        let buildRef = 'components/' + buildname;
+        let buildRef = this.osname + '/components/' + buildname;
 
         let currentVcsVersion = component['revision'];
         let expandedComponent = this._snapshot.getExpanded(basename);
-        let previousMetadata = this._componentBuildCache[buildname];
-        let wasInBuildCache = (previousMetadata != null);
-	let previousBuildVersion;
-        if (wasInBuildCache) {
-            previousBuildVersion = previousMetadata['ostree'];
-        } else {
-            previousBuildVersion = ProcUtil.runSyncGetOutputUTF8StrippedOrNull(['ostree', '--repo=' + this.repo.get_path(),
-										'rev-parse', buildRef], cancellable);
-	}
-	let previousVcsVersion;
+        let previousMetadata = this._componentBuildCache[buildRef];
+	let previousBuildVersion = null;
+	let previousVcsVersion = null;
         if (previousMetadata != null) {
-            previousVcsVersion = previousMetadata['revision'];
-        } else if (previousBuildVersion != null) {
-            let jsonstr = ProcUtil.runSyncGetOutputUTF8(['ostree', '--repo=' + this.repo.get_path(),
-							 'cat', previousBuildVersion,
-							 '/_ostbuild-meta.json'], cancellable);
-	    previousMetadata = JSON.parse(jsonstr);
+            previousBuildVersion = previousMetadata['ostree'];
             previousVcsVersion = previousMetadata['revision'];
         } else {
             print("No previous build for " + buildname);
-            previousVcsVersion = null;
 	}
 
 	let patchdir;
@@ -468,9 +455,6 @@ const TaskBuild = new Lang.Class({
             if (rebuildReason == null) {
                 if (!forceRebuild) {
                     print(Format.vprintf("Reusing cached build of %s at %s", [buildname, previousVcsVersion]));
-                    if (!wasInBuildCache) {
-                        return this._saveComponentBuild(buildname, expandedComponent, cancellable);
-		    }
                     return previousBuildVersion;
                 } else {
                     print("Build forced regardless");
@@ -578,16 +562,16 @@ const TaskBuild = new Lang.Class({
 
         GSystem.shutil_rm_rf(buildWorkdir, cancellable);
 
-        let ostreeRevision = this._saveComponentBuild(buildname, expandedComponent, cancellable);
+        let ostreeRevision = this._saveComponentBuild(buildRef, expandedComponent, cancellable);
 
         return ostreeRevision;
     },
 
     _composeOneTarget: function(target, componentBuildRevs, cancellable) {
         let base = target['base'];
-        let baseName = 'bases/' + base['name'];
-        let runtimeName = 'bases/' + base['runtime'];
-        let develName = 'bases/' + base['devel'];
+        let baseName = this.osname + '/bases/' + base['name'];
+        let runtimeName = this.osname +'/bases/' + base['runtime'];
+        let develName = this.osname + '/bases/' + base['devel'];
 
         let composeRootdir = this.subworkdir.get_child(target['name']);
 	GSystem.shutil_rm_rf(composeRootdir, cancellable);
@@ -604,11 +588,9 @@ const TaskBuild = new Lang.Class({
 								   'rev-parse', develName], cancellable);
         relatedRefs[develName] = develRevision;
 
-	let prefix = this._snapshot.data['prefix'];
-
 	for (let name in componentBuildRevs) {
 	    let rev = componentBuildRevs[name];
-            let buildRef = 'components/' + prefix + '/' + name;
+            let buildRef = this.osname + '/components/' + name;
             relatedRefs[buildRef] = rev;
 	}
 
@@ -676,24 +658,25 @@ const TaskBuild = new Lang.Class({
 	let basename = basemeta['name'];
 	let buildWorkdir = this.subworkdir.get_child('build-' + basemeta['name'] + '-' + architecture);
         let checkoutdir = buildWorkdir.get_child(basemeta['name']);
-        let builddirName = Format.vprintf('build-%s-%s', [basemeta['name'], architecture]);
+        let builddirName = Format.vprintf('build-%s-%s', [basename, architecture]);
         let builddir = this.workdir.get_child(builddirName);
+	let buildname = 'bases/' + basename + '-' + architecture;
 
         let forceRebuild = false; // (this.forceBuildComponents[basename] ||
                                   // basemeta['src'].indexOf('local:') == 0);
 
-	let builtRevisionPath = builddir.get_child('built-revision');
-	if (builtRevisionPath.query_exists(cancellable)) {
-	    let builtRevision = GSystem.file_load_contents_utf8(builtRevisionPath, cancellable);
-	    builtRevision = builtRevision.replace(/[ \n]/g, '');
-	    if (forceRebuild) {
-		print(Format.vprintf("%s forced rebuild", [builddirName]));
-	    } else if (builtRevision == basemeta['revision']) {
-		print(Format.vprintf("Already built %s at %s", [builddirName, builtRevision]));
-		return;
-	    } else {
-		print(Format.vprintf("%s was %s, now at revision %s", [builddirName, builtRevision, basemeta['revision']]));
-	    }
+        let previousBuild = this._componentBuildCache[buildname];
+	let previousVcsVersion = null;
+	if (previousBuild != null) {
+	    previousVcsVersion = previousBuild['revision'];
+	}
+	if (forceRebuild) {
+	    print(Format.vprintf("%s forced rebuild", [builddirName]));
+	} else if (previousVcsVersion == basemeta['revision']) {
+	    print(Format.vprintf("Already built %s at %s", [builddirName, previousVcsVersion]));
+	    return;
+	} else if (previousVcsVersion != null) {
+	    print(Format.vprintf("%s was %s, now at revision %s", [builddirName, previousVcsVersion, basemeta['revision']]));
 	} 
 
 	let ftype = checkoutdir.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
@@ -710,7 +693,6 @@ const TaskBuild = new Lang.Class({
             Vcs.getVcsCheckout(this.mirrordir, basemeta, checkoutdir, cancellable,
                                {overwrite:false});
 	}
-
 
         // Just keep reusing the old working directory downloads and sstate
         let oldBuilddir = this.workdir.get_child('build-' + basemeta['name']);
@@ -732,7 +714,7 @@ const TaskBuild = new Lang.Class({
 	let componentTypes = ['runtime', 'devel'];
         for (let i = 0; i < componentTypes.length; i++) {
 	    let componentType = componentTypes[i];
-	    let treename = Format.vprintf('bases/yocto/%s-%s-%s', [this.prefix, architecture, componentType]);
+	    let treename = Format.vprintf('%s/bases/%s/%s-%s', [this.osname, basename, architecture, componentType]);
 	    let tarPath = builddir.get_child(Format.vprintf('gnomeos-contents-%s-%s.tar.gz', [componentType, architecture]));
 	    ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
 			      'commit', '-s', 'Build', '--skip-if-unchanged',
@@ -742,8 +724,9 @@ const TaskBuild = new Lang.Class({
 	    GSystem.file_unlink(tarPath, cancellable);
 	}
 
-	builtRevisionPath.replace_contents(basemeta['revision'], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 	GSystem.shutil_rm_rf(checkoutdir, cancellable);
+	
+	this._writeComponentCache(buildname, basemeta, cancellable);
     },
 
     execute: function(cancellable) {
@@ -762,8 +745,6 @@ const TaskBuild = new Lang.Class({
 			      cancellable);
 	let data = srcdb.loadFromPath(workingSnapshotPath, cancellable);
 	this._snapshot = new Snapshot.Snapshot(data, workingSnapshotPath);
-        let prefix = this._snapshot.data['prefix'];
-	this.prefix = prefix;
         let osname = this._snapshot.data['osname'];
 	this.osname = osname;
 
@@ -803,7 +784,14 @@ const TaskBuild = new Lang.Class({
 			     cancellable);
 	}
 
-        let basePrefix = this._snapshot.data['base']['name'] + '/' + prefix;
+        this._componentBuildCachePath = this.cachedir.get_child('component-builds.json');
+        if (this._componentBuildCachePath.query_exists(cancellable)) {
+            this._componentBuildCache = JsonUtil.loadJson(this._componentBuildCachePath, cancellable);
+        } else {
+            this._componentBuildCache = {};
+	}
+
+        let baseName = this._snapshot.data['base']['name'];
         let architectures = this._snapshot.data['architectures'];
 
         for (let i = 0; i < architectures.length; i++) {
@@ -848,13 +836,6 @@ const TaskBuild = new Lang.Class({
 	    }
 	}
 
-        this._componentBuildCachePath = this.cachedir.get_child('component-builds.json');
-        if (this._componentBuildCachePath.query_exists(cancellable)) {
-            this._componentBuildCache = JsonUtil.loadJson(this._componentBuildCachePath, cancellable);
-        } else {
-            this._componentBuildCache = {};
-	}
-
 	let previousBuildEpoch = this._componentBuildCache['build-epoch'];
 	let currentBuildEpoch = this._snapshot.data['build-epoch'];
 	if (previousBuildEpoch === undefined ||
@@ -889,8 +870,8 @@ const TaskBuild = new Lang.Class({
                 targetsList.push(target);
                 target['name'] = 'buildmaster/' + architecture + '-' + targetComponentType;
 
-                let runtimeRef = basePrefix + '-' + architecture + '-runtime';
-                let buildrootRef = basePrefix + '-' + architecture + '-devel';
+                let runtimeRef = baseName + '/' + architecture + '-runtime';
+                let buildrootRef = baseName + '/' + architecture + '-devel';
 		let baseRef;
                 if (targetComponentType == 'runtime') {
                     baseRef = runtimeRef;

@@ -71,7 +71,6 @@ const Builtin = new Lang.Class({
 	    data = db.loadFromPath(path, cancellable);
 	}
 	this._snapshot = new Snapshot.Snapshot(data, path);
-	this.prefix = this._snapshot.data['prefix'];
     },
 
     main: function(argv, loop, cancellable) {
