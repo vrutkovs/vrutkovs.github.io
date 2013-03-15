@@ -121,7 +121,10 @@ const Autobuilder = new Lang.Class({
 	let taskstateList = this._taskmaster.getTaskState();
 	for (let i = 0; i < taskstateList.length; i++) {
 	    let taskstate = taskstateList[i];
-	    newStatus += (taskstate.task.name + " ");
+	    if (taskstate.running)
+		newStatus += ("[" + taskstate.task.name + "] ");
+	    else
+		newStatus += (taskstate.task.name + " ");
 	}
 	if (newStatus == "")
 	    newStatus = "[idle]";
