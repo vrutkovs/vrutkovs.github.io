@@ -43,7 +43,7 @@ const TaskBdiff = new Lang.Class({
     _gitLogToJson: function(repoDir, specification) {
 	let log = ProcUtil.runSyncGetOutputLines(['git', 'log', '--format=email', specification],
 						 null,
-						 { cwd: repoDir });
+						 { cwd: repoDir, logInitiation: true });
 	let r = [];
 	if (log.length == 0)
 	    return r;
@@ -69,6 +69,9 @@ const TaskBdiff = new Lang.Class({
 		    currentItem[k] = v;
 		}
 	    }
+	}
+	if (currentItem !== null) {
+	    r.push(currentItem);
 	}
 	return r;
     },
@@ -134,8 +137,7 @@ const TaskBdiff = new Lang.Class({
 	    let previousComponent = previousBuildSnapshot.getComponent(componentName);
 	    let latestRevision = latestComponent.revision;
 	    let previousRevision = previousComponent.revision;
-	    let [keytype, uri, branchOrTag] = latestBuildSnapshot.getVcsInfo(componentName);
-	    let mirrordir = Vcs.getMirrordir(this.mirrordir, keytype, uri);
+	    let mirrordir = Vcs.ensureVcsMirror(this.mirrordir, previousComponent, cancellable);
 	    
 	    let gitlog = this._gitLogToJson(mirrordir, previousRevision + '...' + latestRevision);
 	    let diffstat = this._diffstat(mirrordir, previousRevision + '..' + latestRevision);
