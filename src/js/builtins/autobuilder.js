@@ -48,7 +48,8 @@ const Autobuilder = new Lang.Class({
 	this.parent();
 
         this.parser.addArgument('--autoupdate-self', { action: 'storeTrue' });
-        this.parser.addArgument('--stage');
+        this.parser.addArgument('--skip', { action: 'append',
+					    help: "Don't process tasks after this" });
 
 	this._buildNeeded = true;
 	this._initialResolveNeeded = true;
@@ -76,7 +77,8 @@ const Autobuilder = new Lang.Class({
 	this._src_db = new JsonDB.JsonDB(this._snapshot_dir);
 
 	this._taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
-						  { onEmpty: Lang.bind(this, this._onTasksComplete) });
+						  { onEmpty: Lang.bind(this, this._onTasksComplete),
+						    skip: args.skip });
 	this._taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	this._taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
 
