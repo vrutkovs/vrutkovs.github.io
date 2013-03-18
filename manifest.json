@@ -642,6 +642,18 @@
 		{"src": "gnome:libgee",
 		 "patches": ["gee-builddir.patch"]},
 
+		{"src": "git:git://gitorious.org/packagekit/packagekit.git",
+		 "config-opts": ["--disable-strict",
+				 "--disable-service-packs",
+				 "--enable-NetworkManager",
+				 "--disable-man-pages",
+				 "--disable-tests",
+				 "--disable-browser-plugin",
+				 "--disable-cron",
+				 "--disable-pm-utils",
+				 "--with-security-framework=polkit",
+				 "--disable-systemd-updates"]},
+
                 {"src": "gnome:gtksourceview",
                  "config-opts": ["--enable-compile-warnings=maximum"]},
 
