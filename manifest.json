@@ -758,7 +758,8 @@
 
 		{"src": "gnome:libgtop"},
 
-		{"src": "gnome:clutter-gst"},
+		{"src": "gnome:clutter-gst",
+                 "branch": "clutter-gst-2.0"},
 
 		{"src": "gnome:clutter-gtk"},
 
