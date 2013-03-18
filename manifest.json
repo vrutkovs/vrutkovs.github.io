@@ -671,6 +671,7 @@
 		                 "--disable-scrollkeeper"]},
 
 		{"src": "gnome:tracker",
+		 "branch": "tracker-0.16",
 		 "config-opts": ["--enable-miner-firefox=no",
 				 "--enable-miner-thunderbird=no",
 				 "--enable-miner-evolution=no",
