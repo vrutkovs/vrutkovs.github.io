@@ -43,7 +43,7 @@ function getMirrordir(mirrordir, keytype, uri, params) {
     return mirrordir.resolve_relative_path(relpath);
 }
 
-function _fixupSubmoduleReferences(mirrordir, cwd, cancellable) {
+function _fixupSubmoduleReferences(mirrordir, parentUri, cwd, cancellable) {
     let lines = ProcUtil.runSyncGetOutputLines(['git', 'submodule', 'status'],
 					       cancellable, {cwd: cwd}); 
     let haveSubmodules = false;
@@ -56,6 +56,10 @@ function _fixupSubmoduleReferences(mirrordir, cwd, cancellable) {
 	let configKey = Format.vprintf('submodule.%s.url', [subName]);
         let subUrl = ProcUtil.runSyncGetOutputUTF8Stripped(['git', 'config', '-f', '.gitmodules', configKey],
 							   cancellable, {cwd: cwd});
+	print("processing submodule " + subUrl);
+	if (subUrl.indexOf('../') == 0) {
+	    subUrl = _makeAbsoluteUrl(parentUri, subUrl);
+	}
         let localMirror = getMirrordir(mirrordir, 'git', subUrl);
 	ProcUtil.runSync(['git', 'config', configKey, 'file://' + localMirror.get_path()],
 			 cancellable, {cwd:cwd});
@@ -106,10 +110,9 @@ function getVcsCheckout(mirrordir, component, dest, cancellable, params) {
         ProcUtil.runSync(['git', 'fetch', 'localmirror'], cancellable, {cwd: tmpDest});
     }
     ProcUtil.runSync(['git', 'checkout', '-q', revision], cancellable, {cwd: tmpDest});
-    ProcUtil.runSync(['git', 'submodule', 'init'], cancellable, {cwd: tmpDest});
-    let haveSubmodules = _fixupSubmoduleReferences(mirrordir, tmpDest, cancellable);
+    let haveSubmodules = _fixupSubmoduleReferences(mirrordir, uri, tmpDest, cancellable);
     if (haveSubmodules) {
-        ProcUtil.runSync(['git', 'submodule', 'update'], cancellable, {cwd: tmpDest});
+        ProcUtil.runSync(['git', 'submodule', 'update', '--init'], cancellable, {cwd: tmpDest});
     }
     if (!tmpDest.equal(dest)) {
         GSystem.file_rename(tmpDest, dest, cancellable);
@@ -181,6 +184,32 @@ function _listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable) {
     }
     GSystem.shutil_rm_rf(tmpCheckout, cancellable);
     return submodules;
+}
+
+function _makeAbsoluteUrl(parent, relpath)
+{
+    let origParent = parent;
+    let origRelpath = relpath;
+    if (JSUtil.stringEndswith(parent, '/'))
+	parent = parent.substr(0, parent.length - 1);
+    let methodIndex = parent.indexOf("://");
+    if (methodIndex == -1)
+	throw new Error("Invalid method");
+    let firstSlash = parent.indexOf('/', methodIndex + 3);
+    if (firstSlash == -1)
+	throw new Error("Invalid url");
+    let parentPath = parent.substr(firstSlash);
+    while (relpath.indexOf('../') == 0) {
+	let i = parentPath.lastIndexOf('/');
+	if (i < 0)
+	    throw new Error("Relative path " + origRelpath + " is too long for parent " + origParent);
+	relpath = relpath.substr(3);
+	parentPath = parentPath.substr(0, i);
+    }
+    parent = parent.substr(0, firstSlash) + parentPath;
+    if (relpath.length == 0)
+	return parent;
+    return parent + '/' + relpath;
 }
 
 function ensureVcsMirror(mirrordir, component, cancellable,
@@ -258,6 +287,10 @@ function _ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params) {
 	_listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable).forEach(function (elt) {
 	    let [subChecksum, subName, subUrl] = elt;
 	    print("Processing submodule " + subName + " at " + subChecksum + " from " + subUrl);
+	    if (subUrl.indexOf('../') == 0) {
+		subUrl = _makeAbsoluteUrl(uri, subUrl);
+		print("Absolute URL: " + subUrl);
+	    }
             _ensureVcsMirrorGit(mirrordir, subUrl, subChecksum, cancellable, params);
 	});
     }
