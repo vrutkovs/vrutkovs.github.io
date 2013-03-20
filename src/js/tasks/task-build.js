@@ -480,7 +480,7 @@ const TaskBuild = new Lang.Class({
         if (patchdir) {
             childArgs.push('--patches-path=' + patchdir.get_path());
 	}
-        ProcUtil.runSync(childArgs, cancellable);
+        ProcUtil.runSync(childArgs, cancellable, { logInitiation: true });
 
         GSystem.file_unlink(tempMetadataPath, cancellable);
 
