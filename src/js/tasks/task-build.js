@@ -435,6 +435,7 @@ const TaskBuild = new Lang.Class({
 	    }
             if ((previousMetadata != null) &&
                 previousMetadata['patches'] &&
+                previousMetadata['patches']['src'].indexOf('local:') != 0 &&
                 previousMetadata['patches']['revision'] &&
                 previousMetadata['patches']['revision'] == patchesRevision) {
                 // Copy over the sha256sums
