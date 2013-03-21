@@ -814,6 +814,8 @@
 
 		{"src": "gnome:gnome-terminal"},
 
+		{"src": "gnome:gnome-clocks"},
+
 		{"src": "gnome:nautilus"}
 
 	],
