@@ -43,7 +43,7 @@ function getMirrordir(mirrordir, keytype, uri, params) {
     return mirrordir.resolve_relative_path(relpath);
 }
 
-function _fixupSubmoduleReferences(mirrordir, parentUri, cwd, cancellable) {
+function _processCheckoutSubmodules(mirrordir, parentUri, cwd, cancellable) {
     let lines = ProcUtil.runSyncGetOutputLines(['git', 'submodule', 'status'],
 					       cancellable, {cwd: cwd}); 
     let haveSubmodules = false;
@@ -63,8 +63,9 @@ function _fixupSubmoduleReferences(mirrordir, parentUri, cwd, cancellable) {
         let localMirror = getMirrordir(mirrordir, 'git', subUrl);
 	ProcUtil.runSync(['git', 'config', configKey, 'file://' + localMirror.get_path()],
 			 cancellable, {cwd:cwd});
+        ProcUtil.runSync(['git', 'submodule', 'update', '--init', subName], cancellable, {cwd: cwd});
+	_processCheckoutSubmodules(mirrordir, subUrl, cwd.get_child(subName), cancellable);
     }
-    return haveSubmodules;
 }
 
 function getVcsCheckout(mirrordir, component, dest, cancellable, params) {
@@ -110,10 +111,7 @@ function getVcsCheckout(mirrordir, component, dest, cancellable, params) {
         ProcUtil.runSync(['git', 'fetch', 'localmirror'], cancellable, {cwd: tmpDest});
     }
     ProcUtil.runSync(['git', 'checkout', '-q', revision], cancellable, {cwd: tmpDest});
-    let haveSubmodules = _fixupSubmoduleReferences(mirrordir, uri, tmpDest, cancellable);
-    if (haveSubmodules) {
-        ProcUtil.runSync(['git', 'submodule', 'update', '--init'], cancellable, {cwd: tmpDest});
-    }
+    _processCheckoutSubmodules(mirrordir, uri, tmpDest, cancellable);
     if (!tmpDest.equal(dest)) {
         GSystem.file_rename(tmpDest, dest, cancellable);
     }
