@@ -48,9 +48,9 @@ function createDisk(diskpath, cancellable) {
     
     ProcUtil.runSync(['qemu-img', 'create', '-f', 'qcow2', diskpath.get_path(), '' + sizeMb + 'M'], cancellable);
     let makeDiskCmd = 'launch\n\
-part-init /dev/vda mbr\n\
-blockdev-getsize64 /dev/vda\n\
-blockdev-getss /dev/vda\n';
+part-init /dev/sda mbr\n\
+blockdev-getsize64 /dev/sda\n\
+blockdev-getss /dev/sda\n';
     let gf = new GuestFish.GuestFish(diskpath, {partitionOpts: [], readWrite: true});
     let lines = gf.run(makeDiskCmd, cancellable);
     if (lines.length != 2)
@@ -67,15 +67,15 @@ blockdev-getss /dev/vda\n';
     let endOffset = rootOffset + rootsizeSectors;
 
     let partconfig = Format.vprintf('launch\n\
-part-add /dev/vda p %s %s\n\
-part-add /dev/vda p %s %s\n\
-part-add /dev/vda p %s %s\n\
-mkfs ext4 /dev/vda1\n\
-set-e2label /dev/vda1 gnostree-boot\n\
-mkswap-L gnostree-swap /dev/vda2\n\
-mkfs ext4 /dev/vda3\n\
-set-e2label /dev/vda3 gnostree-root\n\
-mount /dev/vda3 /\n\
+part-add /dev/sda p %s %s\n\
+part-add /dev/sda p %s %s\n\
+part-add /dev/sda p %s %s\n\
+mkfs ext4 /dev/sda1\n\
+set-e2label /dev/sda1 gnostree-boot\n\
+mkswap-L gnostree-swap /dev/sda2\n\
+mkfs ext4 /dev/sda3\n\
+set-e2label /dev/sda3 gnostree-root\n\
+mount /dev/sda3 /\n\
 mkdir /boot\n\
 ', [bootOffset, swapOffset - 1,
     swapOffset, rootOffset - 1,
@@ -303,5 +303,5 @@ initrd /%s\n', [osname, bootRelativeKernelPath, osname, bootRelativeInitramfsPat
 function grubInstall(diskpath, cancellable) {
     let gf = new GuestFish.GuestFish(diskpath, {partitionOpts: ['-m', '/dev/sda3', '-m', '/dev/sda1:/boot'],
                                                 readWrite: true});
-    gf.run('grub-install / /dev/vda\n', cancellable);
+    gf.run('grub-install / /dev/sda\n', cancellable);
 }
