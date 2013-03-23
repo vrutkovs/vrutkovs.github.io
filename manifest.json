@@ -475,7 +475,8 @@
 		 "branch": "gtk-engines-2-22"},
 
 		{"src": "gnome:gtk+",
-		 "name": "gtk3"},
+		 "name": "gtk3",
+                 "tag": "75f4f7a47179c6ab48ecbf07acfab16f9cd762b4"},
 
 	        {"src": "fd:plymouth",
 		 "config-opts": ["--enable-pango",
