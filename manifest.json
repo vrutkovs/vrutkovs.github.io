@@ -384,6 +384,13 @@
 
 		{"src": "cgwalters:spidermonkey-tarballs-as-git",
 		 "config-opts": ["--enable-threadsafe",
+		                 "--with-system-nspr",
+				 "--disable-tests"]},
+
+		{"src": "cgwalters:spidermonkey-tarballs-as-git",
+		 "name": "js17",
+		 "branch": "js-17",
+		 "config-opts": ["--enable-threadsafe",
 		                 "--with-system-nspr"]},
 
 		{"src": "fd:polkit",
@@ -820,6 +827,6 @@
 
 	],
     
-    "build-epoch": {"version": 6,
-		    "component-names": ["tracker"]}
+    "build-epoch": {"version": 7,
+		    "component-names": ["gjs", "gnome-shell"]}
 }
