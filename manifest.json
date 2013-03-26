@@ -684,7 +684,6 @@
 		{"src": "gnome:zenity"},
 
 		{"src": "gnome:mutter",
-		 "branch": "wip/bg-fixes",
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
 
 		{"src": "gnome:gjs"},
@@ -807,7 +806,6 @@
 		 "patches": ["grubby-buildapi.patch"]},
 
 		{"src": "gnome:gnome-shell",
-		 "branch": "wip/bg-fixes",
 		 "config-opts": ["--enable-compile-warnings=maximum",
                                  "--disable-man"]},
 
