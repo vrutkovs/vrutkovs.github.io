@@ -72,7 +72,9 @@ function runSync(argv, cancellable, params) {
     _wait_sync_check_internal(proc, cancellable);
 }
 
-function _runSyncGetOutputInternal(argv, cancellable, params, splitLines) {
+function _runSyncGetOutputInternal(argv, cancellable, params, subParams) {
+    subParams = Params.parse(subParams, { splitLines: false,
+					  grep: null });
     let [context, pparams] = _newContext(argv, params);
     context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
     context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.INHERIT);
@@ -83,8 +85,19 @@ function _runSyncGetOutputInternal(argv, cancellable, params, splitLines) {
     let input = proc.get_stdout_pipe();
     let dataIn = Gio.DataInputStream.new(input);
 
-    let result;
-    if (splitLines) {
+    let result = null;
+    if (subParams.grep) {
+	let grep = subParams.grep;
+	while (true) {
+	    let [line, len] = dataIn.read_line_utf8(cancellable);
+	    if (line == null)
+		break;
+	    result = grep.exec(line);
+	    if (result != null) {
+		break;
+	    }
+	}
+    } else if (subParams.splitLines) {
 	result = StreamUtil.dataInputStreamReadLines(dataIn, cancellable);
     } else {
 	result = '';
@@ -95,20 +108,21 @@ function _runSyncGetOutputInternal(argv, cancellable, params, splitLines) {
 	    result += (line + '\n');
 	}
     }
+    dataIn.close(cancellable);
     _wait_sync_check_internal(proc, cancellable);
     return result;
 }
 
 function runSyncGetOutputLines(args, cancellable, params) {
-    return _runSyncGetOutputInternal(args, cancellable, params, true);
+    return _runSyncGetOutputInternal(args, cancellable, params, { splitLines: true });
 }
 
 function runSyncGetOutputUTF8(args, cancellable, params) {
-    return _runSyncGetOutputInternal(args, cancellable, params, false);
+    return _runSyncGetOutputInternal(args, cancellable, params);
 }
 
 function runSyncGetOutputUTF8Stripped(args, cancellable, params) {
-    return _runSyncGetOutputInternal(args, cancellable, params, false).replace(/[ \n]+$/, '');
+    return _runSyncGetOutputInternal(args, cancellable, params).replace(/[ \n]+$/, '');
 }
 
 function runSyncGetOutputUTF8StrippedOrNull(args, cancellable, params) {
@@ -122,6 +136,10 @@ function runSyncGetOutputUTF8StrippedOrNull(args, cancellable, params) {
 	    return null;
 	throw e;
     }
+}
+
+function runSyncGetOutputGrep(args, pattern, cancellable, params) {
+    return _runSyncGetOutputInternal(args, cancellable, params, { grep: pattern });
 }
 
 function getExitStatusAndString(ecode) {

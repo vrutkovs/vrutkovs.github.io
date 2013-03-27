@@ -299,14 +299,6 @@ const TaskBuild = new Lang.Class({
 
 	GSystem.file_ensure_directory(destFile.get_parent(), true, cancellable);
 	
-	if (srcInfo.get_file_type() != Gio.FileType.SYMBOLIC_LINK) {
-	    let minimalMode = 436; // u+rw,g+rw,o+r
-	    if (srcInfo.get_file_type() == Gio.FileType.DIRECTORY)
-		minimalMode |= 64; // u+x
-	    let mode = srcInfo.get_attribute_uint32('unix::mode');
-	    GSystem.file_chmod(srcFile, mode | minimalMode, cancellable);
-	}
-
 	if (srcInfo.get_file_type() == Gio.FileType.DIRECTORY) {
 	    GSystem.file_ensure_directory(destFile, true, cancellable);
 	    let e = srcFile.enumerate_children('standard::*,unix::mode', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
@@ -327,6 +319,50 @@ const TaskBuild = new Lang.Class({
 	let srcInfo = srcFile.query_info('standard::*,unix::mode', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
 	this._installAndUnlinkRecurse(buildResultDir, srcFile, srcInfo, finalResultDir, cancellable);
     },
+
+    _processBuildResultSplitDebuginfo: function(buildResultDir, debugPath, path, cancellable) {
+	let name = path.get_basename();
+	// Only process files ending in .so.* or executables
+	let soRegex = /\.so\./;
+	if (!soRegex.exec(name)) {
+	    let finfo = path.query_info('unix::mode', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+					cancellable);
+	    let mode = finfo.get_attribute_uint32('unix::mode');
+	    if (!(mode & 73))
+		return;
+	}
+	let elfSharedRe = /ELF.*shared/;
+	let elfExecRe = /ELF.*executable/;
+	let ftype = ProcUtil.runSyncGetOutputUTF8StrippedOrNull(['file', path.get_path()], cancellable);
+	if (ftype == null)
+	    return;
+
+	let isShared = elfSharedRe.test(ftype);
+	let isExec = elfExecRe.test(ftype);
+
+	if (!(isShared || isExec))
+	    return;
+
+	let buildIdPattern = /\s+Build ID: ([0-9a-f]+)/;
+	let match = ProcUtil.runSyncGetOutputGrep(['eu-readelf', '-n', path.get_path()], buildIdPattern, cancellable);
+	if (match == null) {
+	    print("WARNING: no build-id for ELF object " + path.get_path());
+	    return;
+	} 
+	let buildId = match[1];
+	print("ELF object " + path.get_path() + " buildid=" + buildId);
+	let dbgName = buildId[0] + buildId[1] + '/' + buildId.substr(2) + '.debug';
+	let objdebugPath = debugPath.resolve_relative_path('usr/lib/debug/.build-id/' + dbgName);
+	GSystem.file_ensure_directory(objdebugPath.get_parent(), true, cancellable);
+	ProcUtil.runSync(['objcopy', '--only-keep-debug', path.get_path(), objdebugPath.get_path()], cancellable);
+
+	let stripArgs = ['strip', '--remove-section=.comment', '--remove-section=.note']; 
+	if (isShared) {
+	    stripArgs.push('--strip-unneeded');
+	}
+	stripArgs.push(path.get_path());
+	ProcUtil.runSync(stripArgs, cancellable);
+    },
     
     _processBuildResults: function(component, buildResultDir, finalResultDir, cancellable) {
 	let runtimePath = finalResultDir.get_child('runtime');
@@ -335,8 +371,23 @@ const TaskBuild = new Lang.Class({
 	GSystem.file_ensure_directory(develPath, true, cancellable);
 	let docPath = finalResultDir.get_child('doc');
 	GSystem.file_ensure_directory(docPath, true, cancellable);
+	let debugPath = finalResultDir.get_child('debug');
+	GSystem.file_ensure_directory(debugPath, true, cancellable);
 
-	// First, remove /var from the install - components are required to
+	// Change file modes first; some components install files that
+	// are read-only even by the user, which we don't want.
+	FileUtil.walkDir(buildResultDir, {}, Lang.bind(this, function(path, cancellable) {
+	    let info = path.query_info("standard::type,unix::mode", Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+	    if (info.get_file_type() != Gio.FileType.SYMBOLIC_LINK) {
+		let minimalMode = 436; // u+rw,g+rw,o+r
+		if (info.get_file_type() == Gio.FileType.DIRECTORY)
+		    minimalMode |= 64; // u+x
+		let mode = info.get_attribute_uint32('unix::mode');
+		GSystem.file_chmod(path, mode | minimalMode, cancellable);
+	    }
+	}), cancellable);
+
+	// Remove /var from the install - components are required to
 	// auto-create these directories on demand.
 	let varPath = buildResultDir.get_child('var');
 	GSystem.shutil_rm_rf(varPath, cancellable);
@@ -373,6 +424,11 @@ const TaskBuild = new Lang.Class({
 				 GSystem.file_unlink(filePath, cancellable);
 			     }), cancellable);
 	}
+
+	FileUtil.walkDir(buildResultDir, { fileType: Gio.FileType.REGULAR },
+			 Lang.bind(this, function(filePath, cancellable) {
+			     this._processBuildResultSplitDebuginfo(buildResultDir, debugPath, filePath, cancellable);
+			 }), cancellable);
 
 	for (let i = 0; i < DEVEL_DIRS.length; i++) {
 	    let path = DEVEL_DIRS[i];
@@ -924,7 +980,7 @@ const TaskBuild = new Lang.Class({
 	}
 
         let targetsList = [];
-	let componentTypes = ['runtime', 'devel'];
+	let componentTypes = ['runtime', 'runtime-debug', 'devel', 'devel-debug'];
         for (let i = 0; i < componentTypes.length; i++) {
 	    let targetComponentType = componentTypes[i];
             for (let i = 0; i < architectures.length; i++) {
@@ -933,20 +989,20 @@ const TaskBuild = new Lang.Class({
                 targetsList.push(target);
                 target['name'] = 'buildmaster/' + architecture + '-' + targetComponentType;
 
-                let runtimeRef = baseName + '/' + architecture + '-runtime';
+                let baseRuntimeRef = baseName + '/' + architecture + '-runtime';
                 let buildrootRef = baseName + '/' + architecture + '-devel';
 		let baseRef;
                 if (targetComponentType == 'runtime') {
-                    baseRef = runtimeRef;
+                    baseRef = baseRuntimeRef;
                 } else {
                     baseRef = buildrootRef;
 		}
                 target['base'] = {'name': baseRef,
-                                  'runtime': runtimeRef,
+                                  'runtime': baseRuntimeRef,
                                   'devel': buildrootRef};
 
 		let targetComponents;
-                if (targetComponentType == 'runtime') {
+                if (targetComponentType.indexOf('runtime-') == 0) {
                     targetComponents = runtimeComponents;
                 } else {
                     targetComponents = develComponents;
@@ -966,8 +1022,12 @@ const TaskBuild = new Lang.Class({
                     let componentRef = {'name': binaryName};
                     if (targetComponentType == 'runtime') {
                         componentRef['trees'] = ['/runtime'];
-                    } else {
+                    } else if (targetComponentType == 'runtime-debug') {
+                        componentRef['trees'] = ['/runtime', '/debug'];
+                    } else if (targetComponentType == 'devel') {
                         componentRef['trees'] = ['/runtime', '/devel', '/doc']
+		    } else if (targetComponentType == 'devel-debug') {
+                        componentRef['trees'] = ['/runtime', '/devel', '/doc', '/debug'];
 		    }
                     contents.push(componentRef);
 		}
@@ -1001,7 +1061,7 @@ const TaskBuild = new Lang.Class({
 
 	// Now loop over the other targets per architecture, reusing
 	// the initramfs cached from -devel generation.
-	let nonDevelTargets = ['runtime'];
+	let nonDevelTargets = ['runtime', 'runtime-debug', 'devel-debug'];
 	for (let i = 0; i < nonDevelTargets.length; i++) {
 	    let target = nonDevelTargets[i];
             for (let j = 0; j < architectures.length; j++) {
