@@ -449,8 +449,7 @@
 
                 {"src": "git:git://gitorious.org/gusb/gusb.git"},
 		
-		{"src": "git:git://gitorious.org/colord/master.git",
-		 "name": "colord",
+		{"src": "git:git://github.com/hughsie/colord.git",
 		 "config-opts": ["--disable-print-profiles"]},
 
 		{"src": "gnome:gconf",
@@ -777,8 +776,7 @@
                              "libpwquality-python-bindings.patch"]
                 }, 
 
-		{"src": "git:git://gitorious.org/colord/colord-gtk.git",
-		 "name": "colord-gtk" },
+		{"src": "git://github.com/hughsie/colord-gtk.git"},
 
 		{"src": "gnome:gnome-control-center",
 		 "config-opts": ["--disable-documentation",
