@@ -776,7 +776,7 @@
                              "libpwquality-python-bindings.patch"]
                 }, 
 
-		{"src": "git://github.com/hughsie/colord-gtk.git"},
+		{"src": "git:git://github.com/hughsie/colord-gtk.git"},
 
 		{"src": "gnome:gnome-control-center",
 		 "config-opts": ["--disable-documentation",
