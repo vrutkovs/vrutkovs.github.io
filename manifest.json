@@ -104,7 +104,8 @@
    		{"src": "gnome:linux-user-chroot",
 		 "setuid": ["/runtime/usr/bin/linux-user-chroot"]},
 
-		{"src": "gnome:libxml2"},
+                {"src": "gnome:libxml2",
+		 "tag": "0ab8ce53024e80f671b135a58086a24bf76bc2eb"},
 
 		{"src": "gnome:libxslt"},
 
