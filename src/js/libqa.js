@@ -122,24 +122,25 @@ function getDeployDirs(mntdir, osname) {
 }
 
 function modifyBootloaderAppendKernelArgs(mntdir, kernelArgs, cancellable) {
-    let grubConfPath = mntdir.resolve_relative_path('boot/grub/grub.conf');
-    let grubConf = GSystem.file_load_contents_utf8(grubConfPath, cancellable);
-    let lines = grubConf.split('\n');
+    let confPath = mntdir.resolve_relative_path('boot/syslinux/syslinux.cfg');
+    let conf = GSystem.file_load_contents_utf8(confPath, cancellable);
+    let lines = conf.split('\n');
     let modifiedLines = [];
     
     let kernelArg = kernelArgs.join(' ');
-    let kernelLineRe = /kernel \//;
+    let kernelLineRe = /APPEND \//;
     for (let i = 0; i < lines.length; i++) {
 	let line = lines[i];
 	let match = kernelLineRe.exec(line);
 	if (!match)
 	    modifiedLines.push(line);
 	else
-		modifiedLines.push(line + ' ' + kernelArg);
+	    modifiedLines.push(line + ' ' + kernelArg);
     }
-    let modifiedGrubConf = modifiedLines.join('\n');
-    grubConfPath.replace_contents(modifiedGrubConf, null, false, Gio.FileCreateFlags.NONE,
-				  cancellable);
+    let modifiedConf = modifiedLines.join('\n');
+    confPath.replace_contents(modifiedConf, null, false,
+			      Gio.FileCreateFlags.NONE,
+			      cancellable);
 }
 
 function getMultiuserWantsDir(currentEtcDir) {
@@ -228,7 +229,6 @@ function _getInitramfsPath(mntdir, kernelRelease) {
 };
 
 function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
-    let bootdir = mntdir.get_child('boot');
     let ostreedir = mntdir.get_child('ostree');
     let ostree_osdir = ostreedir.resolve_relative_path('deploy/' + osname);
 
@@ -271,6 +271,17 @@ function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
                      {logInitiation: true, env: adminEnv});
     ProcUtil.runSync(adminCmd.concat(['prune', osname]), cancellable,
                      {logInitiation: true, env: adminEnv});
+};
+
+function configureBootloader(mntdir, osname, cancellable) {
+    let bootdir = mntdir.get_child('boot');
+    let ostreedir = mntdir.get_child('ostree');
+
+    let defaultFstab = 'LABEL=gnostree-root / ext4 defaults 1 1\n\
+LABEL=gnostree-boot /boot ext4 defaults 1 2\n\
+LABEL=gnostree-swap swap swap defaults 0 0\n';
+    let fstabPath = ostreedir.resolve_relative_path('deploy/' + osname + '/current-etc/fstab');
+    fstabPath.replace_contents(defaultFstab, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 
     let deployKernelPath = this._findCurrentKernel(mntdir, osname, cancellable);
     let bootKernelPath = bootdir.resolve_relative_path('ostree/' + deployKernelPath.get_basename());
@@ -279,30 +290,79 @@ function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
     let kernelRelease = this._parseKernelRelease(deployKernelPath);
     let initramfsPath = this._getInitramfsPath(mntdir, kernelRelease);
 
-    let defaultFstab = 'LABEL=gnostree-root / ext4 defaults 1 1\n\
-LABEL=gnostree-boot /boot ext4 defaults 1 2\n\
-LABEL=gnostree-swap swap swap defaults 0 0\n';
-    let fstabPath = ostreedir.resolve_relative_path('deploy/' + osname + '/current-etc/fstab'); 
-    fstabPath.replace_contents(defaultFstab, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-    
-    let grubDir = mntdir.resolve_relative_path('boot/grub');
-    GSystem.file_ensure_directory(grubDir, false, cancellable);
     let bootRelativeKernelPath = bootdir.get_relative_path(bootKernelPath);
     if (bootRelativeKernelPath == null)
         throw new Error("" + bootKernelPath.get_path() + " is not relative to " + bootdir.get_path());
     let bootRelativeInitramfsPath = bootdir.get_relative_path(initramfsPath);
-    let grubConfPath = grubDir.get_child('grub.conf');
-    let grubConf = Format.vprintf('default=0\n\
-timeout=3\n\
-title OSTree: %s\n\
-root (hd0,0)\n\
-kernel /%s root=LABEL=gnostree-root ostree=%s/current\n\
-initrd /%s\n', [osname, bootRelativeKernelPath, osname, bootRelativeInitramfsPath]);
-    grubConfPath.replace_contents(grubConf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-};
 
-function grubInstall(diskpath, cancellable) {
-    let gf = new GuestFish.GuestFish(diskpath, {partitionOpts: ['-m', '/dev/sda3', '-m', '/dev/sda1:/boot'],
-                                                readWrite: true});
-    gf.run('grub-install / /dev/sda\n', cancellable);
+    // Syslinux conf
+    let syslinuxDir = mntdir.resolve_relative_path('boot/syslinux');
+    GSystem.file_ensure_directory(syslinuxDir, false, cancellable);
+    let syslinuxConfPath = syslinuxDir.get_child('syslinux.cfg');
+    let syslinuxConf = Format.vprintf('PROMPT 1\n\
+TIMEOUT 50\n\
+DEFAULT %s\n\
+\n\
+LABEL %s\n\
+\tLINUX /%s\n\
+\tAPPEND root=LABEL=gnostree-root rw ostree=%s/current\n\
+\tINITRD /%s\n', [osname, osname, bootRelativeKernelPath, osname, bootRelativeInitramfsPath]);
+    print('Saving syslinuxconf at ' + syslinuxConfPath.get_path());
+    syslinuxConfPath.replace_contents(syslinuxConf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+}
+
+function bootloaderInstall(diskpath, workdir, osname, cancellable) {
+    let qemuArgs = [getQemuPath()];
+    qemuArgs.push.apply(qemuArgs, DEFAULT_QEMU_OPTS);
+
+    let tmpKernelPath = workdir.get_child('kernel.img');
+    let tmpInitrdPath = workdir.get_child('initrd.img');
+
+    let [gfmnt, mntdir] = newReadWriteMount(diskpath, cancellable);
+    try {
+        let [currentDir, currentEtcDir] = getDeployDirs(mntdir, 'gnome-ostree');
+
+        injectExportJournal(currentDir, currentEtcDir, cancellable);
+
+	let kernelPath = this._findCurrentKernel(mntdir, osname, cancellable);
+	let kernelRelease = this._parseKernelRelease(kernelPath);
+	let initrdPath = this._getInitramfsPath(mntdir, kernelRelease);
+
+	// Copy
+	kernelPath.copy(tmpKernelPath, 0, cancellable, null, null);
+	initrdPath.copy(tmpInitrdPath, 0, cancellable, null, null);
+    } finally {
+        gfmnt.umount(cancellable);
+    }
+
+    let consoleOutput = workdir.get_child('bootloader-console.out');
+    let journalOutput = workdir.get_child('bootloader-journal-json.txt');
+
+    qemuArgs.push.apply(qemuArgs, ['-drive', 'file=' + diskpath.get_path() + ',if=virtio',
+                                   '-vnc', 'none',
+                                   '-serial', 'file:' + consoleOutput.get_path(),
+                                   '-chardev', 'socket,id=charmonitor,path=qemu.monitor,server,nowait',
+                                   '-mon', 'chardev=charmonitor,id=monitor,mode=control',
+                                   '-device', 'virtio-serial',
+                                   '-chardev', 'file,id=journaljson,path=' + journalOutput.get_path(),
+                                   '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson',
+				   '-kernel', tmpKernelPath.get_path(),
+				   '-initrd', tmpInitrdPath.get_path(),
+				   '-append', 'console=ttyS0 root=LABEL=gnostree-root rw ostree=' + osname + '/current systemd.unit=gnome-ostree-install-bootloader.target'
+				  ]);
+
+    let qemuContext = new GSystem.SubprocessContext({ argv: qemuArgs });
+    qemuContext.set_cwd(workdir.get_path());
+    let qemu = new GSystem.Subprocess({context: qemuContext});
+
+    print("starting bootloader installation : " + qemuArgs.join(' '));
+
+    qemu.init(cancellable);
+    let [success, status] = qemu.wait_sync(cancellable);
+    tmpKernelPath.delete(cancellable);
+    tmpInitrdPath.delete(cancellable);
+
+    if (!success)
+	throw new Error("Couldn't install bootloader through qemu, error code: " +
+			status);
 }
