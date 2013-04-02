@@ -825,6 +825,7 @@
 
 	],
     
-    "build-epoch": {"version": 7,
-		    "component-names": ["gjs", "gnome-shell"]}
+    "build-epoch": {"version": 8,
+		    "all": true,
+		    "component-names": []}
 }

@@ -457,12 +457,17 @@ const TaskBuild = new Lang.Class({
 	loop.quit();
     },
 
+    _componentBuildRef: function(component, architecture) {
+        let archBuildname = Format.vprintf('%s/%s', [component['name'], architecture]);
+        return this.osname + '/components/' + archBuildname;
+    },
+
     _buildOneComponent: function(component, architecture, cancellable) {
         let basename = component['name'];
 
-        let buildname = Format.vprintf('%s/%s', [basename, architecture]);
-        let unixBuildname = buildname.replace(/\//g, '_');
-        let buildRef = this.osname + '/components/' + buildname;
+        let archBuildname = Format.vprintf('%s/%s', [component['name'], architecture]);
+        let unixBuildname = archBuildname.replace(/\//g, '_');
+        let buildRef = this._componentBuildRef(component, architecture);
 
         let currentVcsVersion = component['revision'];
         let expandedComponent = this._snapshot.getExpanded(basename);
@@ -473,7 +478,7 @@ const TaskBuild = new Lang.Class({
             previousBuildVersion = previousMetadata['ostree'];
             previousVcsVersion = previousMetadata['revision'];
         } else {
-            print("No previous build for " + buildname);
+            print("No previous build for " + archBuildname);
 	}
 
 	let patchdir;
@@ -511,13 +516,13 @@ const TaskBuild = new Lang.Class({
             let rebuildReason = this._needsRebuild(previousMetadata, expandedComponent);
             if (rebuildReason == null) {
                 if (!forceRebuild) {
-                    print(Format.vprintf("Reusing cached build of %s at %s", [buildname, previousVcsVersion]));
+                    print(Format.vprintf("Reusing cached build of %s at %s", [archBuildname, previousVcsVersion]));
                     return previousBuildVersion;
                 } else {
                     print("Build forced regardless");
 		}
             } else {
-                print(Format.vprintf("Need rebuild of %s: %s", [buildname, rebuildReason]));
+                print(Format.vprintf("Need rebuild of %s: %s", [archBuildname, rebuildReason]));
 	    }
 	}
 
@@ -961,16 +966,28 @@ const TaskBuild = new Lang.Class({
 	    (currentBuildEpoch !== undefined &&
 	     previousBuildEpoch['version'] < currentBuildEpoch['version'])) {
 	    let currentEpochVer = currentBuildEpoch['version'];
-	    let rebuilds = currentBuildEpoch['component-names'];
+	    let rebuildAll = currentBuildEpoch['all'];
+	    let rebuilds = [];
+	    if (rebuildAll) {
+		for (let i = 0; i < components.length; i++) {
+		    rebuilds.push(components[i]['name']);
+		}
+	    } else {
+		rebuilds = currentBuildEpoch['component-names'];
+	    }
 	    for (let i = 0; i < rebuilds.length; i++) {
 		let component = this._snapshot.getComponent(rebuilds[i]);
 		let name = component['name'];
 		print("Component " + name + " build forced via epoch");
-		this.forceBuildComponents[name] = true;
+		for (let j = 0; j < architectures.length; j++) {
+		    let buildRef = this._componentBuildRef(component, architectures[j]);
+		    delete this._componentBuildCache[buildRef];
+		}
 	    }
 	}
 
 	this._componentBuildCache['build-epoch'] = currentBuildEpoch;
+        JsonUtil.writeJsonFileAtomic(this._componentBuildCachePath, this._componentBuildCache, cancellable);
 
         for (let i = 0; i < componentsToBuild.length; i++) {
 	    let [component, architecture] = componentsToBuild[i];
