@@ -11,13 +11,13 @@
     <branch/>
   </autotools>
   <autotools id="glib">
-    <branch/>
+    <branch revision="glib-2-36"/>
     <dependencies>
       <dep package="gtk-doc-stub"/>
     </dependencies>
   </autotools>
   <autotools id="gobject-introspection" autogenargs="--without-cairo">
-    <branch/>
+    <branch revision="gnome-3-8"/>
     <dependencies>
       <dep package="glib"/>
     </dependencies>
@@ -29,7 +29,7 @@
     </dependencies>
   </autotools>
   <autotools id="gjs" autogenargs="--without-cairo">
-    <branch/>
+    <branch revision="gnome-3-8"/>
     <dependencies>
       <dep package="gobject-introspection"/>
       <dep package="gnome-common"/>
@@ -37,7 +37,7 @@
     </dependencies>
   </autotools>
   <autotools id="libsoup" autogenargs="--disable-tls-check">
-    <branch/>
+    <branch revision="LIBSOUP_2_42_0"/>
     <dependencies>
       <dep package="glib"/>
       <dep package="gobject-introspection"/>
