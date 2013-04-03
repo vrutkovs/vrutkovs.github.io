@@ -70,7 +70,7 @@ const TaskBuildDisks = new Lang.Class({
         let workImageDir = subworkdir.get_child('images');
         GSystem.file_ensure_directory(workImageDir, true, cancellable);
 
-	      let targets = buildData['targets'];
+        let targets = buildData['targets'];
 
         let osname = buildData['snapshot']['osname'];
         let repo = buildData['snapshot']['repo'];
