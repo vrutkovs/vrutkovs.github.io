@@ -156,9 +156,9 @@ function injectExportJournal(currentDir, currentEtcDir, cancellable) {
     let exportScript = datadir.resolve_relative_path('tests/gnome-ostree-export-journal-to-serialdev');
     let exportScriptService = datadir.resolve_relative_path('tests/gnome-ostree-export-journal-to-serialdev.service');
     let exportBin = binDir.get_child(exportScript.get_basename());
-    exportScript.copy(exportBin, 0, cancellable, null, null);
+    exportScript.copy(exportBin, Gio.FileCopyFlags.OVERWRITE, cancellable, null, null);
     GSystem.file_chmod(exportBin, 493, cancellable);
-    exportScriptService.copy(multiuserWantsDir.get_child(exportScriptService.get_basename()), 0, cancellable, null, null);
+    exportScriptService.copy(multiuserWantsDir.get_child(exportScriptService.get_basename()), Gio.FileCopyFlags.OVERWRITE, cancellable, null, null);
 }
 
 function injectTestUserCreation(currentDir, currentEtcDir, username, params, cancellable) {
