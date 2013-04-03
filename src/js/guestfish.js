@@ -97,6 +97,7 @@ const GuestMount = new Lang.Class({
 				  '--pid-file', this._mountPidFile.get_path()];
 	    this._appendOpts(guestmountArgv);
 	    guestmountArgv.push(mntdir.get_path());
+	    print('Mounting ' + mntdir + ' : ' + guestmountArgv.join(' '));
             let context = new GSystem.SubprocessContext({ argv: guestmountArgv });
             let proc = new GSystem.Subprocess({ context: context });
 	    proc.init(cancellable);

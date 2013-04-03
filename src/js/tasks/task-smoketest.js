@@ -258,7 +258,7 @@ const SmoketestOne = new Lang.Class({
         qemuContext.set_cwd(subworkdir.get_path());
         let qemu = new GSystem.Subprocess({context: qemuContext});
         this._qemu = qemu;
-        print("starting qemu");
+        print("starting qemu : " + qemuArgs);
         qemu.init(cancellable);
 
         qemu.wait(cancellable, Lang.bind(this, this._onQemuExited));
