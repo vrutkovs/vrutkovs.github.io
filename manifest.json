@@ -783,7 +783,8 @@
 		 "config-opts": ["--disable-documentation",
 				 "--disable-cups"]},
 
-		{"src": "gnome:gnome-initial-setup"},
+		{"src": "gnome:gnome-initial-setup",
+		 "config-opts": ["--disable-welcome-tour"]},
 
 		{"src": "gnome:libwnck"},
 
