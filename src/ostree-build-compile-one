@@ -74,20 +74,6 @@ def run_sync(args, cwd=None, env=None):
 
 PREFIX = '/usr'
 
-# Applied to filenames only
-_IGNORE_FILENAME_REGEXPS = map(re.compile,
-                               [r'.*\.py[co]$'])
-
-_DOC_DIRS = ['usr/share/doc',
-             'usr/share/gtk-doc',
-             'usr/share/man',
-             'usr/share/info']
-
-_DEVEL_DIRS = ['usr/include',
-               'usr/share/aclocal',
-               'usr/share/pkgconfig',
-               'usr/lib/pkgconfig']
-
 def _has_buildapi_configure_variable(name):
     var = '#buildapi-variable-%s' % (name, )
     for line in open('configure'):
