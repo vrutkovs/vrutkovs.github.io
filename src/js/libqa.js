@@ -70,6 +70,7 @@ blockdev-getss /dev/sda\n';
 part-add /dev/sda p %s %s\n\
 part-add /dev/sda p %s %s\n\
 part-add /dev/sda p %s %s\n\
+part-set-bootable /dev/sda 1 true\n\
 mkfs ext4 /dev/sda1\n\
 set-e2label /dev/sda1 gnostree-boot\n\
 mkswap-L gnostree-swap /dev/sda2\n\
