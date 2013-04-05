@@ -522,7 +522,7 @@
 		 "branch": "cogl-1.14"},
 
 		{"src": "gnome:clutter",
-		 "branch": "clutter-1.14"},
+		 "branch": "clutter-1.16"},
 
 		{"src": "gnome:libnotify"},
 
