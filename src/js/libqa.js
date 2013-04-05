@@ -305,7 +305,7 @@ DEFAULT %s\n\
 \n\
 LABEL %s\n\
 \tLINUX /%s\n\
-\tAPPEND root=LABEL=gnostree-root rw ostree=%s/current\n\
+\tAPPEND root=LABEL=gnostree-root rw quiet splash ostree=%s/current\n\
 \tINITRD /%s\n', [osname, osname, bootRelativeKernelPath, osname, bootRelativeInitramfsPath]);
     print('Saving syslinuxconf at ' + syslinuxConfPath.get_path());
     syslinuxConfPath.replace_contents(syslinuxConf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
