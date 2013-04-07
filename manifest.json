@@ -619,6 +619,7 @@
 		 "config-args": ["--disable-tls-check"]},
 
 		{"src": "gnome:ostree",
+		 "initramfs-depends": true,
 		 "config-opts": ["--disable-documentation",
 		                 "--with-soup-gnome"]},
 
@@ -816,6 +817,7 @@
                 {"src": "git:git://git.kernel.org/pub/scm/boot/dracut/dracut.git",
 		 "config-opts": ["--disable-documentation",
 		                 "--enable-systemd"],
+		 "initramfs-depends": true,
 		 "tag": "ae4758ce0d0ceeddabe4a78dd575c7b42c349a88",
 		 "patches": ["dracut-Support-OSTree.patch",
 		             "dracut-systemd-configure.patch"]},
@@ -847,6 +849,8 @@
 
 		{"src": "gnome:gnome-software"}
 	],
+
+    "initramfs-build-epoch": {"version": 0},
     
     "build-epoch": {"version": 8,
 		    "all": true,

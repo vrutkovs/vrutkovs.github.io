@@ -722,7 +722,7 @@ const TaskBuild = new Lang.Class({
 	return [treename, ostreeRevision];
     },
 
-    _generateInitramfs: function(architecture, composeRootdir, cancellable) {
+    _generateInitramfs: function(architecture, composeRootdir, initramfsDepends, cancellable) {
 	let e = composeRootdir.get_child('boot').enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
 	let info;
 	let kernelPath = null;
@@ -739,6 +739,31 @@ const TaskBuild = new Lang.Class({
 	let kernelName = kernelPath.get_basename();
 	let releaseIdx = kernelName.indexOf('-');
 	let kernelRelease = kernelName.substr(releaseIdx + 1);
+
+        let initramfsCachedir = this.cachedir.resolve_relative_path('initramfs/' + architecture);
+	GSystem.file_ensure_directory(initramfsCachedir, true, cancellable);
+
+	let initramfsEpoch = this._snapshot.data['initramfs-build-epoch'];
+	let initramfsEpochVersion = 0;
+	if (initramfsEpoch)
+	    initramfsEpochVersion = initramfsEpoch['version'];
+	let fullInitramfsDependsString = 'epoch:' + initramfsEpochVersion +
+	    ';kernel:' + kernelRelease + ';' +
+	    initramfsDepends.join(';'); 
+	let dependsChecksum = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256,
+							      GLib.Bytes.new(fullInitramfsDependsString));
+
+	let cachedInitramfsPath = initramfsCachedir.get_child(dependsChecksum);
+	if (cachedInitramfsPath.query_exists(null)) {
+	    print("Reusing cached initramfs " + cachedInitramfsPath.get_path());
+	    return [kernelRelease, cachedInitramfsPath];
+	} else {
+	    print("No cached initramfs matching " + fullInitramfsDependsString);
+	}
+
+	// Clean out all old initramfs images
+	GSystem.shutil_rm_rf(initramfsCachedir, cancellable);
+	GSystem.file_ensure_directory(initramfsCachedir, true, cancellable);
 
 	let cwd = Gio.File.new_for_path('.');
 	let workdir = cwd.get_child('tmp-initramfs-' + architecture);
@@ -765,7 +790,9 @@ const TaskBuild = new Lang.Class({
 
 	GSystem.file_chmod(initramfsTmp, 420, cancellable);
 
-	return [kernelRelease, initramfsTmp];
+	GSystem.file_rename(initramfsTmp, cachedInitramfsPath, cancellable);
+
+	return [kernelRelease, cachedInitramfsPath];
     },
 
     /* Build the Yocto base system. */
@@ -1065,9 +1092,20 @@ const TaskBuild = new Lang.Class({
 	    let develTargetName = 'buildmaster/' + architecture + '-devel';
 	    let develTarget = this._findTargetInList(develTargetName, targetsList);
 
+	    // Gather a list of components upon which the initramfs depends
+	    let initramfsDepends = [];
+	    for (let j = 0; j < components.length; j++) {
+		let component = components[j];
+		if (!component['initramfs-depends'])
+		    continue;
+		let archname = component['name'] + '/' + architecture;
+		let buildRev = componentBuildRevs[archname];
+		initramfsDepends.push(component['name'] + ':' + buildRev);
+	    }
+
 	    let [composeRootdir, relatedTmpPath] = this._checkoutOneTree(develTarget, componentBuildRevs, cancellable);
 	    
-	    let [kernelRelease, initramfsPath] = this._generateInitramfs(architecture, composeRootdir, cancellable);
+	    let [kernelRelease, initramfsPath] = this._generateInitramfs(architecture, composeRootdir, initramfsDepends, cancellable);
 	    archInitramfsImages[architecture] = [kernelRelease, initramfsPath];
 	    let initramfsTargetName = 'initramfs-' + kernelRelease + '.img';
 	    let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsTargetName);
