@@ -543,6 +543,10 @@
 
 		{"src": "gnome:libnotify"},
 
+		{"src": "fd-spice:linux/vd_agent",
+		 "patches": ["vdagent-autogen.patch"],
+		 "config-opts": ["--with-init-script=systemd"]},
+
 		{"src": "cgwalters:iso-codes",
 		 "rm-configure": true,
 		 "patches": ["iso-codes-autogen.patch",
