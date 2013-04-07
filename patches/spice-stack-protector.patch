@@ -1,0 +1,33 @@
+From 892e0a597b7f3977c7aacc1c682c4e3aff5825ba Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Sun, 7 Apr 2013 14:43:02 -0400
+Subject: [PATCH] spice: Disable automatic injection of -fstack-protector-all
+
+It looks like the stack-protection toolchain is buggy at the moment
+in gnome-ostree.
+
+And regardless, this is something the external toolchain should inject
+via explicit CFLAGS (or configure option), it shouldn't be chosen
+per-component automatically.
+---
+ m4/spice-compile-warnings.m4 |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/m4/spice-compile-warnings.m4 b/m4/spice-compile-warnings.m4
+index 959971a..48d7a18 100644
+--- a/m4/spice-compile-warnings.m4
++++ b/m4/spice-compile-warnings.m4
+@@ -126,8 +126,8 @@ AC_DEFUN([SPICE_COMPILE_WARNINGS],[
+        dnl Fedora only uses -fstack-protector, but doesn't seem to
+        dnl be great overhead in adding -fstack-protector-all instead
+        dnl gl_WARN_ADD([-fstack-protector])
+-       gl_WARN_ADD([-fstack-protector-all])
+-       gl_WARN_ADD([--param=ssp-buffer-size=4])
++       dnl gl_WARN_ADD([-fstack-protector-all])
++       dnl gl_WARN_ADD([--param=ssp-buffer-size=4])
+        ;;
+     esac
+     gl_WARN_ADD([-fexceptions])
+-- 
+1.7.1
+

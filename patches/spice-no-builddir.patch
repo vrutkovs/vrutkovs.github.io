@@ -1,0 +1,30 @@
+From 5961bae853180f75b018ccb9cfa3889e742aee04 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Sun, 7 Apr 2013 14:30:18 -0400
+Subject: [PATCH] build: We can't do srcdir != builddir from git
+
+See comment.
+---
+ configure.ac |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index fc0216f..39f095d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -35,6 +35,12 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+ AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip subdir-objects])
+ AM_MAINTAINER_MODE
+ 
++dnl http://people.gnome.org/~walters/docs/build-api.txt
++dnl We don't support separate builddir when building from git
++dnl because of all of the crazy stuff to try not to depend on
++dnl pyparsing.
++echo \#buildapi-variable-no-builddir >/dev/null
++
+ AC_PROG_CC
+ AC_PROG_CC_C99
+ if test x"$ac_cv_prog_cc_c99" = xno; then
+-- 
+1.7.1
+
