@@ -844,8 +844,9 @@
 
 		{"src": "gnome:gnome-clocks"},
 
-		{"src": "gnome:nautilus"}
+		{"src": "gnome:nautilus"},
 
+		{"src": "gnome:gnome-software"}
 	],
     
     "build-epoch": {"version": 8,
