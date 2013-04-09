@@ -516,8 +516,7 @@
 		 "tag": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
 		 "patches": ["ca-certs-build.patch"]},
 
-		{"src": "fd-p11:p11-kit",
-		 "tag": "4671352fe2a4f56c6707322dcab0015e2e8600c4"},
+		{"src": "fd-p11:p11-kit"},
 
 		{"src": "gnome:gcr"},
 
