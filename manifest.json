@@ -758,7 +758,6 @@
 		 "config-opts": ["--enable-admin-group=sudo"]},
 
 		{"src": "gnome:gdm",
-		 "tag": "0bd1fabf99b75f56f732d9077ff8c5b28ddb119a",
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-split-authentication",
 		                 "--with-default-pam-config=openembedded",
