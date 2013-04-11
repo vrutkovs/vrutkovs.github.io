@@ -907,6 +907,17 @@ const TaskBuild = new Lang.Class({
 
 	let targetSourceVersion = builddb.parseVersionStr(this._snapshot.path.get_basename());
 
+	// Pick up overrides from $workdir/overrides/$name
+        for (let i = 0; i < components.length; i++) {
+	    let component = components[i];
+	    let name = component['name'];
+	    let overridePath = this.workdir.resolve_relative_path('overrides/' + name);
+	    if (overridePath.query_exists(null)) {
+		print("Using override:  " + overridePath.get_path());
+		component['src'] = 'local:' + overridePath.get_path();
+	    }
+	}
+
 	let haveLocalComponent = false;
         for (let i = 0; i < components.length; i++) {
 	    let component = components[i];
