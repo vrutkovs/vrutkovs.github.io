@@ -2,7 +2,7 @@
   "00ostbuild-manifest-version": 0,
 
   "osname": "gnome-ostree",
-  "repo": "http://ostree.gnome.org/repo",
+  "repo": "http://build.gnome.org/ostree/buildmaster/repo",
   "architectures": ["x86_64"],
   "base": {
             "name": "yocto",
