@@ -78,6 +78,8 @@ jsosttasks_DATA= \
 	src/js/tasks/task-integrationtest.js \
 	src/js/tasks/task-zdisks.js \
 	src/js/tasks/testbase.js \
+	src/js/tasks/task-dummy-resolve.js \
+	src/js/tasks/task-dummy-delayed.js \
 	$(NULL)
 
 endif
