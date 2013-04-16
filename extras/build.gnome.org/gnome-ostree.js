@@ -141,13 +141,6 @@ function repowebIndexInit() {
         buildMetaNode.appendChild(a);
         buildMetaNode.appendChild(document.createTextNode(': ' + (currentBuildMeta.success ? "success" : "failed ")));
         
-        $("#build-icon").removeClass("buildstatus-happy");
-        $("#build-icon").removeClass("buildstatus-sad");
-        if (currentBuildMeta.success) {
-            $("#build-icon").addClass("buildstatus-happy");
-        } else {
-            $("#build-icon").addClass("buildstatus-sad");
-        }
     });
     $(repoDataSignal).on("current-smoketest-meta-loaded", function () {
 	var node = $("#smoketest-meta").get(0);
