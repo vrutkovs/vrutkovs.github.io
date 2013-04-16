@@ -46,10 +46,13 @@ const TaskBuildDisks = new Lang.Class({
     // Legacy
     _VERSION_RE: /^(\d+)\.(\d+)$/,
 
+    _imageSubdir: 'images',
+    _inheritPreviousDisk: true,
+
     execute: function(cancellable) {
         let subworkdir = Gio.File.new_for_path('.');
 
-	      let baseImageDir = this.workdir.get_child('images');
+	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
 	      let currentImageLink = baseImageDir.get_child('current');
 	      let previousImageLink = baseImageDir.get_child('previous');
@@ -84,7 +87,7 @@ const TaskBuildDisks = new Lang.Class({
             let diskPath = workImageDir.get_child(diskName);
             let prevPath = currentImageLink.get_child(diskName);
             GSystem.shutil_rm_rf(diskPath, cancellable);
-            if (prevPath.query_exists(null)) {
+            if (this._inheritPreviousDisk && prevPath.query_exists(null)) {
                 LibQA.copyDisk(prevPath, diskPath, cancellable);
             } else {
                 LibQA.createDisk(diskPath, cancellable);
@@ -106,6 +109,8 @@ const TaskBuildDisks = new Lang.Class({
                 gfmnt.umount(cancellable);
             }
             LibQA.bootloaderInstall(diskPath, subworkdir, osname, cancellable);
+
+            this._postDiskCreation(diskPath, cancellable);
 	      }
 
         GSystem.file_rename(workImageDir, targetImageDir, cancellable);
@@ -127,6 +132,10 @@ const TaskBuildDisks = new Lang.Class({
         BuildUtil.atomicSymlinkSwap(baseImageDir.get_child('current'), targetImageDir, cancellable);
 
         this._cleanOldVersions(baseImageDir, IMAGE_RETAIN_COUNT, cancellable);
+    },
+
+    _postDiskCreation: function(diskPath, cancellable) {
+        // Nothing, this is used by zdisks
     },
 
     _loadVersionsFrom: function(dir, cancellable) {
