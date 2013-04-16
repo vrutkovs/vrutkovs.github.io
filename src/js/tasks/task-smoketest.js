@@ -258,7 +258,7 @@ const SmoketestOne = new Lang.Class({
         qemuContext.set_cwd(subworkdir.get_path());
         let qemu = new GSystem.Subprocess({context: qemuContext});
         this._qemu = qemu;
-        print("starting qemu : " + qemuArgs);
+        print("starting qemu : " + qemuArgs.join(' '));
         qemu.init(cancellable);
 
         qemu.wait(cancellable, Lang.bind(this, this._onQemuExited));
@@ -269,7 +269,8 @@ const SmoketestOne = new Lang.Class({
         let timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, TIMEOUT_SECONDS,
                                                  Lang.bind(this, this._onTimeout));
 
-        let screenshotTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
+        // Let's only do a screenshot every 3 seconds, I think it's slowing things down...
+        let screenshotTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 3,
                                                  Lang.bind(this, this._idleScreenshot));
         
         this._loop.run();
