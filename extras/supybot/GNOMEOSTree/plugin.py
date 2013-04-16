@@ -55,8 +55,9 @@ class GNOMEOSTree(callbacks.Plugin):
         self._last_build_version = None
         self._last_smoketest_version = None
         self._jsondb_re = re.compile(r'^(\d+\.\d+)-([0-9a-f]+)\.json$')
-        self._workdir = os.path.expanduser('~/ostbuild/work/')
-        self._workurl = "http://build.gnome.org/ostree/buildmaster/"
+        tracked_build = 'buildmaster'
+        self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
+        self._workurl = "http://build.gnome.org/ostree/%s/" % (tracked_build, )
 
     def _broadcast(self, msg):
         for channel in self._irc.state.channels:
