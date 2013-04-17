@@ -22,6 +22,12 @@
       <dep package="glib"/>
     </dependencies>
   </autotools>
+  <autotools id="gdk-pixbuf" autogenargs="--without-tiff --without-libjpeg">
+    <branch revision="gdk-pixbuf-2-28"/>
+    <dependencies>
+      <dep package="glib"/>
+    </dependencies>
+  </autotools>
   <autotools id="spidermonkey" autogenargs="--enable-threadsafe --with-system-nspr">
     <branch repo="cgwalters" module="spidermonkey-tarballs-as-git"/>
     <dependencies>
