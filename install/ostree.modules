@@ -42,11 +42,14 @@
       <dep package="spidermonkey"/>
     </dependencies>
   </autotools>
+  <autotools id="libxml2">
+    <branch revision="v2.8.0"/>
+  </autotools>
   <autotools id="libsoup" autogenargs="--disable-tls-check">
     <branch revision="LIBSOUP_2_42_0"/>
     <dependencies>
-      <dep package="glib"/>
       <dep package="gobject-introspection"/>
+      <dep package="libxml2"/>
     </dependencies>
     <suggests>
       <dep package="glib-networking"/>
