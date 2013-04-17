@@ -168,6 +168,7 @@ const SmoketestOne = new Lang.Class({
 
     _screenshot: function(isFinal) {
         let filename;
+        let modified = true;
         if (isFinal)
             filename = "screenshot-final.ppm";
         else
@@ -175,16 +176,29 @@ const SmoketestOne = new Lang.Class({
 
         this._qemuCommand({"execute": "screendump", "arguments": { "filename": filename }});
 
+        let filePath = this._subworkdir.get_child(filename);
+
         if (!isFinal) {
-            let filePath = this._subworkdir.get_child(filename);
 	          let contentsBytes = GSystem.file_map_readonly(filePath, this._cancellable);
 	          let csum = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256,
 						                                           contentsBytes);
             
-            if (this._lastScreenshotChecksum == csum)
+            modified = this._lastScreenshotChecksum != csum;
+            if (!modified) {
                 GSystem.file_unlink(filePath, this._cancellable);
-            this._lastScreenshotChecksum = csum;
+            } else {
+                this._lastScreenshotChecksum = csum;
+            }
             this._screenshotSerial++;
+        }
+
+        // Convert to PNG if possible
+        if (modified && imports.gi.GdkPixbuf) {
+            let GdkPixbuf = imports.gi.GdkPixbuf;
+            let pixbuf = GdkPixbuf.Pixbuf.new_from_file(filePath.get_path());
+            let outFilename = this._subworkdir.get_child(filename.replace(/ppm$/, 'png'));
+                    pixbuf.savev(outFilename.get_path(), "png", [], []);
+            GSystem.file_unlink(filePath, this._cancellable);
         }
     },
 
