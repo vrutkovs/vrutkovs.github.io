@@ -842,7 +842,8 @@
 		{"src": "gnome:gnome-shell-extensions",
 		 "config-opts": ["--enable-extensions=classic-mode"]},
 
-		{"src": "gnome:gnome-terminal"},
+		{"src": "gnome:gnome-terminal",
+		 "config-opts": ["--without-nautilus-extension"]},
 
 		{"src": "gnome:gnome-clocks"},
 
