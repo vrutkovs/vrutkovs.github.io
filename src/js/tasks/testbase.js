@@ -29,6 +29,7 @@ const ProcUtil = imports.procutil;
 const Task = imports.task;
 const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
+const JSONUtil = imports.jsonutil;
 
 const TIMEOUT_SECONDS = 10 * 60;
 const COMPLETE_IDLE_WAIT_SECONDS = 10;
@@ -36,7 +37,8 @@ const COMPLETE_IDLE_WAIT_SECONDS = 10;
 const TestOneDisk = new Lang.Class({
     Name: 'TestOneDisk',
 
-    _init: function(testRequiredMessageIds, testFailedMessageIds) {
+    _init: function(parentTask, testRequiredMessageIds, testFailedMessageIds) {
+        this._parentTask = parentTask;
         this._testRequiredMessageIds = testRequiredMessageIds;
         this._testFailedMessageIds = testFailedMessageIds;
     },
@@ -214,8 +216,10 @@ const TestOneDisk = new Lang.Class({
         this._loop.quit();
     },
 
-    execute: function(subworkdir, diskPath, cancellable) {
+    execute: function(subworkdir, buildData, repo, diskPath, cancellable) {
         print("Testing disk " + diskPath.get_path());
+        this._buildData = buildData;
+        this._repo = repo;
         this._subworkdir = subworkdir;
         this._loop = GLib.MainLoop.new(null, true);
         this._foundAllMessageIds = false;
@@ -240,6 +244,12 @@ const TestOneDisk = new Lang.Class({
         }
         this._cancellable = cancellable;
 
+        // HACK
+        if (diskPath.get_basename().indexOf('x86_64') >= 0)
+            this._diskArch = 'x86_64';
+        else
+            this._diskArch = 'i686';
+
         let qemuArgs = [LibQA.getQemuPath()];
         qemuArgs.push.apply(qemuArgs, LibQA.DEFAULT_QEMU_OPTS);
 
@@ -256,6 +266,8 @@ const TestOneDisk = new Lang.Class({
             LibQA.injectExportJournal(currentDir, currentEtcDir, cancellable);
             LibQA.injectTestUserCreation(currentDir, currentEtcDir, 'testuser', {}, cancellable);
             LibQA.enableAutologin(currentDir, currentEtcDir, 'testuser', cancellable);
+
+            this._parentTask._prepareDisk(mntdir, this._diskArch, cancellable);
         } finally {
             gfmnt.umount(cancellable);
         }
@@ -305,7 +317,7 @@ const TestOneDisk = new Lang.Class({
     }
 });
 
-const TaskTestBase = new Lang.Class({
+const TestBase = new Lang.Class({
     Name: 'TestBase',
     Extends: Task.TaskDef,
 
@@ -322,6 +334,12 @@ const TaskTestBase = new Lang.Class({
     RequiredMessageIDs: [],
     FailedMessageIDs: [],
 
+    CompletedTag: null,
+
+    _prepareDisk: function(mntdir, cancellable) {
+        // Nothing, intended for subclasses
+    },
+
     execute: function(cancellable) {
 	      let imageDir = this.workdir.get_child('images');
 	      let currentImages = imageDir.get_child('current');
@@ -330,6 +348,7 @@ const TaskTestBase = new Lang.Class({
                                                  cancellable);
         let info;
         let buildJson;
+        let disksToTest = [];
         while ((info = e.next_file(cancellable)) != null) {
             let name = info.get_name();
             if (name.indexOf('build-') == 0 && JSUtil.stringEndswith(name, '.json')) {
@@ -338,21 +357,29 @@ const TaskTestBase = new Lang.Class({
             }
             if (!JSUtil.stringEndswith(name, '.qcow2'))
                 continue;
+            disksToTest.push(name);
+        }
+        e.close(null);
+        this._buildData = null;
+        if (buildJson != null)
+            this._buildData = JSONUtil.loadJson(buildJson, cancellable);
+        for (let i = 0; i < disksToTest.length; i++) {
+            let name = disksToTest[i];
             let workdirName = 'work-' + name.replace(/\.qcow2$/, '');
             let subworkdir = Gio.File.new_for_path(workdirName);
             GSystem.file_ensure_directory(subworkdir, true, cancellable);
-            let test = new TestOneDisk(this.BaseRequiredMessageIDs.concat(this.RequiredMessageIDs),
+            let test = new TestOneDisk(this, this.BaseRequiredMessageIDs.concat(this.RequiredMessageIDs),
                                        this.BaseFailedMessageIDs.concat(this.FailedMessageIDs));
-            test.execute(subworkdir, currentImages.get_child(name), cancellable);
+            test.execute(subworkdir, this._buildData, this.repo, currentImages.get_child(name), cancellable);
         }
-        if (buildJson != null) {
-            let buildData = JSONUtil.loadJson(buildJson, cancellable);
+        let buildData = this._buildData;
+        if (buildJson != null && this.CompletedTag !== null) {
             let refData = '';
             let snapshot = buildData['snapshot'];
             for (let targetName in buildData['targets']) {
                 let targetRev = buildData['targets'][targetName];
                 let lastSlash = targetName.lastIndexOf('/');
-                let smoketestedRef = snapshot['osname'] + '/smoketested' + targetName.substr(lastSlash);
+                let smoketestedRef = snapshot['osname'] + '/' + this.CompletedTag + targetName.substr(lastSlash);
                 refData += smoketestedRef + ' ' + targetRev + '\n';
             }
             ProcUtil.runProcWithInputSyncGetLines(['ostree', '--repo=' + this.repo.get_path(),

@@ -24,6 +24,7 @@ const GSystem = imports.gi.GSystem;
 
 const Builtin = imports.builtin;
 const Task = imports.task;
+const Params = imports.params;
 const JsonDB = imports.jsondb;
 const FileUtil = imports.fileutil;
 const ProcUtil = imports.procutil;
@@ -72,46 +73,20 @@ const TaskBuild = new Lang.Class({
 	}
     },
 
-    _composeBuildroot: function(workdir, componentName, architecture, cancellable) {
+    _composeBuildrootCore: function(workdir, componentName, architecture, rootContents, cancellable) {
         let starttime = GLib.DateTime.new_now_utc();
 
         let buildname = Format.vprintf('%s/%s/%s', [this.osname, componentName, architecture]);
         let buildrootCachedir = this.cachedir.resolve_relative_path('roots/' + buildname);
         GSystem.file_ensure_directory(buildrootCachedir, true, cancellable);
 
-        let components = this._snapshot.data['components']
-        let component = null;
-        let buildDependencies = [];
-        for (let i = 0; i < components.length; i++) {
-	    let component = components[i];
-            if (component['name'] == componentName)
-                break;
-            buildDependencies.push(component);
-	}
-
-        let refToRev = {};
-
-        let archBuildrootName = Format.vprintf('%s/bases/%s/%s-devel', [this.osname,
-									   this._snapshot.data['base']['name'],
-									   architecture]);
-
-        print("Computing buildroot contents");
-
-        let archBuildrootRev = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(), 'rev-parse',
-								      archBuildrootName], cancellable);
-
-        refToRev[archBuildrootName] = archBuildrootRev;
-        let checkoutTrees = [[archBuildrootName, '/']];
-        let refsToResolve = [];
-        for (let i = 0; i < buildDependencies.length; i++) {
-	    let dependency = buildDependencies[i];
-            let buildname = Format.vprintf('%s/components/%s/%s', [this.osname, dependency['name'], architecture]);
-            refsToResolve.push(buildname);
-            checkoutTrees.push([buildname, '/runtime']);
-            checkoutTrees.push([buildname, '/devel']);
+	let refsToResolve = []
+	for (let i = 0; i < rootContents.length; i++) {
+	    refsToResolve.push(rootContents[i][0]);
 	}
 
         let resolvedRefs = this._resolveRefs(refsToResolve);
+        let refToRev = {};
 	for (let i = 0; i < refsToResolve.length; i++) {
 	    refToRev[refsToResolve[i]] = resolvedRefs[i];
 	}
@@ -129,8 +104,8 @@ const TaskBuild = new Lang.Class({
 
 	let [tmpPath, stream] = Gio.File.new_tmp("ostbuild-buildroot-XXXXXX.txt");
 	let dataOut = Gio.DataOutputStream.new(stream.get_output_stream());
-	for (let i = 0; i < checkoutTrees.length; i++) {
-	    let [branch, subpath] = checkoutTrees[i];
+	for (let i = 0; i < rootContents.length; i++) {
+	    let [branch, subpath] = rootContents[i];
 	    let rev = refToRev[branch];
 	    toChecksumData += refToRev[branch];
 	    dataOut.put_string(refToRev[branch], cancellable);
@@ -150,9 +125,9 @@ const TaskBuild = new Lang.Class({
             return cachedRoot;
 	}
 
-        if (checkoutTrees.length > 0) {
-            print(Format.vprintf("composing buildroot from %d parents (last: %s)", [checkoutTrees.length,
-										    checkoutTrees[checkoutTrees.length-1][0]]));
+        if (rootContents.length > 0) {
+            print(Format.vprintf("composing buildroot from %d parents (last: %s)", [rootContents.length,
+										    rootContents[rootContents.length-1][0]]));
 	}
 
         let cachedRootTmp = cachedRoot.get_parent().get_child(cachedRoot.get_basename() + '.tmp');
@@ -176,6 +151,38 @@ const TaskBuild = new Lang.Class({
         let endtime = GLib.DateTime.new_now_utc();
         print(Format.vprintf("Composed buildroot; %d seconds elapsed", [endtime.difference(starttime) / GLib.USEC_PER_SEC]));
         return cachedRoot;
+
+    }, 
+
+    _composeBuildroot: function(workdir, componentName, architecture, cancellable) {
+        let components = this._snapshot.data['components']
+        let component = null;
+        let buildDependencies = [];
+        for (let i = 0; i < components.length; i++) {
+	    let component = components[i];
+            if (component['name'] == componentName)
+                break;
+            buildDependencies.push(component);
+	}
+
+        let archBuildrootName = Format.vprintf('%s/bases/%s/%s-devel', [this.osname,
+									this._snapshot.data['base']['name'],
+									architecture]);
+
+        print("Computing buildroot contents");
+
+        let archBuildrootRev = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(), 'rev-parse',
+								      archBuildrootName], cancellable);
+
+        let rootContents = [[archBuildrootName, '/']];
+        for (let i = 0; i < buildDependencies.length; i++) {
+	    let dependency = buildDependencies[i];
+            let buildname = Format.vprintf('%s/components/%s/%s', [this.osname, dependency['name'], architecture]);
+            rootContents.push([buildname, '/runtime']);
+            rootContents.push([buildname, '/devel']);
+	}
+
+	return this._composeBuildrootCore(workdir, componentName, architecture, rootContents, cancellable);
      },
 
     _analyzeBuildFailure: function(t, architecture, component, componentSrcdir,
@@ -457,20 +464,27 @@ const TaskBuild = new Lang.Class({
 	loop.quit();
     },
 
-    _componentBuildRef: function(component, architecture) {
-        let archBuildname = Format.vprintf('%s/%s', [component['name'], architecture]);
+    _componentBuildRefFromName: function(componentName, architecture) {
+        let archBuildname = Format.vprintf('%s/%s', [componentName, architecture]);
         return this.osname + '/components/' + archBuildname;
     },
 
-    _buildOneComponent: function(component, architecture, cancellable) {
+    _componentBuildRef: function(component, architecture) {
+	return this._componentBuildRefFromName(component['name'], architecture);
+    },
+
+    _buildOneComponent: function(component, architecture, cancellable, params) {
+	params = Params.parse(params, { installedTests: false });
         let basename = component['name'];
 
-        let archBuildname = Format.vprintf('%s/%s', [component['name'], architecture]);
+	if (params.installedTests)
+	    basename = basename + '-installed-tests';
+        let archBuildname = Format.vprintf('%s/%s', [basename, architecture]);
         let unixBuildname = archBuildname.replace(/\//g, '_');
         let buildRef = this._componentBuildRef(component, architecture);
 
         let currentVcsVersion = component['revision'];
-        let expandedComponent = this._snapshot.getExpanded(basename);
+        let expandedComponent = this._snapshot.getExpanded(component['name']);
         let previousMetadata = this._componentBuildCache[buildRef];
 	let previousBuildVersion = null;
 	let previousVcsVersion = null;
@@ -549,7 +563,12 @@ const TaskBuild = new Lang.Class({
         let componentResultdir = buildWorkdir.get_child('results');
         GSystem.file_ensure_directory(componentResultdir, true, cancellable);
 
-        let rootdir = this._composeBuildroot(buildWorkdir, basename, architecture, cancellable);
+	let rootdir;
+	if (params.installedTests)
+	    rootdir = this._composeBuildrootCore(buildWorkdir, basename, architecture,
+						 [[this._installedTestsBuildrootRev, '/']], cancellable);
+	else
+            rootdir = this._composeBuildroot(buildWorkdir, basename, architecture, cancellable);
 
         let tmpdir=buildWorkdir.get_child('tmp');
         GSystem.file_ensure_directory(tmpdir, true, cancellable);
@@ -559,8 +578,20 @@ const TaskBuild = new Lang.Class({
 	srcCompileOnePath.copy(destCompileOnePath, Gio.FileCopyFlags.OVERWRITE,
 			       cancellable, null);
         GSystem.file_chmod(destCompileOnePath, 493, cancellable);
-        
+
         let chrootSourcedir = Gio.File.new_for_path('/ostbuild/source/' + basename);
+	let chrootChdir = chrootSourcedir;
+
+	let installedTestsSrcdir = componentSrc.get_child('installed-tests');
+	if (params.installedTests) {
+	    // We're just building the tests, set our source directory
+	    let metaName = '_ostbuild-meta.json';
+	    GSystem.file_rename(componentSrc.get_child(metaName), installedTestsSrcdir.get_child(metaName), cancellable);
+	    chrootChdir = chrootSourcedir.get_child('installed-tests');
+	    if (!componentSrc.query_exists(null)) {
+		throw new Error("Component " + basename + " specified with installed tests, but no subdirectory found");
+	    }
+	}
 
         childArgs = ['setarch', architecture];
         childArgs.push.apply(childArgs, BuildUtil.getBaseUserChrootArgs());
@@ -571,7 +602,7 @@ const TaskBuild = new Lang.Class({
                 '--mount-bind', tmpdir.get_path(), '/tmp',
                 '--mount-bind', componentSrc.get_path(), chrootSourcedir.get_path(),
                 '--mount-bind', componentResultdir.get_path(), '/ostbuild/results',
-                '--chdir', chrootSourcedir.get_path(),
+                '--chdir', chrootChdir.get_path(),
                 rootdir.get_path(), '/ostree-build-compile-one',
                 '--ostbuild-resultdir=/ostbuild/results',
                 '--ostbuild-meta=_ostbuild-meta.json']);
@@ -628,16 +659,42 @@ const TaskBuild = new Lang.Class({
 
         return ostreeRevision;
     },
+    
+    _checkoutOneTreeCore: function(name, composeContents, cancellable) {
+        let composeRootdir = this.subworkdir.get_child(name);
+	GSystem.shutil_rm_rf(composeRootdir, cancellable);
+        GSystem.file_ensure_directory(composeRootdir, true, cancellable);
+
+	let [contentsTmpPath, stream] = Gio.File.new_tmp("ostbuild-compose-XXXXXX.txt");
+	let dataOut = Gio.DataOutputStream.new(stream.get_output_stream());
+	for (let i = 0; i < composeContents.length; i++) {
+	    let [branch, subpath] = composeContents[i];
+            dataOut.put_string(branch, cancellable);
+	    dataOut.put_byte(0, cancellable);
+            dataOut.put_string(subpath, cancellable);
+	    dataOut.put_byte(0, cancellable);
+	}
+        dataOut.close(cancellable);
+
+        ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
+			  'checkout', '--user-mode', '--union', 
+			  '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()],
+			 cancellable,
+                         {logInitiation: true});
+        GSystem.file_unlink(contentsTmpPath, cancellable);
+
+        let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
+	GSystem.file_ensure_directory(contentsPath.get_parent(), true, cancellable);
+        JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
+
+	return composeRootdir;
+    },
 
     _checkoutOneTree: function(target, componentBuildRevs, cancellable) {
         let base = target['base'];
         let baseName = this.osname + '/bases/' + base['name'];
         let runtimeName = this.osname +'/bases/' + base['runtime'];
         let develName = this.osname + '/bases/' + base['devel'];
-
-        let composeRootdir = this.subworkdir.get_child(target['name']);
-	GSystem.shutil_rm_rf(composeRootdir, cancellable);
-        GSystem.file_ensure_directory(composeRootdir, true, cancellable);
 
         let relatedRefs = {};
         let baseRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
@@ -679,26 +736,7 @@ const TaskBuild = new Lang.Class({
 	    }
 	}
 
-	let [contentsTmpPath, stream] = Gio.File.new_tmp("ostbuild-compose-XXXXXX.txt");
-	let dataOut = Gio.DataOutputStream.new(stream.get_output_stream());
-	for (let i = 0; i < composeContents.length; i++) {
-	    let [branch, subpath] = composeContents[i];
-            dataOut.put_string(branch, cancellable);
-	    dataOut.put_byte(0, cancellable);
-            dataOut.put_string(subpath, cancellable);
-	    dataOut.put_byte(0, cancellable);
-	}
-        dataOut.close(cancellable);
-
-        ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
-			  'checkout', '--user-mode', '--union', 
-			  '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()],
-			 cancellable,
-                         {logInitiation: true});
-        GSystem.file_unlink(contentsTmpPath, cancellable);
-
-        let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
-        JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
+	let composeRootdir = this._checkoutOneTreeCore(target['name'], composeContents, cancellable);
 
 	let shareOstree = composeRootdir.resolve_relative_path('usr/share/ostree');
 	GSystem.file_ensure_directory(shareOstree, true, cancellable);
@@ -710,14 +748,17 @@ const TaskBuild = new Lang.Class({
 
     _commitComposedTree: function(targetName, composeRootdir, relatedTmpPath, cancellable) {
         let treename = this.osname + '/' + targetName;
-        let ostreeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
-								    'commit', '-b', treename, '-s', 'Compose',
-								    '--owner-uid=0', '--owner-gid=0', '--no-xattrs', 
-								    '--related-objects-file=' + relatedTmpPath.get_path(),
-								    '--skip-if-unchanged'], cancellable,
+	let args = ['ostree', '--repo=' + this.repo.get_path(),
+		    'commit', '-b', treename, '-s', 'Compose',
+		    '--owner-uid=0', '--owner-gid=0', '--no-xattrs',
+		    '--skip-if-unchanged'];
+	if (relatedTmpPath !== null)
+	    args.push('--related-objects-file=' + relatedTmpPath.get_path());
+	let ostreeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(args, cancellable,
 								   {cwd: composeRootdir.get_path(),
 								    logInitiation: true});
-        GSystem.file_unlink(relatedTmpPath, cancellable);
+	if (relatedTmpPath !== null)
+            GSystem.file_unlink(relatedTmpPath, cancellable);
         GSystem.shutil_rm_rf(composeRootdir, cancellable);
 	return [treename, ostreeRevision];
     },
@@ -964,17 +1005,22 @@ const TaskBuild = new Lang.Class({
 
         let runtimeComponents = [];
         let develComponents = [];
+        let testingComponents = [];
 
         for (let i = 0; i < components.length; i++) {
 	    let component = components[i];
             let name = component['name']
 
             let isRuntime = (component['component'] || 'runtime') == 'runtime';
+            let isTesting = (component['component'] || 'runtime') == 'testing';
 
             if (isRuntime) {
                 runtimeComponents.push(component);
 	    }
-            develComponents.push(component);
+	    if (isTesting)
+		testingComponents.push(component);
+	    else
+		develComponents.push(component);
 
 	    let isNoarch = component['noarch'] || false;
 	    let componentArches;
@@ -1091,9 +1137,11 @@ const TaskBuild = new Lang.Class({
 	}
 
 	let targetRevisions = {};
+	let finalInstalledTestRevisions = {};
 	let buildData = { snapshotName: this._snapshot.path.get_basename(),
 			  snapshot: this._snapshot.data,
 			  targets: targetRevisions };
+	buildData['installed-tests'] = finalInstalledTestRevisions;
 
 	// First loop over the -devel trees per architecture, and
 	// generate an initramfs.
@@ -1123,6 +1171,9 @@ const TaskBuild = new Lang.Class({
 	    GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
 	    let [treename, ostreeRev] = this._commitComposedTree(develTargetName, composeRootdir, relatedTmpPath, cancellable);
 	    targetRevisions[treename] = ostreeRev;
+	    // Also note the revision of this, since it will be used
+	    // as the buildroot for installed tests
+	    this._installedTestsBuildrootRev = ostreeRev;
 	}
 
 	// Now loop over the other targets per architecture, reusing
@@ -1143,6 +1194,47 @@ const TaskBuild = new Lang.Class({
 		targetRevisions[treename] = ostreeRev;
 	    }
 	}
+
+	let installedTestComponentNames = this._snapshot.data['installed-tests-components'] || [];
+	print("Using installed test components: " + installedTestComponentNames.join(', '));
+	let installedTestRevs = {};
+        for (let i = 0; i < architectures.length; i++) {
+	    installedTestRevs[architectures[i]] = [];
+	}
+	for (let i = 0; i < testingComponents.length; i++) {
+	    let component = testingComponents[i];
+	    let name = component['name'];
+            for (let j = 0; j < architectures.length; j++) {
+		let architecture = architectures[j];
+		let archname = component['name'] + '/' + architecture;
+		let rev = componentBuildRevs[archname];
+		if (!rev)
+		    throw new Error("no build for " + buildRef);
+		installedTestRevs[architecture].push(rev);
+	    }
+	}
+        for (let i = 0; i < installedTestComponentNames.length; i++) {
+	    let componentName = installedTestComponentNames[i];
+            for (let j = 0; j < architectures.length; j++) {
+		let architecture = architectures[j];
+		let archname = componentName + '-installed-tests' + '/' + architecture;
+		let component = this._snapshot.getComponent(componentName);
+		let buildRev = this._buildOneComponent(component, architecture, cancellable, { installedTests: true });
+		installedTestRevs[architecture].push(buildRev);
+	    }
+	}
+	for (let architecture in installedTestRevs) {
+	    let rootName = 'buildmaster/' + architecture + '-installed-tests';
+	    let composeContents = [];
+	    let revs = installedTestRevs[architecture];
+            for (let j = 0; j < revs.length; j++) {
+		composeContents.push([revs[j], '/runtime']);
+	    }
+	    let composeRootdir = this._checkoutOneTreeCore(rootName, composeContents, cancellable);
+	    let [treename, rev] = this._commitComposedTree(rootName, composeRootdir, null, cancellable);
+	    finalInstalledTestRevisions[treename] = rev;
+	}
+
 	let [path, modified] = builddb.store(buildData, cancellable);
 	print("Build complete: " + path.get_path());
     }

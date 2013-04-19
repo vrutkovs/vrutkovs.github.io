@@ -34,7 +34,7 @@ const JSONUtil = imports.jsonutil;
 
 const TaskSmoketest = new Lang.Class({
     Name: 'TaskSmoketest',
-    Extends: TestBase.TaskTestBase,
+    Extends: TestBase.TestBase,
 
     TaskName: "smoketest",
     TaskAfter: ['builddisks'],
@@ -43,5 +43,7 @@ const TaskSmoketest = new Lang.Class({
                         ],
 
     FailedMessageIDs: ["10dd2dc188b54a5e98970f56499d1f73" // gnome-session required component failed
-                      ]
+                      ],
+
+    CompletedTag: 'smoketested'
 });

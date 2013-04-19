@@ -849,8 +849,13 @@
 
 		{"src": "gnome:nautilus"},
 
-		{"src": "gnome:gnome-software"}
+		{"src": "gnome:gnome-software"},
+
+		{"src": "gnome:gnome-desktop-testing",
+		 "component": "testing"}
 	],
+
+    "installed-tests-components": ["gjs"],
 
     "initramfs-build-epoch": {"version": 0},
     
