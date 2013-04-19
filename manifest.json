@@ -360,7 +360,8 @@
                 {"src": "fd:xorg/driver/xf86-video-qxl",
 		 "patches": ["xorg-autogen-merged.patch"]},
 
-		{"src": "fd:xorg/driver/xf86-video-ati"},
+		{"src": "fd:xorg/driver/xf86-video-ati",
+		 "tag": "xf86-video-ati-7.1.0"},
 
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
