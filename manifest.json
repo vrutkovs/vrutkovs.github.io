@@ -361,7 +361,7 @@
 		 "patches": ["xorg-autogen-merged.patch"]},
 
 		{"src": "fd:xorg/driver/xf86-video-ati",
-		 "tag": "xf86-video-ati-7.1.0"},
+		 "tag": "33d8408eec806355c2e55726679ec50ef3b769f1"},
 
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
