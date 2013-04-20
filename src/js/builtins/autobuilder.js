@@ -47,7 +47,7 @@ const Autobuilder = new Lang.Class({
     _init: function() {
 	this.parent();
 
-        this.parser.addArgument('--autoupdate-self', { action: 'storeTrue' });
+        this.parser.addArgument('--autoupdate-self', { action: 'store' });
         this.parser.addArgument('--skip', { action: 'append',
 					    help: "Don't process tasks after this" });
 
@@ -62,7 +62,8 @@ const Autobuilder = new Lang.Class({
     execute: function(args, loop, cancellable) {
 	this._initSnapshot(null, null, cancellable);
 
-	this._autoupdate_self = args.autoupdate_self;
+	if (args.autoupdate_self)
+	    this._autoupdate_self = Gio.File.new_for_path(args.autoupdate_self);
 
 	this._manifestPath = Gio.File.new_for_path('manifest.json');
 
@@ -173,7 +174,8 @@ const Autobuilder = new Lang.Class({
 	    return;
 
 	if (this._autoupdate_self)
-	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable)
+	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable,
+			     { cwd: this._autoupdate_self })
 
 	if (this._initialResolveNeeded) {
 	    this._initialResolveNeeded = false;
