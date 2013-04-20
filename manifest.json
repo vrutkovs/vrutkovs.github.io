@@ -565,7 +565,6 @@
 		{"src": "gnome:mobile-broadband-provider-info"},
 
 		{"src": "gnome:network-manager-applet",
-		 "tag": "6776276bf49df572f67429002f9e77a5c1fa833d",
 		 "config-opts": ["--enable-more-warnings=no",
 		                 "--disable-migration"]},
 
