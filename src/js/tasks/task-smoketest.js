@@ -195,9 +195,19 @@ const SmoketestOne = new Lang.Class({
         // Convert to PNG if possible
         if (modified && imports.gi.GdkPixbuf) {
             let GdkPixbuf = imports.gi.GdkPixbuf;
-            let pixbuf = GdkPixbuf.Pixbuf.new_from_file(filePath.get_path());
-            let outFilename = this._subworkdir.get_child(filename.replace(/ppm$/, 'png'));
-                    pixbuf.savev(outFilename.get_path(), "png", [], []);
+            let pixbuf;
+            try {
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file(filePath.get_path());
+            } catch (e) {
+                if (e.domain != GdkPixbuf.PixbufError)
+                    throw e;
+                print("Unable to open screenshot ppm: " + e);
+                pixbuf = null;
+            }
+            if (pixbuf) {
+                let outFilename = this._subworkdir.get_child(filename.replace(/ppm$/, 'png'));
+                pixbuf.savev(outFilename.get_path(), "png", [], []);
+            }
             GSystem.file_unlink(filePath, this._cancellable);
         }
     },
