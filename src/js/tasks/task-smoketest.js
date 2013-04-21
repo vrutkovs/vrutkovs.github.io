@@ -29,6 +29,7 @@ const ProcUtil = imports.procutil;
 const Task = imports.task;
 const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
+const JSONUtil = imports.jsonutil;
 
 const TIMEOUT_SECONDS = 10 * 60;
 const COMPLETE_IDLE_WAIT_SECONDS = 10;
@@ -325,8 +326,13 @@ const TaskSmoketest = new Lang.Class({
         let e = currentImages.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
                                                  cancellable);
         let info;
+        let buildJson;
         while ((info = e.next_file(cancellable)) != null) {
             let name = info.get_name();
+            if (name.indexOf('build-') == 0 && JSUtil.stringEndswith(name, '.json')) {
+                buildJson = e.get_child(info);
+                continue;
+            }
             if (!JSUtil.stringEndswith(name, '.qcow2'))
                 continue;
             let workdirName = 'work-' + name.replace(/\.qcow2$/, '');
@@ -334,6 +340,22 @@ const TaskSmoketest = new Lang.Class({
             GSystem.file_ensure_directory(subworkdir, true, cancellable);
             let smokeTest = new SmoketestOne();
             smokeTest.execute(subworkdir, currentImages.get_child(name), cancellable);
+        }
+        if (buildJson != null) {
+            let buildData = JSONUtil.loadJson(buildJson, cancellable);
+            let refData = '';
+            let snapshot = buildData['snapshot'];
+            for (let targetName in buildData['targets']) {
+                let targetRev = buildData['targets'][targetName];
+                let lastSlash = targetName.lastIndexOf('/');
+                let smoketestedRef = snapshot['osname'] + '/smoketested' + targetName.substr(lastSlash);
+                refData += smoketestedRef + ' ' + targetRev + '\n';
+            }
+            ProcUtil.runProcWithInputSyncGetLines(['ostree', '--repo=' + this.repo.get_path(),
+                                                   'write-refs'], cancellable, refData);
+            print("Wrote refs: " + refData);
+        } else {
+            print("No build json found, not tagging");
         }
     }
 });

@@ -73,6 +73,9 @@ const TaskBuildDisks = new Lang.Class({
         let workImageDir = subworkdir.get_child('images');
         GSystem.file_ensure_directory(workImageDir, true, cancellable);
 
+        let destPath = workImageDir.get_child('build-' + buildVersion + '.json');
+        GSystem.file_linkcopy(latestPath, destPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
+
         let targets = buildData['targets'];
 
         let osname = buildData['snapshot']['osname'];
