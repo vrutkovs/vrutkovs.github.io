@@ -91,6 +91,7 @@
 		 "config-opts": ["--disable-tests"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "tag": "9097fe299f22c46316979356d945ebb494e85814",
 		 "config-opts": ["--disable-manpages",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
