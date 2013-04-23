@@ -46,7 +46,6 @@
 		 "tag": "v3.0.10"},
 
 		{"src": "gnome:glib",
-                 "branch": "test/gobjectnew",
                  "config-opts": ["--disable-modular-tests"]},
 
 		{"src": "gnome:ostree",
