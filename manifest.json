@@ -471,7 +471,8 @@
                 {"src": "git:git://gitorious.org/gusb/gusb.git"},
 		
 		{"src": "git:git://github.com/hughsie/colord.git",
-		 "config-opts": ["--disable-print-profiles"]},
+		 "config-opts": ["--disable-print-profiles",
+				 "--disable-bash-completion"]},
 
 		{"src": "gnome:gconf",
 		 "config-opts": ["--disable-orbit",
