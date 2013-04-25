@@ -49,11 +49,9 @@ class GNOMEOSTree(callbacks.Plugin):
     def __init__(self, irc):
         self.__parent = super(GNOMEOSTree, self)
         self.__parent.__init__(irc)
-        schedule.addPeriodicEvent(self._query_new_build, 1, now=False)
-        schedule.addPeriodicEvent(self._query_new_smoketest, 1, now=False)
+        schedule.addPeriodicEvent(self._query_new_tasks, 1, now=False)
         self._irc = irc
-        self._last_build_version = None
-        self._last_smoketest_version = None
+        self._last_task_versions = {}
         self._jsondb_re = re.compile(r'^(\d+\.\d+)-([0-9a-f]+)\.json$')
         tracked_build = 'buildmaster'
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
@@ -63,76 +61,39 @@ class GNOMEOSTree(callbacks.Plugin):
         for channel in self._irc.state.channels:
             self._irc.queueMsg(ircmsgs.privmsg(channel, msg))
 
-    def _query_new_build(self, status=False):
-        current_build_path = os.path.join(self._workdir, 'tasks/build/current')
-        meta_path = os.path.join(current_build_path, 'meta.json')
+    def _query_new_tasks(self, status=False):
+        for taskname in ['build', 'smoketest', 'integrationtest']:
+            self._query_new_task(taskname, status=status)
+
+    def _query_new_task(self, taskname, status=False):
+        current_task_path = os.path.join(self._workdir, 'tasks/' + taskname + '/current')
+        meta_path = os.path.join(current_task_path, 'meta.json')
         if not os.path.exists(meta_path):
             if status:
-                self._broadcast("No current build completed")
-            return
-        f = open(meta_path)
-        build_meta = json.load(f)
-        f.close()
-
-        version = None
-        for name in os.listdir(current_build_path):
-            match = self._jsondb_re.search(name)
-            if match is None:
-                continue
-            version = match.group(1)
-            break
-        if version is None:
-            print("No source snapshot found in build directory")
-            return
-
-        version_unchanged = version == self._last_build_version
-        if (not status and version_unchanged):
-            return
-
-        self._last_build_version = version
-        if (not status and not version_unchanged):
-            msg = "New build"
-        else:
-            msg = "Current build"
-        success = build_meta['success']
-        success_str = success and 'successful' or 'failed'
-        msg += " %s: %s. " % (version, success_str)
-        msg += self._workurl + "tasks/build/%s/%s/output.txt" % (success_str, build_meta['taskVersion'])
-
-        if not success:
-            msg = ircutils.mircColor(msg, fg='red')
-        else:
-            msg = ircutils.mircColor(msg, fg='green')
-
-        self._broadcast(msg)
-
-    def _query_new_smoketest(self, status=False):
-        current_smoketest_path = os.path.join(self._workdir, 'tasks/smoketest/current')
-        meta_path = os.path.join(current_smoketest_path, 'meta.json')
-        if not os.path.exists(meta_path):
-            if status:
-                self._broadcast("No current smoketest completed")
+                self._broadcast("No current " + taskname + " completed")
             return
 
         f = open(meta_path)
-        smoketest_meta = json.load(f)
+        metadata = json.load(f)
         f.close()
         
-        taskver = smoketest_meta['taskVersion']
+        taskver = metadata['taskVersion']
 
-        version_unchanged = taskver == self._last_smoketest_version
+        last_version = self._last_task_versions.get(taskname)
+        version_unchanged = taskver == last_version
         if (not status and version_unchanged):
             return
 
-        self._last_smoketest_version = taskver
+        self._last_task_versions[taskname] = taskver
         if (not status and not version_unchanged):
-            msg = "New smoketest"
+            msg = "New " + taskname
         else:
-            msg = "Current smoketest"
-        success = smoketest_meta['success']
+            msg = "Current " + taskname
+        success = metadata['success']
         success_str = success and 'successful' or 'failed'
-        msg += " %s: %s. " % (taskver, success_str)
-        msg += self._workurl + "tasks/smoketest/%s/%s/output.txt" % (success_str, taskver)
+        millis = int(metadata['elapsedMillis'])
+        msg += " %s: %s in %.1f seconds. " % (taskver, success_str, millis / 1000)
+        msg += self._workurl + "tasks/" + taskname + "/%s/%s/output.txt" % (success_str, taskver)
 
         if not success:
             msg = ircutils.mircColor(msg, fg='red')
@@ -142,7 +103,6 @@ class GNOMEOSTree(callbacks.Plugin):
         self._broadcast(msg)
 
     def buildstatus(self, irc, msg, args):
-        self._query_new_build(status=True)
-        self._query_new_smoketest(status=True)
+        self._query_new_tasks(status=True)
 
 Class = GNOMEOSTree
