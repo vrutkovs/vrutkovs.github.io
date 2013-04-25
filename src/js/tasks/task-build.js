@@ -481,7 +481,7 @@ const TaskBuild = new Lang.Class({
 	    basename = basename + '-installed-tests';
         let archBuildname = Format.vprintf('%s/%s', [basename, architecture]);
         let unixBuildname = archBuildname.replace(/\//g, '_');
-        let buildRef = this._componentBuildRef(component, architecture);
+        let buildRef = this._componentBuildRefFromName(basename, architecture);
 
         let currentVcsVersion = component['revision'];
         let expandedComponent = this._snapshot.getExpanded(component['name']);
