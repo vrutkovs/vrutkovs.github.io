@@ -1188,7 +1188,8 @@ const TaskBuild = new Lang.Class({
 
 		let [composeRootdir, relatedTmpPath] = this._checkoutOneTree(runtimeTarget, componentBuildRevs, cancellable);
 		let [kernelRelease, initramfsPath] = archInitramfsImages[architecture];
-		let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsPath.get_basename());
+		let initramfsTargetName = 'initramfs-' + kernelRelease + '.img';
+		let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsTargetName);
 		GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
 		let [treename, ostreeRev] = this._commitComposedTree(runtimeTargetName, composeRootdir, relatedTmpPath, cancellable);
 		targetRevisions[treename] = ostreeRev;
