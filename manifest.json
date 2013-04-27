@@ -529,8 +529,7 @@
 
 		{"src": "fd-p11:p11-kit"},
 
-		{"src": "gnome:gcr",
-		 "tag": "19726e6be3408f3505fb706a0541c2a43ab6c04e"},
+		{"src": "gnome:gcr"},
 
 		{"src": "gnome:libsecret",
 		 "config-opts": ["--disable-manpages"]},
