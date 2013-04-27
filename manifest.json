@@ -647,10 +647,10 @@
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
-		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-1.11.91.tar.xz",
+		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.0.1.tar.xz",
 		 "name": "webkitgtk",
-		 "checksum": "bf5419724e555bddcd2b82ebac9af47cb08e1ce0b7eb37baf30084fda74b5bee",
-		 "patches": ["webkitgtk-linking-2.patch"],
+		 "patches": ["webkitgtk-socketpair-includes.patch"],
+		 "checksum": "6303552a39d7912725d75bc55f530cdb99171fb873e299798d0bb932d6ea76cb",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--with-gstreamer=1.0"]},
