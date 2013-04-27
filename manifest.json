@@ -90,6 +90,14 @@
                 {"src": "gnome:gobject-introspection",
 		 "config-opts": ["--disable-tests"]},
 
+		{"src": "gnome:vala-bootstrap",
+		 "bootstrap": true,
+		 "config-opts": ["--disable-build-from-vala",
+		                 "--disable-vapigen"]},
+
+		{"src": "gnome:vala",
+		 "config-opts": ["--enable-vapigen"]},
+
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
 		 "config-opts": ["--disable-manpages",
 				 "--with-sysvinit-path=",
@@ -654,14 +662,6 @@
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--with-gstreamer=1.0"]},
-
-		{"src": "gnome:vala-bootstrap",
-		 "bootstrap": true,
-		 "config-opts": ["--disable-build-from-vala",
-		                 "--disable-vapigen"]},
-
-		{"src": "gnome:vala",
-		 "config-opts": ["--enable-vapigen"]},
 
 		{"src": "gnome:libgee",
 		 "name": "libgee-0.6",
