@@ -71,6 +71,7 @@ const TaskBuild = new Lang.Class({
             print("Removing old cached buildroot " + child.get_path());
             GSystem.shutil_rm_rf(child, cancellable);
 	}
+	direnum.close(cancellable);
     },
 
     _composeBuildrootCore: function(workdir, componentName, architecture, rootContents, cancellable) {
@@ -774,6 +775,7 @@ const TaskBuild = new Lang.Class({
 	    kernelPath = e.get_child(info);
 	    break;
 	}
+	e.close(cancellable);
 	if (kernelPath === null)
 	    throw new Error("Couldn't find vmlinuz- in compose root");
 

@@ -46,8 +46,9 @@ const JsonDB = new Lang.Class({
     },
 
     _getAll: function() {
+	let cancellable = null;
 	var result = [];
-	var e = this._path.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, null);
+	var e = this._path.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, cancellable);
 	let info;
 	while ((info = e.next_file(null)) != null) {
 	    let name = info.get_name();
@@ -57,6 +58,7 @@ const JsonDB = new Lang.Class({
 	    result.push([parseInt(match[1]), parseInt(match[2]),
 			 match[3], name]);
 	}
+	e.close(cancellable);
 	result.sort(function(a, b) {
 	    var aMajor = a[0]; var bMajor = b[0];
 	    var aMinor = a[1]; var bMinor = b[1];
