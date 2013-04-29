@@ -410,11 +410,6 @@
 			     "hostap-supplicant-Install-systemd-units-if-configured-to-do.patch"]},
 
 		{"src": "cgwalters:spidermonkey-tarballs-as-git",
-		 "config-opts": ["--enable-threadsafe",
-		                 "--with-system-nspr",
-				 "--disable-tests"]},
-
-		{"src": "cgwalters:spidermonkey-tarballs-as-git",
 		 "name": "js17",
 		 "branch": "js-17",
 		 "config-opts": ["--enable-threadsafe",
@@ -423,7 +418,8 @@
 		{"src": "fd:polkit",
 		 "config-opts": ["--disable-man-pages",
 				 "--enable-libsystemd-login",
-		                 "--with-os-type=suse"],
+		                 "--with-os-type=suse",
+				 "--with-mozjs=mozjs-17.0"],
 		 "setuid": ["/runtime/usr/bin/pkexec",
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
 
