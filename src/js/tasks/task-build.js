@@ -27,6 +27,7 @@ const Task = imports.task;
 const Params = imports.params;
 const JsonDB = imports.jsondb;
 const FileUtil = imports.fileutil;
+const AsyncUtil = imports.asyncutil;
 const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
@@ -567,7 +568,7 @@ const TaskBuild = new Lang.Class({
 	let rootdir;
 	if (params.installedTests)
 	    rootdir = this._composeBuildrootCore(buildWorkdir, basename, architecture,
-						 [[this._installedTestsBuildrootRev, '/']], cancellable);
+						 [[this._installedTestsBuildrootRev[architecture], '/']], cancellable);
 	else
             rootdir = this._composeBuildroot(buildWorkdir, basename, architecture, cancellable);
 
@@ -661,8 +662,9 @@ const TaskBuild = new Lang.Class({
         return ostreeRevision;
     },
     
-    _checkoutOneTreeCore: function(name, composeContents, cancellable) {
+    _checkoutOneTreeCoreAsync: function(name, composeContents, cancellable, callback) {
         let composeRootdir = this.subworkdir.get_child(name);
+	print("Checking out " + composeRootdir.get_path());
 	GSystem.shutil_rm_rf(composeRootdir, cancellable);
         GSystem.file_ensure_directory(composeRootdir, true, cancellable);
 
@@ -677,21 +679,33 @@ const TaskBuild = new Lang.Class({
 	}
         dataOut.close(cancellable);
 
-        ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
-			  'checkout', '--user-mode', '--union', 
-			  '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()],
-			 cancellable,
-                         {logInitiation: true});
-        GSystem.file_unlink(contentsTmpPath, cancellable);
+	let argv = ['ostree', '--repo=' + this.repo.get_path(),
+		    'checkout', '--user-mode', '--union', 
+		    '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()];
+	print("Running: " + argv.map(GLib.shell_quote).join(' '));
+	let proc = GSystem.Subprocess.new_simple_argv(argv,
+						      GSystem.SubprocessStreamDisposition.INHERIT,
+						      GSystem.SubprocessStreamDisposition.INHERIT,
+						      cancellable);
+	proc.wait(cancellable, Lang.bind(this, function(proc, result) {
+            GSystem.file_unlink(contentsTmpPath, cancellable);
+	    let [success, ecode] = proc.wait_finish(result);
+	    try {
+		GLib.spawn_check_exit_status(ecode);
+	    } catch (e) {
+		callback(null, ""+e);
+		return;
+	    }
+	    
+            let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
+	    GSystem.file_ensure_directory(contentsPath.get_parent(), true, cancellable);
+            JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
 
-        let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
-	GSystem.file_ensure_directory(contentsPath.get_parent(), true, cancellable);
-        JsonUtil.writeJsonFileAtomic(contentsPath, this._snapshot.data, cancellable);
-
-	return composeRootdir;
+	    callback(composeRootdir, null);
+	}));
     },
 
-    _checkoutOneTree: function(target, componentBuildRevs, cancellable) {
+    _checkoutOneTreeAsync: function(target, componentBuildRevs, cancellable, callback) {
         let base = target['base'];
         let baseName = this.osname + '/bases/' + base['name'];
         let runtimeName = this.osname +'/bases/' + base['runtime'];
@@ -737,17 +751,23 @@ const TaskBuild = new Lang.Class({
 	    }
 	}
 
-	let composeRootdir = this._checkoutOneTreeCore(target['name'], composeContents, cancellable);
-
-	let shareOstree = composeRootdir.resolve_relative_path('usr/share/ostree');
-	GSystem.file_ensure_directory(shareOstree, true, cancellable);
-	let triggersRunPath = shareOstree.get_child('triggers-run');
-	triggersRunPath.create(Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable).close(cancellable);
-	
-	return [composeRootdir, relatedTmpPath];
+	this._checkoutOneTreeCoreAsync(target['name'], composeContents, cancellable,
+				       Lang.bind(this, function(result, err) {
+					   if (err) {
+					       callback(null, err);
+					       return;
+					   } else {
+					       let composeRootdir = result;
+					       let shareOstree = composeRootdir.resolve_relative_path('usr/share/ostree');
+					       GSystem.file_ensure_directory(shareOstree, true, cancellable);
+					       let triggersRunPath = shareOstree.get_child('triggers-run');
+					       triggersRunPath.create(Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable).close(cancellable);
+					       callback([composeRootdir, relatedTmpPath], null);
+					   }
+				       }));
     },
-
-    _commitComposedTree: function(targetName, composeRootdir, relatedTmpPath, cancellable) {
+    
+    _commitComposedTreeAsync: function(targetName, composeRootdir, relatedTmpPath, cancellable, callback) {
         let treename = this.osname + '/' + targetName;
 	let args = ['ostree', '--repo=' + this.repo.get_path(),
 		    'commit', '-b', treename, '-s', 'Compose',
@@ -755,13 +775,44 @@ const TaskBuild = new Lang.Class({
 		    '--skip-if-unchanged'];
 	if (relatedTmpPath !== null)
 	    args.push('--related-objects-file=' + relatedTmpPath.get_path());
-	let ostreeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(args, cancellable,
-								   {cwd: composeRootdir.get_path(),
-								    logInitiation: true});
-	if (relatedTmpPath !== null)
-            GSystem.file_unlink(relatedTmpPath, cancellable);
-        GSystem.shutil_rm_rf(composeRootdir, cancellable);
-	return [treename, ostreeRevision];
+
+	let membuf = Gio.MemoryOutputStream.new_resizable();
+
+	let asyncSet = new AsyncUtil.AsyncSet(Lang.bind(this, function(results, err) {
+	    if (relatedTmpPath !== null)
+		GSystem.file_unlink(relatedTmpPath, cancellable);
+            GSystem.shutil_rm_rf(composeRootdir, cancellable);
+	    if (err) {
+		callback(null, err);
+		return;
+	    }
+	    let revision = membuf.steal_as_bytes().toArray().toString();
+	    revision = revision.replace(/[ \n]+$/, '');
+	    print("Compose of " + targetName + " is " + revision);
+	    callback([treename, revision], null);
+
+	}), cancellable);
+	print("Running: " + args.map(GLib.shell_quote).join(' '));
+	let context = new GSystem.SubprocessContext({ argv: args });
+	context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
+	context.set_cwd(composeRootdir.get_path());
+	let proc = new GSystem.Subprocess({ context: context });
+	proc.init(cancellable);
+	let stdout = proc.get_stdout_pipe();
+	membuf.splice_async(stdout,
+			    Gio.OutputStreamSpliceFlags.CLOSE_SOURCE | Gio.OutputStreamSpliceFlags.CLOSE_TARGET,
+			    GLib.PRIORITY_DEFAULT,
+			    cancellable,
+			    asyncSet.addGAsyncResult("splice",
+						     Lang.bind(this, function(stream, result) {
+							 stream.splice_finish(result);
+						     })));
+	proc.wait(cancellable,
+		  asyncSet.addGAsyncResult("wait",
+					   Lang.bind(this, function(proc, result) {
+					       let [success, ecode] = proc.wait_finish(result);
+					       GLib.spawn_check_exit_status(ecode);
+					   })));
     },
 
     _generateInitramfs: function(architecture, composeRootdir, initramfsDepends, cancellable) {
@@ -825,8 +876,8 @@ const TaskBuild = new Lang.Class({
 		    'dracut', '--tmpdir=/tmp', '-f', '/tmp/initramfs-ostree.img',
 		    kernelRelease];
 		    
+	print("Running: " + args.map(GLib.shell_quote).join(' '));
 	let context = new GSystem.SubprocessContext({ argv: args });
-	print("Starting child process " + JSON.stringify(context.argv));
 	let proc = new GSystem.Subprocess({ context: context });
 	proc.init(cancellable);
 	proc.wait_sync_check(cancellable);
@@ -1138,12 +1189,17 @@ const TaskBuild = new Lang.Class({
 	    }
 	}
 
+	this._installedTestsBuildrootRev = {};
 	let targetRevisions = {};
 	let finalInstalledTestRevisions = {};
 	let buildData = { snapshotName: this._snapshot.path.get_basename(),
 			  snapshot: this._snapshot.data,
 			  targets: targetRevisions };
 	buildData['installed-tests'] = finalInstalledTestRevisions;
+
+	let composeTreeTaskCount = 0;
+	let composeTreeTaskError = null;
+	let composeTreeTaskLoop = GLib.MainLoop.new(null, true);
 
 	// First loop over the -devel trees per architecture, and
 	// generate an initramfs.
@@ -1164,19 +1220,44 @@ const TaskBuild = new Lang.Class({
 		initramfsDepends.push(component['name'] + ':' + buildRev);
 	    }
 
-	    let [composeRootdir, relatedTmpPath] = this._checkoutOneTree(develTarget, componentBuildRevs, cancellable);
-	    
-	    let [kernelRelease, initramfsPath] = this._generateInitramfs(architecture, composeRootdir, initramfsDepends, cancellable);
-	    archInitramfsImages[architecture] = [kernelRelease, initramfsPath];
-	    let initramfsTargetName = 'initramfs-' + kernelRelease + '.img';
-	    let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsTargetName);
-	    GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
-	    let [treename, ostreeRev] = this._commitComposedTree(develTargetName, composeRootdir, relatedTmpPath, cancellable);
-	    targetRevisions[treename] = ostreeRev;
-	    // Also note the revision of this, since it will be used
-	    // as the buildroot for installed tests
-	    this._installedTestsBuildrootRev = ostreeRev;
+	    composeTreeTaskCount++;
+	    this._checkoutOneTreeAsync(develTarget, componentBuildRevs, cancellable,
+				       Lang.bind(this, function (result, err) {
+					   if (err) {
+					       if (composeTreeTaskError === null)
+						   composeTreeTaskError = err;
+					       composeTreeTaskLoop.quit();
+					       return;
+					   }
+					   let [composeRootdir, relatedTmpPath] = result;
+					   let [kernelRelease, initramfsPath] = this._generateInitramfs(architecture, composeRootdir, initramfsDepends, cancellable);
+					   archInitramfsImages[architecture] = [kernelRelease, initramfsPath];
+					   let initramfsTargetName = 'initramfs-' + kernelRelease + '.img';
+					   let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsTargetName);
+					   GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
+					   this._commitComposedTreeAsync(develTargetName, composeRootdir, relatedTmpPath, cancellable,
+									 Lang.bind(this, function(result, err) {
+									     if (err) {
+										 if (composeTreeTaskError === null)
+										     composeTreeTaskError = err;
+										 composeTreeTaskLoop.quit();
+										 return;
+									     }
+									     composeTreeTaskCount--;
+									     let [treename, ostreeRev] = result;
+									     targetRevisions[treename] = ostreeRev;
+									     // Also note the revision of this, since it will be used
+									     // as the buildroot for installed tests
+									     this._installedTestsBuildrootRev[architecture] = ostreeRev;
+									     if (composeTreeTaskCount == 0)
+										 composeTreeTaskLoop.quit();
+									 }));
+				       }));
 	}
+
+	composeTreeTaskLoop.run();
+	if (composeTreeTaskError)
+	    throw new Error(composeTreeTaskError);
 
 	// Now loop over the other targets per architecture, reusing
 	// the initramfs cached from -devel generation.
@@ -1188,15 +1269,43 @@ const TaskBuild = new Lang.Class({
 		let runtimeTargetName = 'buildmaster/' + architecture + '-' + target;
 		let runtimeTarget = this._findTargetInList(runtimeTargetName, targetsList);
 
-		let [composeRootdir, relatedTmpPath] = this._checkoutOneTree(runtimeTarget, componentBuildRevs, cancellable);
-		let [kernelRelease, initramfsPath] = archInitramfsImages[architecture];
-		let initramfsTargetName = 'initramfs-' + kernelRelease + '.img';
-		let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsTargetName);
-		GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
-		let [treename, ostreeRev] = this._commitComposedTree(runtimeTargetName, composeRootdir, relatedTmpPath, cancellable);
-		targetRevisions[treename] = ostreeRev;
+		composeTreeTaskCount++;
+		this._checkoutOneTreeAsync(runtimeTarget, componentBuildRevs, cancellable,
+					   Lang.bind(this, function(result, err) {
+					       if (err) {
+						   if (composeTreeTaskError === null)
+						       composeTreeTaskError = err;
+						   composeTreeTaskLoop.quit();
+						   return;
+					       }
+					       composeTreeTaskCount--;
+					       let [composeRootdir, relatedTmpPath] = result;
+					       let [kernelRelease, initramfsPath] = archInitramfsImages[architecture];
+					       let initramfsTargetName = 'initramfs-' + kernelRelease + '.img';
+					       let targetInitramfsPath = composeRootdir.resolve_relative_path('boot').get_child(initramfsTargetName);
+					       GSystem.file_linkcopy(initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
+					       composeTreeTaskCount++;
+					       this._commitComposedTreeAsync(runtimeTargetName, composeRootdir, relatedTmpPath, cancellable,
+									     Lang.bind(this, function(result, err) {
+										 if (err) {
+										     if (composeTreeTaskError === null)
+											 composeTreeTaskError = err;
+										     composeTreeTaskLoop.quit();
+										     return;
+										 }
+										 composeTreeTaskCount--;
+										 let [treename, ostreeRev] = result;
+										 targetRevisions[treename] = ostreeRev;
+										 if (composeTreeTaskCount == 0)
+										     composeTreeTaskLoop.quit();
+									     }));
+					   }));
 	    }
 	}
+
+	composeTreeTaskLoop.run();
+	if (composeTreeTaskError)
+	    throw new Error(composeTreeTaskError);
 
 	let installedTestComponentNames = this._snapshot.data['installed-tests-components'] || [];
 	print("Using installed test components: " + installedTestComponentNames.join(', '));
@@ -1233,10 +1342,36 @@ const TaskBuild = new Lang.Class({
             for (let j = 0; j < revs.length; j++) {
 		composeContents.push([revs[j], '/runtime']);
 	    }
-	    let composeRootdir = this._checkoutOneTreeCore(rootName, composeContents, cancellable);
-	    let [treename, rev] = this._commitComposedTree(rootName, composeRootdir, null, cancellable);
-	    finalInstalledTestRevisions[treename] = rev;
+	    composeTreeTaskCount++;
+	    this._checkoutOneTreeCoreAsync(rootName, composeContents, cancellable,
+					   Lang.bind(this, function(result, err) {
+					       if (err) {
+						   if (composeTreeTaskError === null)
+						       composeTreeTaskError = err;
+						   composeTreeTaskLoop.quit();
+						   return;
+					       }
+					       let composeRootdir = result;
+					       this._commitComposedTreeAsync(rootName, composeRootdir, null, cancellable,
+									     Lang.bind(this, function(result, err) {
+										 if (err) {
+										     if (composeTreeTaskError === null)
+											 composeTreeTaskError = err;
+										     composeTreeTaskLoop.quit();
+										     return;
+										 }
+										 let [treename, rev] = result;
+										 finalInstalledTestRevisions[treename] = rev;
+										 composeTreeTaskCount--;
+										 if (composeTreeTaskCount == 0)
+										     composeTreeTaskLoop.quit();
+									     }));
+					   }));
 	}
+
+	composeTreeTaskLoop.run();
+	if (composeTreeTaskError)
+	    throw new Error(composeTreeTaskError);
 
 	let [path, modified] = builddb.store(buildData, cancellable);
 	print("Build complete: " + path.get_path());

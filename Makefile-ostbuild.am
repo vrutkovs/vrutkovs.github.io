@@ -40,6 +40,7 @@ utilsdir = $(pkglibdir)
 jsostbuilddir=$(pkgdatadir)/js
 jsostbuild_DATA= \
 	src/js/argparse.js \
+	src/js/asyncutil.js \
 	src/js/buildutil.js \
 	src/js/builtin.js \
 	src/js/fileutil.js \
