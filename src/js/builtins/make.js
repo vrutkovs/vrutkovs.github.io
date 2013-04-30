@@ -146,7 +146,7 @@ const Make = new Lang.Class({
 	this._tasksComplete = true;
 	if (!success)
 	    this._err = err;
-	if (this._shellComplete)
+	if (!this._shell || this._shellComplete)
 	    this._loop.quit();
     }
 });
