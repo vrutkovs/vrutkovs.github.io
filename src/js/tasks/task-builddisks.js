@@ -48,6 +48,7 @@ const TaskBuildDisks = new Lang.Class({
 
     _imageSubdir: 'images',
     _inheritPreviousDisk: true,
+    _onlyTreeSuffixes: ['-runtime'],
 
     execute: function(cancellable) {
         let subworkdir = Gio.File.new_for_path('.');
@@ -82,7 +83,14 @@ const TaskBuildDisks = new Lang.Class({
         let repo = buildData['snapshot']['repo'];
 
         for (let targetName in targets) {
-            if (!JSUtil.stringEndswith(targetName, '-runtime'))
+            let matched = false;
+            for (let i = 0; i < this._onlyTreeSuffixes.length; i++) {
+                if (JSUtil.stringEndswith(targetName, this._onlyTreeSuffixes[i])) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched)
                 continue;
             let targetRevision = buildData['targets'][targetName];
 	          let squashedName = targetName.replace(/\//g, '_');
