@@ -68,7 +68,7 @@ function runSync(argv, cancellable, params) {
     let proc = new GSystem.Subprocess({context: context});
     proc.init(cancellable);
     if (pparams.logInitiation)
-	print(Format.vprintf("Started child process %s: pid=%s", [JSON.stringify(proc.context.argv), proc.get_pid()]));
+	print(Format.vprintf("Started child process %s: pid=%s", [proc.context.argv.map(GLib.shell_quote).join(' '), proc.get_pid()]));
     _wait_sync_check_internal(proc, cancellable);
 }
 
