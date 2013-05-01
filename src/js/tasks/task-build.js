@@ -382,6 +382,8 @@ const TaskBuild = new Lang.Class({
 	GSystem.file_ensure_directory(docPath, true, cancellable);
 	let debugPath = finalResultDir.get_child('debug');
 	GSystem.file_ensure_directory(debugPath, true, cancellable);
+	let testsPath = finalResultDir.get_child('tests');
+	GSystem.file_ensure_directory(testsPath, true, cancellable);
 
 	// Change file modes first; some components install files that
 	// are read-only even by the user, which we don't want.
@@ -396,10 +398,14 @@ const TaskBuild = new Lang.Class({
 	    }
 	}), cancellable);
 
+	let datadir = buildResultDir.resolve_relative_path('usr/share');
+	let localstatedir = buildResultDir.get_child('var');
+	let libdir = buildResultDir.resolve_relative_path('usr/lib');
+	let libexecdir = buildResultDir.resolve_relative_path('usr/libexec');
+
 	// Remove /var from the install - components are required to
 	// auto-create these directories on demand.
-	let varPath = buildResultDir.get_child('var');
-	GSystem.shutil_rm_rf(varPath, cancellable);
+	GSystem.shutil_rm_rf(localstatedir, cancellable);
 
 	// Python .co files contain timestamps
 	// .la files are generally evil
@@ -414,8 +420,6 @@ const TaskBuild = new Lang.Class({
 				 GSystem.file_unlink(filePath, cancellable);
 			     }), cancellable);
 	}
-
-	let libdir = buildResultDir.resolve_relative_path('usr/lib');
 
 	if (libdir.query_exists(null)) {
 	    // Move symbolic links for shared libraries to devel
@@ -455,6 +459,27 @@ const TaskBuild = new Lang.Class({
 	    if (oneDocDir.query_exists(null)) {
 		this._installAndUnlink(buildResultDir, oneDocDir, docPath, cancellable);
 	    }
+	}
+
+	let installedTestFiles = datadir.get_child('installed-tests');
+	if (installedTestFiles.query_exists(null)) {
+	    this._installAndUnlink(buildResultDir, installedTestFiles, testsPath, cancellable);
+	    
+	    let installedTestsDataSubdir = null;
+	    if (libexecdir.query_exists(null)) {
+		FileUtil.walkDir(libexecdir, {fileType: Gio.FileType.DIRECTORY,
+					      depth: 1 },
+				 Lang.bind(this, function(filePath, cancellable) {
+				     let instTestsPath = filePath.get_child('installed-tests');
+				     if (!instTestsPath.query_exists(null))
+					 return;
+				     // At the moment we only support one installed tests data
+				     if (installedTestsDataSubdir == null)
+					 installedTestsDataSubdir = instTestsPath;
+				 }), cancellable);
+	    }
+	    if (installedTestsDataSubdir)
+		this._installAndUnlink(buildResultDir, installedTestsDataSubdir, testsPath, cancellable);
 	}
 
 	this._installAndUnlink(buildResultDir, buildResultDir, runtimePath, cancellable);
@@ -680,7 +705,7 @@ const TaskBuild = new Lang.Class({
         dataOut.close(cancellable);
 
 	let argv = ['ostree', '--repo=' + this.repo.get_path(),
-		    'checkout', '--user-mode', '--union', 
+		    'checkout', '--allow-noent', '--user-mode', '--union', 
 		    '--from-file=' + contentsTmpPath.get_path(), composeRootdir.get_path()];
 	print("Running: " + argv.map(GLib.shell_quote).join(' '));
 	let proc = GSystem.Subprocess.new_simple_argv(argv,
@@ -1069,11 +1094,10 @@ const TaskBuild = new Lang.Class({
 
             if (isRuntime) {
                 runtimeComponents.push(component);
-	    }
-	    if (isTesting)
+	    } else if (isTesting) {
 		testingComponents.push(component);
-	    else
-		develComponents.push(component);
+	    }
+	    develComponents.push(component);
 
 	    let isNoarch = component['noarch'] || false;
 	    let componentArches;
@@ -1179,9 +1203,9 @@ const TaskBuild = new Lang.Class({
                     } else if (targetComponentType == 'runtime-debug') {
                         componentRef['trees'] = ['/runtime', '/debug'];
                     } else if (targetComponentType == 'devel') {
-                        componentRef['trees'] = ['/runtime', '/devel', '/doc']
+                        componentRef['trees'] = ['/runtime', '/devel', '/tests', '/doc']
 		    } else if (targetComponentType == 'devel-debug') {
-                        componentRef['trees'] = ['/runtime', '/devel', '/doc', '/debug'];
+                        componentRef['trees'] = ['/runtime', '/devel', '/tests', '/doc', '/debug'];
 		    }
                     contents.push(componentRef);
 		}
@@ -1309,9 +1333,9 @@ const TaskBuild = new Lang.Class({
 
 	let installedTestComponentNames = this._snapshot.data['installed-tests-components'] || [];
 	print("Using installed test components: " + installedTestComponentNames.join(', '));
-	let installedTestRevs = {};
+	let installedTestContents = {};
         for (let i = 0; i < architectures.length; i++) {
-	    installedTestRevs[architectures[i]] = [];
+	    installedTestContents[architectures[i]] = [];
 	}
 	for (let i = 0; i < testingComponents.length; i++) {
 	    let component = testingComponents[i];
@@ -1322,7 +1346,16 @@ const TaskBuild = new Lang.Class({
 		let rev = componentBuildRevs[archname];
 		if (!rev)
 		    throw new Error("no build for " + buildRef);
-		installedTestRevs[architecture].push(rev);
+		installedTestContents[architecture].push([rev, '/runtime']);
+	    }
+	}
+	for (let i = 0; i < runtimeComponents.length; i++) {
+	    let component = runtimeComponents[i];
+	    for (let j = 0; j < architectures.length; j++) {
+		let architecture = architectures[j];
+		let archname = component['name'] + '/' + architecture;
+		let rev = componentBuildRevs[archname];
+		installedTestContents[architecture].push([rev, '/tests'])
 	    }
 	}
         for (let i = 0; i < installedTestComponentNames.length; i++) {
@@ -1332,15 +1365,16 @@ const TaskBuild = new Lang.Class({
 		let archname = componentName + '-installed-tests' + '/' + architecture;
 		let component = this._snapshot.getComponent(componentName);
 		let buildRev = this._buildOneComponent(component, architecture, cancellable, { installedTests: true });
-		installedTestRevs[architecture].push(buildRev);
+		installedTestContents[architecture].push([buildRev, '/runtime']);
+		installedTestContents[architecture].push([buildRev, '/tests']);
 	    }
 	}
-	for (let architecture in installedTestRevs) {
+	for (let architecture in installedTestContents) {
 	    let rootName = 'buildmaster/' + architecture + '-installed-tests';
 	    let composeContents = [];
-	    let revs = installedTestRevs[architecture];
-            for (let j = 0; j < revs.length; j++) {
-		composeContents.push([revs[j], '/runtime']);
+	    let contents = installedTestContents[architecture];
+            for (let j = 0; j < contents.length; j++) {
+		composeContents.push(contents[j]);
 	    }
 	    composeTreeTaskCount++;
 	    this._checkoutOneTreeCoreAsync(rootName, composeContents, cancellable,
