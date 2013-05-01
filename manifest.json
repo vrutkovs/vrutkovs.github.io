@@ -625,7 +625,8 @@
 		{"src": "gnome:ostree",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-documentation",
-		                 "--with-soup-gnome"]},
+		                 "--with-soup-gnome",
+				 "--enable-installed-tests"]},
 
 		{"src": "gnome:gnome-ostree-integration"},
 
