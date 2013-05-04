@@ -58,12 +58,15 @@ const TaskIntegrationTest = new Lang.Class({
         ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
                           'checkout', '--no-triggers', '--user-mode', '--union', installedTestsRev, deployDir.get_path()], cancellable,
                          { logInitiation: true });
-        // A bit of a hack; we need to sync the data in /etc/ from the tree to the real /etc.
-        // Probably this should have a real ostree command ("ostree admin overlay"?)
-        let relpath = 'xdg/autostart/gnome-desktop-testing.desktop';
-        let src = deployDir.resolve_relative_path('etc/' + relpath);
-        let dest = deployEtcDir.resolve_relative_path(relpath);
-        GSystem.file_linkcopy(src, dest, Gio.FileCopyFlags.OVERWRITE,
+        let desktopFile = '[Desktop Entry]\n\
+Encoding=UTF-8\n\
+Name=GNOME installed tests runner\n\
+Exec=gnome-desktop-testing-runner\n\
+Terminal=false\n\
+Type=Application\n';
+        let dest = deployEtcDir.resolve_relative_path('xdg/autostart/gnome-desktop-testing.desktop');
+        GSystem.file_ensure_directory(dest.get_parent(), true, cancellable);
+        dest.replace_contents(desktopFile, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION,
                               cancellable);
     }
 });
