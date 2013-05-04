@@ -5,12 +5,6 @@ Highlevel stuff:
 * SELinux tooling (and ideally a really basic policy); this would
   help demo the xattr support
 
-* Split debuginfo
-
-* Installed tests: We have a "smoketest" now, but what we really
-  want is to allow individual components to install tests, and
-  then run them inside qemu (in a logged in session).
-
 * "ostbuild clone" - take a build directory (ideally while it's
   running), and efficiently clone it.  This will allow things like
   try servers and patch queue processing.
@@ -22,9 +16,6 @@ Highlevel stuff:
   diff, etc.
 
 * Automatic reverse dependency rebuilds on soname bumps
-
-* Support importing tarballs?
-
 
 Code internals:
 
