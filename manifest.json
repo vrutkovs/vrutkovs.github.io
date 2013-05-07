@@ -672,6 +672,7 @@
 				 "--disable-service-packs",
 				 "--enable-NetworkManager",
 				 "--disable-man-pages",
+				 "--disable-bash-completion",
 				 "--disable-tests",
 				 "--disable-browser-plugin",
 				 "--disable-cron",
