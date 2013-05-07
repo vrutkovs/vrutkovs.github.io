@@ -645,7 +645,12 @@ const TaskBuild = new Lang.Class({
 	let proc = new GSystem.Subprocess({ context: context });
 	proc.init(cancellable);
 	print("Started child process " + context.argv.map(GLib.shell_quote).join(' '));
-	proc.wait_sync_check(cancellable);
+	try {
+	    proc.wait_sync_check(cancellable);
+	} catch (e) {
+	    print("Build of " + basename + " failed");
+	    throw e;
+	}
 
 	let finalBuildResultDir = buildWorkdir.get_child('post-results');
 	GSystem.shutil_rm_rf(finalBuildResultDir, cancellable);
