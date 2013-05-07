@@ -108,15 +108,15 @@ const TestOneDisk = new Lang.Class({
                     this._loop.quit();
                 }
             }
-            if (this._countPendingRequiredMessageIds > 0) {
-                this._readingJournal = true;
-                this._journalDataStream.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
-                                                        Lang.bind(this, this._onJournalReadLine));
-            } else {
+            if (this._countPendingRequiredMessageIds == 0 && !this._foundAllMessageIds) {
                 print("Found all required message IDs");
                 this._foundAllMessageIds = true;
                 GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, COMPLETE_IDLE_WAIT_SECONDS,
                                          Lang.bind(this, this._onFinalWait));
+            } else {
+                this._readingJournal = true;
+                this._journalDataStream.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
+                                                        Lang.bind(this, this._onJournalReadLine));
             }
         }
     },
