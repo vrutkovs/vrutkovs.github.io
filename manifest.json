@@ -296,7 +296,6 @@
 		{"src": "fd:xorg/lib/libpciaccess"},
 
 		{"src": "fd-mesa:drm",
-		 "tag": "2.4.44",
 		 "config-opts": ["--enable-nouveau-experimental-api"]},
 
 		{"src": "fd-mesa:mesa",
