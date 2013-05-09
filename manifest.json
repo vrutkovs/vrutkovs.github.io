@@ -712,7 +712,8 @@
 		{"src": "gnome:mutter",
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
 
-		{"src": "gnome:gjs"},
+		{"src": "gnome:gjs",
+		 "config-opts": ["--enable-installed-tests"]},
 
                 {"src": "ibus:ibus.git",
 		 "patches": ["ibus-builddir.patch"],
@@ -852,7 +853,7 @@
 		 "component": "testing"}
 	],
 
-    "installed-tests-components": ["gjs"],
+    "installed-tests-components": [],
 
     "initramfs-build-epoch": {"version": 0},
     
