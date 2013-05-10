@@ -161,6 +161,9 @@ function injectExportJournal(currentDir, currentEtcDir, cancellable) {
     exportScript.copy(exportBin, Gio.FileCopyFlags.OVERWRITE, cancellable, null, null);
     GSystem.file_chmod(exportBin, 493, cancellable);
     exportScriptService.copy(multiuserWantsDir.get_child(exportScriptService.get_basename()), Gio.FileCopyFlags.OVERWRITE, cancellable, null, null);
+    let journalConfPath = currentEtcDir.resolve_relative_path('systemd/journald.conf');
+    journalConfPath.replace_contents('[Journal]\n\
+RateLimitInterval=0\n', null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 }
 
 function injectTestUserCreation(currentDir, currentEtcDir, username, params, cancellable) {
