@@ -755,7 +755,8 @@
 		 "config-opts": ["--disable-source-rebuild"]},
 
 		{"src": "fd:accountsservice",
-		 "config-opts": ["--enable-admin-group=sudo"]},
+		 "config-opts": ["--enable-admin-group=sudo",
+				 "--disable-vala"]},
 
 		{"src": "gnome:gdm",
 		 "config-opts": ["--disable-documentation",
