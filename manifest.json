@@ -630,6 +630,9 @@
 
 		{"src": "gnome:gnome-ostree-integration"},
 
+		{"src": "fd-gstreamer:orc",
+		 "patches": ["orc-autogen.patch"]},
+
 		{"src": "fd-gstreamer:gstreamer",
 		 "config-opts": ["--disable-tests",
 		                 "--disable-fatal-warnings"]},
