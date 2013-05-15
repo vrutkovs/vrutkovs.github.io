@@ -328,8 +328,7 @@ const TestBase = new Lang.Class({
                              "f77379a8490b408bbe5f6940505a777b",  // systemd-journald
                             ],
 
-    BaseFailedMessageIDs: ["fc2e22bc6ee647b6b90729ab34a250b1", // coredump
-                          ],
+    BaseFailedMessageIDs: [],
 
     RequiredMessageIDs: [],
     FailedMessageIDs: [],

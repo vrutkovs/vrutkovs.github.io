@@ -42,7 +42,8 @@ const TaskSmoketest = new Lang.Class({
     RequiredMessageIDs: ["0ce153587afa4095832d233c17a88001" // gnome-session startup ok
                         ],
 
-    FailedMessageIDs: ["10dd2dc188b54a5e98970f56499d1f73" // gnome-session required component failed
+    FailedMessageIDs: ["fc2e22bc6ee647b6b90729ab34a250b1", // coredump
+                       "10dd2dc188b54a5e98970f56499d1f73" // gnome-session required component failed
                       ],
 
     CompletedTag: 'smoketested'
