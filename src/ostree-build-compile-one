@@ -167,13 +167,17 @@ def main(args):
         log("Using build directory %r" % (builddir, ))
         if not os.path.isdir(builddir):
             os.mkdir(builddir)
-    
-    if use_builddir:
-        args = ['../configure']
-    else:
-        args = ['./configure']
-    args.extend(configargs)
-    run_sync(args, cwd=builddir)
+
+    config_status = os.path.join(builddir, 'config.status')
+    have_config_status = os.path.exists(config_status)
+            
+    if not have_config_status:
+        if use_builddir:
+            args = ['../configure']
+        else:
+            args = ['./configure']
+        args.extend(configargs)
+        run_sync(args, cwd=builddir)
 
     makefile_path = None
     for name in ['Makefile', 'makefile', 'GNUmakefile']:
