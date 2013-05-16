@@ -46,7 +46,8 @@
 		 "tag": "v3.0.10"},
 
 		{"src": "gnome:glib",
-                 "config-opts": ["--disable-modular-tests"]},
+                 "config-opts": ["--disable-modular-tests",
+				 "--enable-installed-tests"]},
 
 		{"src": "gnome:ostree",
 		 "name": "ostree-triggers",
