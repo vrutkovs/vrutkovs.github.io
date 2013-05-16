@@ -535,7 +535,8 @@
 
 		{"src": "gnome:gnome-keyring"},
 
-		{"src": "gnome:json-glib"},
+		{"src": "gnome:json-glib",
+                 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:libcroco"},
 
