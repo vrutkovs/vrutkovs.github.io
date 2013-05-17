@@ -93,6 +93,14 @@ class GNOMEOSTree(callbacks.Plugin):
         success_str = success and 'successful' or 'failed'
         millis = int(metadata['elapsedMillis'])
         msg += " %s: %s in %.1f seconds. " % (taskver, success_str, millis / 1000)
+
+        status_path = os.path.join(current_task_path, 'status.txt')
+        if os.path.exists(status_path):
+            f = open(status_path)
+            status_msg = f.read().strip()
+            f.close()
+            msg += status_msg + ' '
+
         msg += self._workurl + "tasks/" + taskname + "/%s/%s/output.txt" % (success_str, taskver)
 
         if not success:

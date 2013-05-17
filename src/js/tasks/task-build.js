@@ -689,6 +689,8 @@ const TaskBuild = new Lang.Class({
 
         let ostreeRevision = this._saveComponentBuild(buildRef, expandedComponent, cancellable);
 
+	this._rebuiltComponents.push(basename);
+
         return ostreeRevision;
     },
     
@@ -992,6 +994,8 @@ const TaskBuild = new Lang.Class({
 	}
 
 	GSystem.shutil_rm_rf(checkoutdir, cancellable);
+
+	this._rebuiltComponents.push(basename);
 	
 	this._writeComponentCache(buildname, basemeta, cancellable);
     },
@@ -1022,6 +1026,8 @@ const TaskBuild = new Lang.Class({
 	this._snapshot = new Snapshot.Snapshot(data, workingSnapshotPath);
         let osname = this._snapshot.data['osname'];
 	this.osname = osname;
+
+	this._rebuiltComponents = [];
 
 	this.patchdir = this.workdir.get_child('patches');
 
@@ -1411,6 +1417,10 @@ const TaskBuild = new Lang.Class({
 	composeTreeTaskLoop.run();
 	if (composeTreeTaskError)
 	    throw new Error(composeTreeTaskError);
+
+	let statusTxtPath = Gio.File.new_for_path('status.txt');
+	statusTxtPath.replace_contents('built: ' + this._rebuiltComponents.join(' ') + '\n', null, false,
+				       Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 
 	let [path, modified] = builddb.store(buildData, cancellable);
 	print("Build complete: " + path.get_path());

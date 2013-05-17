@@ -37,10 +37,11 @@ const COMPLETE_IDLE_WAIT_SECONDS = 10;
 const TestOneDisk = new Lang.Class({
     Name: 'TestOneDisk',
 
-    _init: function(parentTask, testRequiredMessageIds, testFailedMessageIds) {
+    _init: function(parentTask, testRequiredMessageIds, testFailedMessageIds, testStatusMessageId) {
         this._parentTask = parentTask;
         this._testRequiredMessageIds = testRequiredMessageIds;
         this._testFailedMessageIds = testFailedMessageIds;
+        this._statusMessageId = testStatusMessageId;
     },
 
     _fail: function(message) {
@@ -97,15 +98,22 @@ const TestOneDisk = new Lang.Class({
             return;
         if (line) {
             let data = JSON.parse(line);
+            let message = data['MESSAGE'];
             let messageId = data['MESSAGE_ID'];
             if (messageId) {
                 if (this._pendingRequiredMessageIds[messageId]) {
                     print("Found required message ID " + messageId);
+                    print(message);
                     delete this._pendingRequiredMessageIds[messageId];
                     this._countPendingRequiredMessageIds--;
                 } else if (this._failMessageIds[messageId]) {
                     this._fail("Found failure message ID " + messageId);
+                    print(message);
                     this._loop.quit();
+                }
+                if (messageId === this._statusMessageId) {
+                    print(message);
+                    this._parentTask._statusMessage = message;
                 }
             }
             if (this._countPendingRequiredMessageIds == 0 && !this._foundAllMessageIds) {
@@ -333,6 +341,8 @@ const TestBase = new Lang.Class({
     RequiredMessageIDs: [],
     FailedMessageIDs: [],
 
+    StatusMessageID: [],
+
     CompletedTag: null,
 
     _prepareDisk: function(mntdir, cancellable) {
@@ -348,6 +358,9 @@ const TestBase = new Lang.Class({
         let info;
         let buildJson;
         let disksToTest = [];
+
+        this._statusMessage = null;
+
         while ((info = e.next_file(cancellable)) != null) {
             let name = info.get_name();
             if (name.indexOf('build-') == 0 && JSUtil.stringEndswith(name, '.json')) {
@@ -367,10 +380,19 @@ const TestBase = new Lang.Class({
             let workdirName = 'work-' + name.replace(/\.qcow2$/, '');
             let subworkdir = Gio.File.new_for_path(workdirName);
             GSystem.file_ensure_directory(subworkdir, true, cancellable);
-            let test = new TestOneDisk(this, this.BaseRequiredMessageIDs.concat(this.RequiredMessageIDs),
-                                       this.BaseFailedMessageIDs.concat(this.FailedMessageIDs));
+            let test = new TestOneDisk(this,
+                                       this.BaseRequiredMessageIDs.concat(this.RequiredMessageIDs),
+                                       this.BaseFailedMessageIDs.concat(this.FailedMessageIDs),
+                                       this.StatusMessageID);
             test.execute(subworkdir, this._buildData, this.repo, currentImages.get_child(name), cancellable);
         }
+
+        if (this._statusMessage != null) {
+	          let statusTxtPath = Gio.File.new_for_path('status.txt');
+	          statusTxtPath.replace_contents(this._statusMessage + '\n', null, false,
+				                                   Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+        }
+
         let buildData = this._buildData;
         if (buildJson != null && this.CompletedTag !== null) {
             let refData = '';

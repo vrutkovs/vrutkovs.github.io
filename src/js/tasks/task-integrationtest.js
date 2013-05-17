@@ -46,6 +46,8 @@ const TaskIntegrationTest = new Lang.Class({
                          "0eee66bf98514369bef9868327a43cf1" // Tests failed
                         ],
 
+    StatusMessageID: "4d013788dd704743b826436c951e551d",
+
     CompletedTag: 'integrated',
 
     _prepareDisk: function(mntdir, arch, cancellable) {
