@@ -26,21 +26,23 @@ function get_page_arg(key) {
 }
 
 var repoDataSignal = {};
-var currentBuildMeta = null;
-var currentSmoketestMeta = null;
+var taskData = {};
+var taskNames = ['build', 'smoketest', 'integrationtest'];
+
+function _loadTask(taskname) {
+    var url = 'work/tasks/' + taskname + '/current/meta.json';
+    console.log("loading " + url);
+    $.getJSON(url, function(data) {
+        console.log("load of " + taskname + " complete");
+        taskData[taskname] = data;
+        $(repoDataSignal).trigger("taskdata-changed", [taskname]);
+    });
+}
 
 function repowebInit() {
-    var url;
-    url = "work/tasks/build/current/meta.json";
-    $.getJSON(url, function(data) {
-        currentBuildMeta = data;
-        $(repoDataSignal).trigger("current-build-meta-loaded");
-    });
-    url = "work/tasks/smoketest/current/meta.json";
-    $.getJSON(url, function(data) {
-        currentSmoketestMeta = data;
-        $(repoDataSignal).trigger("current-smoketest-meta-loaded");
-    });
+    for (var i = 0; i < taskNames.length; i++) {
+        _loadTask(taskNames[i]);
+    }
 }
 
 function timeago(d, now) {
@@ -122,41 +124,26 @@ function renderBuild(container, build) {
 
 }
 
+function _renderTask(taskName) {
+    var statusNode = $("#" + taskName + "-meta").get(0);
+    $(statusNode).empty();
+    
+    var meta = taskData[taskName];
+    var ref = 'work/tasks/' + taskName;
+    if (meta.success)
+        ref += '/successful';
+    else
+        ref += '/failed';
+    ref += '/' + meta.taskVersion;
+    statusNode.setAttribute('href', ref);
+    statusNode.setAttribute('rel', 'external');
+    var text = currentBuildMeta.taskVersion + ': ' + (meta.success ? "success" : "failed ");
+    statusNode.appendChild(document.createTextNode(text));
+}
+
 function repowebIndexInit() {
     repowebInit();
-    $(repoDataSignal).on("current-build-meta-loaded", function () {
-	var buildMetaNode = $("#build-meta").get(0);
-
-        $(buildMetaNode).empty();
-        var ref = 'work/tasks/build/';
-        if (currentBuildMeta.success)
-            ref += '/successful';
-        else
-            ref += '/failed';
-        ref += '/' + currentBuildMeta.taskVersion;
-        var a = document.createElement('a');
-        a.setAttribute('href', ref);
-        a.setAttribute('rel', 'external');
-        a.appendChild(document.createTextNode(currentBuildMeta.taskVersion));
-        buildMetaNode.appendChild(a);
-        buildMetaNode.appendChild(document.createTextNode(': ' + (currentBuildMeta.success ? "success" : "failed ")));
-        
-    });
-    $(repoDataSignal).on("current-smoketest-meta-loaded", function () {
-	var node = $("#smoketest-meta").get(0);
-
-        $(node).empty();
-        var ref = 'work/tasks/smoketest/';
-        if (currentSmoketestMeta.success)
-            ref += '/successful';
-        else
-            ref += '/failed';
-        ref += '/' + currentSmoketestMeta.taskVersion;
-        var a = document.createElement('a');
-        a.setAttribute('href', ref);
-        a.setAttribute('rel', 'external');
-        a.appendChild(document.createTextNode(currentSmoketestMeta.taskVersion));
-        node.appendChild(a);
-        node.appendChild(document.createTextNode(': ' + (currentSmoketestMeta.success ? "success" : "failed ")));
+    $(repoDataSignal).on("taskdata-changed", function (event, taskName) {
+        this._renderTask(taskNames);
     });
 }
