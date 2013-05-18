@@ -144,6 +144,6 @@ function _renderTask(taskName) {
 function repowebIndexInit() {
     repowebInit();
     $(repoDataSignal).on("taskdata-changed", function (event, taskName) {
-        this._renderTask(taskNames);
+        _renderTask(taskNames);
     });
 }
