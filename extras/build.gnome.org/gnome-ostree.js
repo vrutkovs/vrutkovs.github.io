@@ -127,6 +127,8 @@ function renderBuild(container, build) {
 function _renderTask(taskName) {
     var statusNode = $("#" + taskName + "-meta").get(0);
     $(statusNode).empty();
+    var spanNode = $("#" + taskName + "-span").get(0);
+    $(spanNode).empty();
     
     var meta = taskData[taskName];
     var ref = 'work/tasks/' + taskName;
@@ -139,11 +141,13 @@ function _renderTask(taskName) {
     statusNode.setAttribute('rel', 'external');
     var text = currentBuildMeta.taskVersion + ': ' + (meta.success ? "success" : "failed ");
     statusNode.appendChild(document.createTextNode(text));
+    if (meta['status'])
+        spanNode.appendChild(document.createTextNode(meta['status']));
 }
 
 function repowebIndexInit() {
     repowebInit();
     $(repoDataSignal).on("taskdata-changed", function (event, taskName) {
-        _renderTask(taskNames);
+        _renderTask(taskName);
     });
 }
