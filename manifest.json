@@ -851,6 +851,9 @@
 
 		{"src": "gnome:gnome-clocks"},
 
+		{"src": "gnome:glade",
+		 "component": "devel"},
+
 		{"src": "gnome:nautilus"},
 
 		{"src": "gnome:gnome-software"},
