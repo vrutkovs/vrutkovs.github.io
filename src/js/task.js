@@ -494,7 +494,7 @@ const TaskDef = new Lang.Class({
 	let statusTxtPath = this._workdir.get_child('status.txt');
 	if (statusTxtPath.query_exists(null)) {
 	    let contents = GSystem.file_load_contents_utf8(statusTxtPath, cancellable);
-	    meta['status'] = contents.replace(/[ \n]/g, '');
+	    meta['status'] = contents.replace(/[ \n]+$/, '');
 	}
 
 	JsonUtil.writeJsonFileAtomic(this._workdir.get_child('meta.json'), meta, cancellable);
