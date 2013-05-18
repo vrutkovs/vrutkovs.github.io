@@ -125,7 +125,7 @@ function renderBuild(container, build) {
 }
 
 function _renderTask(taskName) {
-    var statusNode = $("#" + taskName + "-meta").get(0);
+    var statusNode = $("#" + taskName + "-link").get(0);
     $(statusNode).empty();
     var spanNode = $("#" + taskName + "-span").get(0);
     $(spanNode).empty();
