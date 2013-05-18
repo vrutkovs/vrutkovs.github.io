@@ -139,10 +139,10 @@ function _renderTask(taskName) {
     ref += '/' + meta.taskVersion;
     statusNode.setAttribute('href', ref);
     statusNode.setAttribute('rel', 'external');
-    var text = currentBuildMeta.taskVersion + ': ' + (meta.success ? "success" : "failed ");
+    var text = meta.taskVersion + ': ' + (meta.success ? "success" : "failed ");
     statusNode.appendChild(document.createTextNode(text));
     if (meta['status'])
-        spanNode.appendChild(document.createTextNode(meta['status']));
+        spanNode.appendChild(document.createTextNode('  ' + meta['status']));
 }
 
 function repowebIndexInit() {
