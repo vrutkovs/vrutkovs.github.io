@@ -736,6 +736,8 @@
 
 		{"src": "gnome:libgweather"},
 
+		{"src": "gnome:libpeas"},
+
 		{"src": "cgwalters:liboauth-tarballs-as-git",
 		 "rm-configure": true,
 		 "config-opts": ["--enable-nss"],
