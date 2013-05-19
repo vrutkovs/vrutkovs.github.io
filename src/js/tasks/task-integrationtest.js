@@ -43,12 +43,24 @@ const TaskIntegrationTest = new Lang.Class({
                         ],
 
     FailedMessageIDs:   ["10dd2dc188b54a5e98970f56499d1f73", // gnome-session required component failed
-                         "0eee66bf98514369bef9868327a43cf1" // Tests failed
                         ],
 
     StatusMessageID: "4d013788dd704743b826436c951e551d",
 
     CompletedTag: 'integrated',
+    
+    _handleMessage: function(message, cancellable) {
+        if (message['MESSAGE_ID'] == "0eee66bf98514369bef9868327a43cf1") {
+            print(message['MESSAGE']);
+            this._oneTestFailed = true;
+        }
+    },
+
+    _postQemu: function(cancellable) {
+        if (this._oneTestFailed) {
+            throw new Error("Not all tests passed");
+        }
+    },
 
     _prepareDisk: function(mntdir, arch, cancellable) {
         let osname = this._buildData['snapshot']['osname'];

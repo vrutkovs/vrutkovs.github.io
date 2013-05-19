@@ -115,6 +115,7 @@ const TestOneDisk = new Lang.Class({
                     print(message);
                     this._parentTask._statusMessage = message;
                 }
+                this._parentTask._handleMessage(data, this._cancellable);
             }
             if (this._countPendingRequiredMessageIds == 0 && !this._foundAllMessageIds) {
                 print("Found all required message IDs");
@@ -321,6 +322,9 @@ const TestOneDisk = new Lang.Class({
         if (this._failed) {
             throw new Error(this._failedMessage);
         }
+
+        this._parentTask._postQemu(cancellable);
+
         print("Completed testing of " + diskPath.get_basename());
     }
 });
@@ -347,6 +351,13 @@ const TestBase = new Lang.Class({
 
     _prepareDisk: function(mntdir, cancellable) {
         // Nothing, intended for subclasses
+    },
+
+    _handleMessage: function(message, cancellable) {
+        return false;
+    },
+
+    _postQemu: function(cancellable) {
     },
 
     execute: function(cancellable) {
