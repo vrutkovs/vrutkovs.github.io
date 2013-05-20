@@ -754,6 +754,9 @@
 		 "patches": ["default-icon-theme-autogen.patch",
 		             "default-icon-theme-no-builddir.patch"]},
 
+		{"src": "fd-xdg:desktop-file-utils",
+		 "patches": ["desktop-file-utils-autogen.patch"]},
+
 		{"src": "fd-xdg:shared-mime-info",
 		 "config-opts": ["--disable-default-make-check"]},
 
