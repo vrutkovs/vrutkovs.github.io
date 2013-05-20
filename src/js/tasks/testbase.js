@@ -163,7 +163,6 @@ const TestOneDisk = new Lang.Class({
         let cmdStr = JSON.stringify(cmd);
         this._qemuOut.put_string(cmdStr, this._cancellable);
         let [response, len] = this._qemuIn.read_line_utf8(this._cancellable);
-        print("qemu cmd=" + cmdStr + " response=" + response);
     },
 
     _screenshot: function(isFinal) {
