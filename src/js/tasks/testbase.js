@@ -113,7 +113,9 @@ const TestOneDisk = new Lang.Class({
                 }
                 if (messageId === this._statusMessageId) {
                     print(message);
-                    this._parentTask._statusMessage = message;
+	                  let statusTxtPath = Gio.File.new_for_path('status.txt');
+	                  statusTxtPath.replace_contents(message + '\n', null, false,
+				                                           Gio.FileCreateFlags.REPLACE_DESTINATION, this._cancellable);
                 }
                 this._parentTask._handleMessage(data, this._cancellable);
             }
@@ -369,8 +371,6 @@ const TestBase = new Lang.Class({
         let buildJson;
         let disksToTest = [];
 
-        this._statusMessage = null;
-
         while ((info = e.next_file(cancellable)) != null) {
             let name = info.get_name();
             if (name.indexOf('build-') == 0 && JSUtil.stringEndswith(name, '.json')) {
@@ -395,12 +395,6 @@ const TestBase = new Lang.Class({
                                        this.BaseFailedMessageIDs.concat(this.FailedMessageIDs),
                                        this.StatusMessageID);
             test.execute(subworkdir, this._buildData, this.repo, currentImages.get_child(name), cancellable);
-        }
-
-        if (this._statusMessage != null) {
-	          let statusTxtPath = Gio.File.new_for_path('status.txt');
-	          statusTxtPath.replace_contents(this._statusMessage + '\n', null, false,
-				                                   Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
         }
 
         let buildData = this._buildData;
