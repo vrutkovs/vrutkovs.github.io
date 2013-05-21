@@ -49,7 +49,7 @@ const TaskZDisks = new Lang.Class({
 
     _imageSubdir: 'images/z',
     _inheritPreviousDisk: false,
-    _onlyTreeSuffixes: ['-runtime', '-devel'],
+    _onlyTreeSuffixes: ['-runtime', '-devel-debug'],
 
     _postDiskCreation: function(diskPath, cancellable) {
         let parent = diskPath.get_parent();
