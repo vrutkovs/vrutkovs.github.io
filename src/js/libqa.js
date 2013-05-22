@@ -26,8 +26,7 @@ const GuestFish = imports.guestfish;
 
 const DEFAULT_GF_PARTITION_OPTS = ['-m', '/dev/sda3', '-m', '/dev/sda1:/boot'];
 const DEFAULT_QEMU_OPTS = ['-vga', 'std', '-m', '768M',
-                           '-usb', '-usbdevice', 'tablet',
-			   '-smp', '1,sockets=1,cores=1,threads=1'];
+                           '-usb', '-usbdevice', 'tablet'];
 
 
 function newReadWriteMount(diskpath, cancellable) {
