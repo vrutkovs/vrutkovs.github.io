@@ -1,0 +1,31 @@
+From ec0c7df14d57f5da3e78ef896b1e224882834f88 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Thu, 23 May 2013 11:24:43 -0400
+Subject: [PATCH] gdbus: Rename "dconf worker" thread to "dconf-worker" to work around kernel bug
+
+At the moment, gnome-settings-daemon is crashing in gnome-ostree
+buildmaster, and it looks like it's the "dconf worker" thread hitting
+the SEGV.  However, unfortunately due to a kernel bug, systemd-coredump
+rejects programs with spaces in their name.
+
+See http://lists.freedesktop.org/archives/systemd-devel/2013-April/010781.html
+---
+ gdbus/dconf-gdbus-thread.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/gdbus/dconf-gdbus-thread.c b/gdbus/dconf-gdbus-thread.c
+index 3b5302e..d251d2f 100644
+--- a/gdbus/dconf-gdbus-thread.c
++++ b/gdbus/dconf-gdbus-thread.c
+@@ -94,7 +94,7 @@ dconf_gdbus_get_worker_context (void)
+       GMainContext *context;
+ 
+       context = g_main_context_new ();
+-      g_thread_new ("dconf worker", dconf_gdbus_worker_thread, context);
++      g_thread_new ("dconf-worker", dconf_gdbus_worker_thread, context);
+       g_once_init_leave (&worker_context, context);
+     }
+ 
+-- 
+1.7.1
+

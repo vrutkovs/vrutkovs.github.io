@@ -710,6 +710,7 @@
 				 "--with-unicode-support=libicu"]},
 
 		{"src": "gnome:dconf",
+		 "patches": ["dconf-thread-name.patch"],
 		 "config-opts": ["--disable-man", "--disable-editor"]},
 
 		{"src": "gnome:zenity"},
