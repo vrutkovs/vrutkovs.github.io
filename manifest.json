@@ -757,6 +757,8 @@
 		{"src": "fd-xdg:desktop-file-utils",
 		 "patches": ["desktop-file-utils-autogen.patch"]},
 
+		{"src": "fd-xdg:xdg-user-dirs"},
+
 		{"src": "fd-xdg:shared-mime-info",
 		 "config-opts": ["--disable-default-make-check"]},
 
