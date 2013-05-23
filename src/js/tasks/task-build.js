@@ -268,6 +268,8 @@ const TaskBuild = new Lang.Class({
                 !this._compareAny(oldSha256sums, newSha256sums)) {
                 return 'patch sha256sums differ';
 	    }
+	} else if (newMetadata['patches']) {
+	    return 'patches differ';
 	}
         return null;
     },
