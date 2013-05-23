@@ -1,0 +1,46 @@
+From b4b4b583286c20dc800467ec4f88abfd84ec2789 Mon Sep 17 00:00:00 2001
+From: Julien Cristau <jcristau@debian.org>
+Date: Thu, 23 May 2013 13:33:15 -0400
+Subject: [PATCH] xkb: Fix inconsistencies in the XKB security changes
+
+This makes the checks against max_key_code consistent, and means the
+GetNames reply gets checked even when names->keys was just allocated.
+Running 'xset q' here under xtrace shows GetNames returning firstKey=8
+nKeys=248, which would trip the original check with maxKeyCode=255.
+GetMap seems to return firstVModMapKey=0 nVModMapKeys=0
+totalVModMapKeys=0 though, so I don't know how to trigger the first
+check.
+---
+ src/xkb/XKBGetMap.c |    2 +-
+ src/xkb/XKBNames.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/xkb/XKBGetMap.c b/src/xkb/XKBGetMap.c
+index 0875dfd..c73e655 100644
+--- a/src/xkb/XKBGetMap.c
++++ b/src/xkb/XKBGetMap.c
+@@ -426,7 +426,7 @@ XkbServerMapPtr		srv;
+ 
+     if ( rep->totalVModMapKeys>0 ) {
+ 	if (((int) rep->firstVModMapKey + rep->nVModMapKeys)
+-	     > xkb->max_key_code)
++	     > xkb->max_key_code + 1)
+ 	    return BadLength;
+ 	if (((xkb->server==NULL)||(xkb->server->vmodmap==NULL))&&
+ 	    (XkbAllocServerMap(xkb,XkbVirtualModMapMask,0)!=Success)) {
+diff --git a/src/xkb/XKBNames.c b/src/xkb/XKBNames.c
+index 0f1e48e..3a8860b 100644
+--- a/src/xkb/XKBNames.c
++++ b/src/xkb/XKBNames.c
+@@ -180,7 +180,7 @@ _XkbReadGetNamesReply(	Display *		dpy,
+ 	    nKeys= xkb->max_key_code+1;
+ 	    names->keys= _XkbTypedCalloc(nKeys,XkbKeyNameRec);
+ 	}
+-	else if ( ((int)rep->firstKey + rep->nKeys) > xkb->max_key_code)
++	if ( ((int)rep->firstKey + rep->nKeys) > xkb->max_key_code + 1)
+ 	    goto BAILOUT;
+ 	if (names->keys!=NULL) {
+ 	    if (!_XkbCopyFromReadBuffer(&buf,
+-- 
+1.7.1
+
