@@ -752,6 +752,8 @@
 		{"src": "fd-xdg:xdg-user-dirs",
 		 "patches": ["xdg-user-dirs-autogen.patch"]},
 
+		{"src": "gnome:xdg-user-dirs-gtk"},
+
 		{"src": "fd-xdg:shared-mime-info",
 		 "config-opts": ["--disable-default-make-check"]},
 
