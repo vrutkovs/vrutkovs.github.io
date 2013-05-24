@@ -104,11 +104,6 @@
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
 
-   		{"src": "git:git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git",
-		 "patches": ["linux-firmware-configure-Make-executable.patch"],
-		 "tag": "4c79292308ead42fc786c8e189921196ccc298ff",
-		 "noarch": true},
-
    		{"src": "git:git://sourceware.org/git/lvm2.git"},
 
    		{"src": "gnome:linux-user-chroot",
@@ -321,9 +316,9 @@
 		     "--enable-shared-glapi",
 		     "--enable-gbm",
 		     "--enable-xa",
-		     "--with-gallium-drivers=svga,r300,r600,nouveau,swrast",
+		     "--with-gallium-drivers=svga,swrast",
 		     "--enable-gallium-llvm",
-		     "--with-dri-drivers=nouveau,radeon,r200,i915,i965,swrast"
+		     "--with-dri-drivers=swrast"
 		     ]},
 
 		{"src": "fd:xorg/app/xkbcomp"},
@@ -348,8 +343,6 @@
 
 		{"src": "fd:xorg/driver/xf86-video-cirrus"},
 
-		{"src": "fd:xorg/driver/xf86-video-intel"},
-
 		{"src": "fd:xorg/driver/xf86-video-modesetting",
 		 "patches": ["xorg-autogen-merged.patch"]},
 
@@ -368,9 +361,6 @@
 
                 {"src": "fd:xorg/driver/xf86-video-qxl",
 		 "patches": ["xorg-autogen-merged.patch"]},
-
-		{"src": "fd:xorg/driver/xf86-video-ati",
-		 "tag": "33d8408eec806355c2e55726679ec50ef3b769f1"},
 
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
