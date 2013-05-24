@@ -449,7 +449,6 @@ const TaskDef = new Lang.Class({
 	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.parameters)];
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
 	context.set_cwd(this._workdir.get_path());
-	context.set_stdin_disposition(GSystem.SubprocessStreamDisposition.PIPE);
 	let childEnv = GLib.get_environ();
 	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
 	context.set_environment(childEnv);
