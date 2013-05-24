@@ -48,6 +48,8 @@ const TaskSet = new Lang.Class({
 		this.register(cls);
 	    }
 	}
+
+	denum.close(null);
     },
 
     register: function(taskdef) {
@@ -361,7 +363,7 @@ const TaskDef = new Lang.Class({
 		continue;
 	    results.push(name);
 	}
-	e.close(cancellable);
+	e.close(null);
 	results.sort(BuildUtil.compareVersions);
 	return results;
     },

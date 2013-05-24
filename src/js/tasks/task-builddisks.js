@@ -147,29 +147,5 @@ const TaskBuildDisks = new Lang.Class({
 
     _postDiskCreation: function(diskPath, cancellable) {
         // Nothing, this is used by zdisks
-    },
-
-    _loadVersionsFrom: function(dir, cancellable) {
-	      let e = dir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
-	      let info;
-	      let results = [];
-	      while ((info = e.next_file(cancellable)) != null) {
-	          let name = info.get_name();
-	          let match = this._VERSION_RE.exec(name);
-	          if (!match)
-		            continue;
-	          results.push(name);
-	      }
-	      results.sort(BuildUtil.compareVersions);
-	      return results;
-    },
-
-    _cleanOldVersions: function(dir, retain, cancellable) {
-	      let versions = this._loadVersionsFrom(dir, cancellable);
-	      while (versions.length > retain) {
-	          let child = dir.get_child(versions.shift());
-	          GSystem.shutil_rm_rf(child, cancellable);
-	      }
-    },
-
+    }
 });
