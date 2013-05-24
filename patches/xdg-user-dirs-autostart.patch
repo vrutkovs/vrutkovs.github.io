@@ -1,0 +1,44 @@
+From dd0e304e38f2d35c1168190d58c2a47ac24e60a9 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Fri, 24 May 2013 16:42:40 -0400
+Subject: [PATCH] xdg-user-dirs.desktop: New file to autolaunch on login
+
+This previously lived in distribution-specific areas.
+---
+ Makefile.am           |    3 +++
+ xdg-user-dirs.desktop |    9 +++++++++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
+ create mode 100644 xdg-user-dirs.desktop
+
+diff --git a/Makefile.am b/Makefile.am
+index dcdf7a2..90bf342 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -16,6 +16,9 @@ EXTRA_DIST= config.rpath translate.c autogen.sh \
+ xdgdir=$(sysconfdir)/xdg
+ xdg_DATA=user-dirs.conf user-dirs.defaults
+ 
++xdgautostartdir=$(xdgdir)/autostart
++xdgautostart_DATA = xdg-user-dirs.desktop
++
+ libraries = $(LIBINTL)
+ 
+ bin_PROGRAMS =					\
+diff --git a/xdg-user-dirs.desktop b/xdg-user-dirs.desktop
+new file mode 100644
+index 0000000..503f4bc
+--- /dev/null
++++ b/xdg-user-dirs.desktop
+@@ -0,0 +1,9 @@
++[Desktop Entry]
++Encoding=UTF-8
++Exec=xdg-user-dirs-update
++Name=User folders update
++Comment=Create common folders
++Terminal=false
++OnlyShowIn=GNOME;
++Type=Application
++StartupNotify=false
+-- 
+1.7.1
+
