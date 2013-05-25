@@ -312,7 +312,7 @@ const TaskDef = new Lang.Class({
     TaskScheduleMinSecs: 0,
 
     PreserveStdout: true,
-    RetainFailed: 1,
+    RetainFailed: 5,
     RetainSuccess: 5,
 
     DefaultParameters: {},
