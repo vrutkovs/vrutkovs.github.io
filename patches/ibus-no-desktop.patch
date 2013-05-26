@@ -1,0 +1,68 @@
+From 08d48fb94971306d7816216fc2d9a47551548348 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Sun, 26 May 2013 16:09:10 -0400
+Subject: [PATCH] Delete ibus.desktop
+
+This is not an actual application, it just starts the daemon in the
+background.  That's not something that should be in the application
+list.  It should be started in the background when necessary.
+---
+ bus/Makefile.am     |   10 ----------
+ bus/ibus.desktop.in |   13 -------------
+ 2 files changed, 0 insertions(+), 23 deletions(-)
+ delete mode 100644 bus/ibus.desktop.in
+
+diff --git a/bus/Makefile.am b/bus/Makefile.am
+index f06b70c..7d60d15 100644
+--- a/bus/Makefile.am
++++ b/bus/Makefile.am
+@@ -161,15 +161,10 @@ test_stress_LDADD = \
+ 	$(NULL)
+ 
+ EXTRA_DIST =                \
+-	$(desktop_in_files)     \
+ 	$(man_one_in_files)     \
+ 	marshalers.list         \
+ 	$(NULL)
+ 
+-DISTCLEANFILES =            \
+-	$(desktop_DATA)         \
+-	$(NULL)
+-
+ CLEANFILES = \
+ 	$(man_one_DATA)            \
+ 	$(man_one_files)        \
+@@ -183,11 +178,6 @@ test: ibus-daemon
+ 		G_DEBUG=fatal_warnings \
+ 		$(builddir)/ibus-daemon -v
+ 
+-desktopdir = $(datadir)/applications
+-desktop_in_files = ibus.desktop.in
+-desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
+-@INTLTOOL_DESKTOP_RULE@
+-
+ man_one_in_files = ibus-daemon.1.in
+ man_one_files = $(man_one_in_files:.1.in=.1)
+ man_one_DATA =$(man_one_files:.1=.1.gz) 
+diff --git a/bus/ibus.desktop.in b/bus/ibus.desktop.in
+deleted file mode 100644
+index 9784f11..0000000
+--- a/bus/ibus.desktop.in
++++ /dev/null
+@@ -1,13 +0,0 @@
+-[Desktop Entry]
+-_Name=IBus
+-_GenericName=Input Method Framework
+-_Comment=Start IBus Input Method Framework
+-Exec=ibus-daemon --xim
+-Icon=ibus
+-Terminal=false
+-Type=Application
+-Categories=System;Utility;
+-X-GNOME-Autostart-Phase=Applications
+-X-GNOME-AutoRestart=false
+-X-GNOME-Autostart-Notify=true
+-X-KDE-autostart-after=panel
+-- 
+1.7.1
+

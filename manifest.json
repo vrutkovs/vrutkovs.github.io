@@ -712,7 +712,8 @@
 		 "config-opts": ["--enable-installed-tests"]},
 
                 {"src": "ibus:ibus.git",
-		 "patches": ["ibus-builddir.patch"],
+		 "patches": ["ibus-builddir.patch",
+			     "ibus-no-desktop.patch"],
 		 "config-opts": ["--disable-tests", 
 				 "--disable-gconf",
 				 "--enable-dconf",
