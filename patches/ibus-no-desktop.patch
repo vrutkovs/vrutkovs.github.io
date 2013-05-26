@@ -6,6 +6,8 @@ Subject: [PATCH] Delete ibus.desktop
 This is not an actual application, it just starts the daemon in the
 background.  That's not something that should be in the application
 list.  It should be started in the background when necessary.
+
+http://code.google.com/p/ibus/issues/detail?id=1628
 ---
  bus/Makefile.am     |   10 ----------
  bus/ibus.desktop.in |   13 -------------
