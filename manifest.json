@@ -870,7 +870,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 9,
+    "build-epoch": {"version": 10,
 		    "all": false,
-		    "component-names": ["gnome-control-center"]}
+		    "component-names": ["colord-gtk"]}
 }
