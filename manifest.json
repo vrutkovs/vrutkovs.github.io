@@ -478,7 +478,7 @@
 		 "tag": "0b17ee79bf5237ffdc3a2a7480023a7d61063788"},
 
                 {"src": "git:git://anongit.freedesktop.org/harfbuzz",
-		 "cf2c1c7eb81b54a344ed5cf36d5fbd3cd297eed1"},
+		 "tag": "7d395c2a255a44fd0d65365ea9b525dba70c062c"},
 
 		{"src": "gnome:pango"},
 
