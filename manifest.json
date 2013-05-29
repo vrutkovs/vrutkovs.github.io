@@ -871,7 +871,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 10,
+    "build-epoch": {"version": 11,
 		    "all": false,
-		    "component-names": ["colord-gtk"]}
+		    "component-names": ["harfbuzz", "webkitgtk"]}
 }
