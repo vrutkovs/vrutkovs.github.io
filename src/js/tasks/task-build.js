@@ -469,16 +469,21 @@ const TaskBuild = new Lang.Class({
 	    
 	    let installedTestsDataSubdir = null;
 	    if (libexecdir.query_exists(null)) {
-		FileUtil.walkDir(libexecdir, {fileType: Gio.FileType.DIRECTORY,
-					      depth: 1 },
-				 Lang.bind(this, function(filePath, cancellable) {
-				     let instTestsPath = filePath.get_child('installed-tests');
-				     if (!instTestsPath.query_exists(null))
-					 return;
-				     // At the moment we only support one installed tests data
-				     if (installedTestsDataSubdir == null)
-					 installedTestsDataSubdir = instTestsPath;
-				 }), cancellable);
+		let topInstTestsPath = libexecdir.get_child('installed-tests');
+		if (topInstTestsPath.query_exists(null)) {
+		    installedTestsDataSubdir = topInstTestsPath;
+		} else { 
+		    FileUtil.walkDir(libexecdir, {fileType: Gio.FileType.DIRECTORY,
+						  depth: 1 },
+				     Lang.bind(this, function(filePath, cancellable) {
+					 let pkgInstTestsPath = filePath.get_child('installed-tests');
+					 if (!pkgInstTestsPath.query_exists(null))
+					     return;
+					 // At the moment we only support one installed tests data
+					 if (installedTestsDataSubdir == null)
+					     installedTestsDataSubdir = pkgInstTestsPath;
+				     }), cancellable);
+		}
 	    }
 	    if (installedTestsDataSubdir)
 		this._installAndUnlink(buildResultDir, installedTestsDataSubdir, testsPath, cancellable);
