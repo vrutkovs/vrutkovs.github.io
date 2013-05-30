@@ -414,6 +414,10 @@
 		 "setuid": ["/runtime/usr/bin/pkexec",
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
 
+                {"src": "git:git://git.kernel.org/pub/scm/bluetooth/bluez.git",
+		 "config-opts": ["--disable-cups", "--disable-obex", "--disable-usb", "--disable-tools"],
+		 "patches": ["bluez-autogen.patch"]},
+
 		{"src": "fd-NM:NetworkManager",
 		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
@@ -689,7 +693,6 @@
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "gnome:gnome-bluetooth",
-		 "tag": "6d42bcec1aa459476bc7236ca10d90186373e5e8",
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-scrollkeeper"]},
 
