@@ -648,9 +648,9 @@
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
-		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.0.2.tar.xz",
+		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.1.1.tar.xz",
 		 "name": "webkitgtk",
-		 "checksum": "c3685032545eb4c23f3f56826817783a6963ad59bd7bbf806705059b3d8caeb2",
+		 "checksum": "8c67512bb169a06aff145158bc76ea7cc0cdd5c9a45894ae820a94cb0fb4bbd2",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--with-gstreamer=1.0"]},
