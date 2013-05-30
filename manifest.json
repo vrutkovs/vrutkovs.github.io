@@ -689,6 +689,7 @@
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "gnome:gnome-bluetooth",
+		 "tag": "6d42bcec1aa459476bc7236ca10d90186373e5e8",
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-scrollkeeper"]},
 
