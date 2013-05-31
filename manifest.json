@@ -484,7 +484,8 @@
                 {"src": "git:git://anongit.freedesktop.org/harfbuzz",
 		 "tag": "7d395c2a255a44fd0d65365ea9b525dba70c062c"},
 
-		{"src": "gnome:pango"},
+		{"src": "gnome:pango",
+		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:atk"},
 
