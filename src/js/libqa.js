@@ -354,18 +354,9 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
 				   '-append', 'console=ttyS0 root=LABEL=gnostree-root rw ostree=' + osname + '/current systemd.unit=gnome-ostree-install-bootloader.target'
 				  ]);
 
-    let qemuContext = new GSystem.SubprocessContext({ argv: qemuArgs });
-    qemuContext.set_cwd(workdir.get_path());
-    let qemu = new GSystem.Subprocess({context: qemuContext});
+    ProcUtil.runSync(qemuArgs, cancellable, { cwd: workdir.get_path(),
+					      logInitiation: true });
 
-    print("starting bootloader installation : " + qemuArgs.join(' '));
-
-    qemu.init(cancellable);
-    let [success, status] = qemu.wait_sync(cancellable);
     tmpKernelPath.delete(cancellable);
     tmpInitrdPath.delete(cancellable);
-
-    if (!success)
-	throw new Error("Couldn't install bootloader through qemu, error code: " +
-			status);
 }

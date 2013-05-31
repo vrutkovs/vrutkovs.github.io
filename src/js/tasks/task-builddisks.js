@@ -120,8 +120,10 @@ const TaskBuildDisks = new Lang.Class({
                 gfmnt.umount(cancellable);
             }
             LibQA.bootloaderInstall(diskPath, subworkdir, osname, cancellable);
+            print("Bootloader installation complete");
 
             this._postDiskCreation(diskPath, cancellable);
+            print("post-disk creation complete");
 	      }
 
         GSystem.file_rename(workImageDir, targetImageDir, cancellable);
