@@ -493,7 +493,8 @@
 
 		{"src": "gnome:at-spi2-atk"},
 
-		{"src": "gnome:gdk-pixbuf"},
+		{"src": "gnome:gdk-pixbuf",
+		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:gtk+",
 		 "name": "gtk2",
