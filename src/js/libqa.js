@@ -25,10 +25,62 @@ const ProcUtil = imports.procutil;
 const GuestFish = imports.guestfish;
 
 const DEFAULT_GF_PARTITION_OPTS = ['-m', '/dev/sda3', '-m', '/dev/sda1:/boot'];
-const DEFAULT_QEMU_OPTS = ['-vga', 'std', '-m', '768M',
-                           '-usb', '-usbdevice', 'tablet',
-			   '-net', 'none'];
 
+function linuxGetMemTotalMb() {
+    let [success,contents] = GLib.file_get_contents('/proc/meminfo');
+    let contentLines = contents.toString().split(/\n/);
+    for (let i = 0; contentLines.length; i++) {
+	let line = contentLines[i];
+	if (line.indexOf('MemTotal:') == 0) {
+	    return parseInt(/([0-9]+) kB/.exec(line)[1]) / 1024;
+	}
+    }
+    throw new Error("Couldn't determine total memory from /proc/meminfo");
+}
+
+function getQemuPath() {
+    let fallbackPaths = ['/usr/libexec/qemu-kvm']
+    let qemuPathString = GLib.find_program_in_path('qemu-kvm');
+    qemuPathString = GLib.find_program_in_path('qemu-kvm');
+    if (!qemuPathString)
+	qemuPathString = GLib.find_program_in_path('kvm');
+    if (qemuPathString == null) {
+        for (let i = 0; i < fallbackPaths.length; i++) {
+            let path = Gio.File.new_for_path(fallbackPaths[i]);
+            if (!path.query_exists(null))
+                continue;
+            qemuPathString = path.get_path();
+        }
+    }
+    if (qemuPathString == null) {
+        throw new Error("Unable to find qemu-kvm");
+    }
+    return qemuPathString;
+}
+
+function getDefaultQemuOptions(params) {
+    params = Params.parse(params, { parallel: false });
+    let args = [getQemuPath(), '-vga', 'std', '-usb', '-usbdevice', 'tablet', '-net', 'none'];
+
+    let systemMemoryMb = linuxGetMemTotalMb();
+    let minimumGuestMemoryMb = 768;
+    let maximumGuestMemoryMb = 4 * 1024;
+    // As a guess, use 1/4 of host memory, rounded up to the nearest
+    // multiple of 128M; subject to above constraints as a lame
+    // default...we need global coordination here.
+    let guestMemoryGuessMb = Math.floor(systemMemoryMb / 4 / 128) * 128;
+    let guestMemory = Math.floor(Math.max(minimumGuestMemoryMb,
+					  Math.min(maximumGuestMemoryMb,
+						   guestMemoryGuessMb)));
+    args.push.apply(args, ['-m', ''+guestMemory]);
+    
+    if (params.parallel) {
+        let nCores = Math.min(16, GLib.get_num_processors());
+        args.push.apply(args, ['-smp', ''+nCores]);
+    }
+
+    return args;
+}
 
 function newReadWriteMount(diskpath, cancellable) {
     let mntdir = Gio.File.new_for_path('mnt');
@@ -93,26 +145,6 @@ function createDiskSnapshot(diskpath, newdiskpath, cancellable) {
 function copyDisk(srcpath, destpath, cancellable) {
     ProcUtil.runSync(['qemu-img', 'convert', '-O', 'qcow2', srcpath.get_path(),
 		      destpath.get_path()], cancellable);
-}
-
-function getQemuPath() {
-    let fallbackPaths = ['/usr/libexec/qemu-kvm']
-    let qemuPathString = GLib.find_program_in_path('qemu-kvm');
-    qemuPathString = GLib.find_program_in_path('qemu-kvm');
-    if (!qemuPathString)
-	qemuPathString = GLib.find_program_in_path('kvm');
-    if (qemuPathString == null) {
-        for (let i = 0; i < fallbackPaths.length; i++) {
-            let path = Gio.File.new_for_path(fallbackPaths[i]);
-            if (!path.query_exists(null))
-                continue;
-            qemuPathString = path.get_path();
-        }
-    }
-    if (qemuPathString == null) {
-        throw new Error("Unable to find qemu-kvm");
-    }
-    return qemuPathString;
 }
 
 function getDeployDirs(mntdir, osname) {
@@ -315,8 +347,7 @@ LABEL %s\n\
 }
 
 function bootloaderInstall(diskpath, workdir, osname, cancellable) {
-    let qemuArgs = [getQemuPath()];
-    qemuArgs.push.apply(qemuArgs, DEFAULT_QEMU_OPTS);
+    let qemuArgs = getDefaultQemuOptions();
 
     let tmpKernelPath = workdir.get_child('kernel.img');
     let tmpInitrdPath = workdir.get_child('initrd.img');

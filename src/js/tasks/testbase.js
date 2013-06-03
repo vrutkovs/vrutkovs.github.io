@@ -260,12 +260,8 @@ const TestOneDisk = new Lang.Class({
         else
             this._diskArch = 'i686';
 
-        let qemuArgs = [LibQA.getQemuPath()];
-        qemuArgs.push.apply(qemuArgs, LibQA.DEFAULT_QEMU_OPTS);
+        let qemuArgs = LibQA.getDefaultQemuOptions({ parallel: true });
     
-        let nCores = Math.min(16, GLib.get_num_processors());
-        qemuArgs.push.apply(qemuArgs, ['-smp', ''+nCores]);
-
         let diskClone = subworkdir.get_child('testoverlay-' + diskPath.get_basename());
         GSystem.shutil_rm_rf(diskClone, cancellable);
 
