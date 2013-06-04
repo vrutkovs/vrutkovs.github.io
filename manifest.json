@@ -419,6 +419,7 @@
 		 "patches": ["bluez-autogen.patch"]},
 
 		{"src": "fd-NM:NetworkManager",
+		 "tag": "5875e17769bb237d81193643c95f4fc85ad446aa",
 		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
 				 "--with-crypto=nss",
