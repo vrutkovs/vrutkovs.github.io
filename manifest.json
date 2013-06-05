@@ -808,11 +808,10 @@
 
 		{"src": "gnome:clutter-gtk"},
 
-		{"src": "cgwalters:libpwquality-git",
-                 "config-opts": ["--disable-python-bindings"],
-                 "patches": ["libpwquality-builddir.patch",
-                             "libpwquality-python-bindings.patch"]
-                }, 
+                {"src": "tarball:https://fedorahosted.org/releases/l/i/libpwquality/libpwquality-1.2.1.tar.bz2",
+		 "name": "libpwquality",
+		 "checksum": "7106548d54f49763dbab63e519e76d95d24c9fee50e6de2398050b49da67d46f",
+                 "config-opts": ["--disable-python-bindings"]}, 
 
 		{"src": "git:git://github.com/hughsie/colord-gtk.git"},
 
