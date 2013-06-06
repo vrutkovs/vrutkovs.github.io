@@ -114,7 +114,6 @@ const TaskBuildDisks = new Lang.Class({
             try {
                 LibQA.pullDeploy(mntdir, this.repo, osname, targetName, targetRevision,
                                  cancellable);
-                LibQA.configureBootloader(mntdir, osname, cancellable);
                 if (repo)
                     ProcUtil.runSync(['ostree', '--repo=' + mntdir.resolve_relative_path('ostree/repo').get_path(),
                                       'remote', 'add', osname, repo, targetName],

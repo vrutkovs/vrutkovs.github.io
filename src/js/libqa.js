@@ -150,7 +150,7 @@ function copyDisk(srcpath, destpath, cancellable) {
 function getDeployDirs(mntdir, osname) {
     let basedir = mntdir.resolve_relative_path('ostree/deploy/' + osname);
     return [basedir.get_child('current'),
-	    basedir.get_child('current-etc')];
+	    basedir.get_child('current/etc')];
 }
 
 function modifyBootloaderAppendKernelArgs(mntdir, kernelArgs, cancellable) {
@@ -229,46 +229,54 @@ function enableAutologin(currentDir, currentEtcDir, username, cancellable) {
     gdmCustomPath.replace_contents(keyfile.to_data()[0], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 }
 
-function _findCurrentKernel(mntdir, osname, cancellable) {
-    let deployBootdir = mntdir.resolve_relative_path('ostree/deploy/' + osname + '/current/boot');
-    let d = deployBootdir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+function _findFirstFileMatching(dir, prefix, cancellable) {
+    let d = dir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
     let finfo;
     try {
 	while ((finfo = d.next_file(cancellable)) != null) {
-	    let child = deployBootdir.get_child(finfo.get_name());
-	    if (child.get_basename().indexOf('vmlinuz-') == 0) {
-                return child;
+	    let name = finfo.get_name();
+	    if (name.indexOf(prefix) == 0) {
+                return dir.get_child(name);
             }
         }
-        throw new Error("Couldn't find vmlinuz- in " + deployBootdir.get_path());
+        throw new Error("Couldn't find " + prefix + " in " + dir.get_path());
     } finally {
         d.close(null);
     }
+    return null;
+} 
+
+function _findCurrentKernel(mntdir, osname, cancellable) {
+    let deployBootdir = mntdir.resolve_relative_path('ostree/deploy/' + osname + '/current/boot');
+    return [_findFirstFileMatching(deployBootdir, 'vmlinuz-', cancellable),
+	    _findFirstFileMatching(deployBootdir, 'initramfs-', cancellable)];
 };
 
-function _parseKernelRelease(kernelPath) {
-    let name = kernelPath.get_basename();
-    let idx = name.indexOf('-');
-    if (idx == -1) throw new Error("Invalid kernel name " + kernelPath.get_path());
-    let kernelRelease = name.substr(idx + 1);
-    return kernelRelease;
-};
-
-function _getInitramfsPath(mntdir, kernelRelease) {
-    let bootdir = mntdir.get_child('boot');
-    let initramfsName = 'initramfs-' + kernelRelease + '.img';
-    let path = bootdir.resolve_relative_path('ostree/' + initramfsName);
-    if (!path.query_exists(null))
-        throw new Error("Couldn't find initramfs " + path.get_path());
-    return path;
-};
+function _findCurrentOstreeBootArg(mntdir, cancellable) {
+    let bootLoaderEntriesDir = mntdir.resolve_relative_path('boot/loader/entries');
+    let conf = _findFirstFileMatching(bootLoaderEntriesDir, 'ostree-', cancellable);
+    let contents = GSystem.file_load_contents_utf8(conf, cancellable);
+    let lines = contents.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+	let line = lines[i];
+	if (line.indexOf('options ') != 0)
+	    continue;
+	let options = line.substr(8).split(' ');
+	for (let j = 0; j < options.length; j++) { 
+	    let opt = options[j];
+	    if (opt.indexOf('ostree=') != 0)
+		continue;
+	    return opt;
+        }
+    }
+    throw new Error("Failed to find ostree= kernel argument");
+}
 
 function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
     let ostreedir = mntdir.get_child('ostree');
-    let ostree_osdir = ostreedir.resolve_relative_path('deploy/' + osname);
+    let ostreeOsdir = ostreedir.resolve_relative_path('deploy/' + osname);
 
-    let adminCmd = ['ostree', 'admin', '--ostree-dir=' + ostreedir.get_path(),
-                    '--boot-dir=' + mntdir.get_child('boot').get_path()];
+    let adminCmd = ['ostree', 'admin', '--sysroot=' + mntdir.get_path()];
     let adminEnv = GLib.get_environ();
     adminEnv.push('LIBGSYSTEM_ENABLE_GUESTFS_FUSE_WORKAROUND=1');
     let procdir = mntdir.get_child('proc');
@@ -277,74 +285,51 @@ function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
                          {logInitiation: true, env: adminEnv});
     }
 
-    // *** NOTE ***
-    // Here we blow away any current deployment.  This is pretty lame, but it
-    // avoids us triggering a variety of guestfs/FUSE bugs =(
-    // See: https://bugzilla.redhat.com/show_bug.cgi?id=892834
-    //
-    // But regardless, it's probably useful if every
-    // deployment starts clean, and callers can use libguestfs
-    // to crack the FS open afterwards and modify config files
-    // or the like.
-    GSystem.shutil_rm_rf(ostree_osdir, cancellable);
-
     let revOrTarget;
     if (revision)
 	revOrTarget = revision;
     else
 	revOrTarget = target;
+
+    // Remove any existing bootloader configuration, and stub out an
+    // empty syslinux configuration that we can use to bootstrap.
+    let bootLoaderLink = mntdir.resolve_relative_path('boot/loader');
+    GSystem.shutil_rm_rf(bootLoaderLink, cancellable);
+    let bootLoaderDir0 = mntdir.resolve_relative_path('boot/loader.0');
+    GSystem.shutil_rm_rf(bootLoaderDir0, cancellable);
+    bootLoaderLink.make_symbolic_link('loader.0', cancellable);
+    GSystem.file_ensure_directory(bootLoaderDir0, true, cancellable);
+    let syslinuxPath = mntdir.resolve_relative_path('boot/loader/syslinux.cfg');
+    syslinuxPath.replace_contents('', null, false, Gio.FileCreateFlags.NONE, cancellable);
+    
+    // A compatibility symlink for syslinux
+    let syslinuxDir = mntdir.resolve_relative_path('boot/syslinux');
+    GSystem.shutil_rm_rf(syslinuxDir, cancellable);
+    GSystem.file_ensure_directory(syslinuxDir, true, cancellable);
+    let syslinuxLink = mntdir.resolve_relative_path('boot/syslinux/syslinux.cfg');
+    syslinuxLink.make_symbolic_link('../loader/syslinux.cfg', cancellable);
+
+    // Also blow alway all existing deployments here for the OS; this
+    // will clean up disks that were using the old ostree model.
+    GSystem.shutil_rm_rf(ostreeOsdir, cancellable);
     
     ProcUtil.runSync(adminCmd.concat(['os-init', osname]), cancellable,
                      {logInitiation: true, env: adminEnv});
     ProcUtil.runSync(['ostree', '--repo=' + ostreedir.get_child('repo').get_path(),
                       'pull-local', srcrepo.get_path(), revOrTarget], cancellable,
                      {logInitiation: true, env: adminEnv});
-    
-    ProcUtil.runSync(adminCmd.concat(['deploy', '--no-kernel', osname, target, revOrTarget]), cancellable,
-                     {logInitiation: true, env: adminEnv});
-    ProcUtil.runSync(adminCmd.concat(['update-kernel', '--no-bootloader', osname]), cancellable,
-                     {logInitiation: true, env: adminEnv});
-    ProcUtil.runSync(adminCmd.concat(['prune', osname]), cancellable,
-                     {logInitiation: true, env: adminEnv});
-};
 
-function configureBootloader(mntdir, osname, cancellable) {
-    let bootdir = mntdir.get_child('boot');
-    let ostreedir = mntdir.get_child('ostree');
+    let rootArg = 'root=LABEL=gnostree-root';
+    ProcUtil.runSync(adminCmd.concat(['deploy', '--karg=' + rootArg, '--karg=quiet', '--karg=splash',
+				      osname, revOrTarget]), cancellable,
+                     {logInitiation: true, env: adminEnv});
 
     let defaultFstab = 'LABEL=gnostree-root / ext4 defaults 1 1\n\
 LABEL=gnostree-boot /boot ext4 defaults 1 2\n\
 LABEL=gnostree-swap swap swap defaults 0 0\n';
-    let fstabPath = ostreedir.resolve_relative_path('deploy/' + osname + '/current-etc/fstab');
+    let fstabPath = ostreeOsdir.resolve_relative_path('current/etc/fstab');
     fstabPath.replace_contents(defaultFstab, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-
-    let deployKernelPath = this._findCurrentKernel(mntdir, osname, cancellable);
-    let bootKernelPath = bootdir.resolve_relative_path('ostree/' + deployKernelPath.get_basename());
-    if (!bootKernelPath.query_exists(cancellable))
-        throw new Error("" + bootKernelPath.get_path() + " doesn't exist");
-    let kernelRelease = this._parseKernelRelease(deployKernelPath);
-    let initramfsPath = this._getInitramfsPath(mntdir, kernelRelease);
-
-    let bootRelativeKernelPath = bootdir.get_relative_path(bootKernelPath);
-    if (bootRelativeKernelPath == null)
-        throw new Error("" + bootKernelPath.get_path() + " is not relative to " + bootdir.get_path());
-    let bootRelativeInitramfsPath = bootdir.get_relative_path(initramfsPath);
-
-    // Syslinux conf
-    let syslinuxDir = mntdir.resolve_relative_path('boot/syslinux');
-    GSystem.file_ensure_directory(syslinuxDir, false, cancellable);
-    let syslinuxConfPath = syslinuxDir.get_child('syslinux.cfg');
-    let syslinuxConf = Format.vprintf('PROMPT 1\n\
-TIMEOUT 50\n\
-DEFAULT %s\n\
-\n\
-LABEL %s\n\
-\tLINUX /%s\n\
-\tAPPEND root=LABEL=gnostree-root rw quiet splash ostree=%s/current\n\
-\tINITRD /%s\n', [osname, osname, bootRelativeKernelPath, osname, bootRelativeInitramfsPath]);
-    print('Saving syslinuxconf at ' + syslinuxConfPath.get_path());
-    syslinuxConfPath.replace_contents(syslinuxConf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-}
+};
 
 function bootloaderInstall(diskpath, workdir, osname, cancellable) {
     let qemuArgs = getDefaultQemuOptions();
@@ -353,14 +338,14 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
     let tmpInitrdPath = workdir.get_child('initrd.img');
 
     let [gfmnt, mntdir] = newReadWriteMount(diskpath, cancellable);
+    let ostreeArg;
     try {
         let [currentDir, currentEtcDir] = getDeployDirs(mntdir, 'gnome-ostree');
 
         injectExportJournal(currentDir, currentEtcDir, cancellable);
 
-	let kernelPath = this._findCurrentKernel(mntdir, osname, cancellable);
-	let kernelRelease = this._parseKernelRelease(kernelPath);
-	let initrdPath = this._getInitramfsPath(mntdir, kernelRelease);
+	let [kernelPath, initrdPath] = _findCurrentKernel(mntdir, osname, cancellable)
+	ostreeArg = _findCurrentOstreeBootArg(mntdir, cancellable);
 
 	// Copy
 	kernelPath.copy(tmpKernelPath, 0, cancellable, null, null);
@@ -371,9 +356,14 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
 
     let consoleOutput = workdir.get_child('bootloader-console.out');
     let journalOutput = workdir.get_child('bootloader-journal-json.txt');
+    
+    let kernelArgv = ['console=ttyS0', 'panic=1', 'root=LABEL=gnostree-root', 'rw', ostreeArg,
+		      'systemd.journald.forward_to_console=true',
+		      'systemd.unit=gnome-ostree-install-bootloader.target'];
 
     qemuArgs.push.apply(qemuArgs, ['-drive', 'file=' + diskpath.get_path() + ',if=virtio',
                                    '-vnc', 'none',
+				   '-no-reboot',
                                    '-serial', 'file:' + consoleOutput.get_path(),
                                    '-chardev', 'socket,id=charmonitor,path=qemu.monitor,server,nowait',
                                    '-mon', 'chardev=charmonitor,id=monitor,mode=control',
@@ -382,7 +372,7 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
                                    '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson',
 				   '-kernel', tmpKernelPath.get_path(),
 				   '-initrd', tmpInitrdPath.get_path(),
-				   '-append', 'console=ttyS0 root=LABEL=gnostree-root rw ostree=' + osname + '/current systemd.unit=gnome-ostree-install-bootloader.target systemd.journald.forward_to_console=true'
+				   '-append', kernelArgv.join(' ')
 				  ]);
 
     ProcUtil.runSync(qemuArgs, cancellable, { cwd: workdir.get_path(),

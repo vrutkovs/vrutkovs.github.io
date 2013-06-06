@@ -20,7 +20,7 @@ const Gio = imports.gi.Gio;
 
 const Params = imports.params;
 
-function walkDirInternal(dir, matchParams, callback, cancellable, queryStr, depth) {
+function walkDirInternal(dir, matchParams, callback, cancellable, queryStr, depth, sortByName) {
     let denum = dir.enumerate_children(queryStr, Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
 				       cancellable);
     let info;
@@ -30,6 +30,7 @@ function walkDirInternal(dir, matchParams, callback, cancellable, queryStr, dept
 	depth -= 1;
     }
 
+    let sortedFiles = [];
     while ((info = denum.next_file(cancellable)) != null) {
 	let name = info.get_name();
 	let child = dir.get_child(name);
@@ -48,11 +49,27 @@ function walkDirInternal(dir, matchParams, callback, cancellable, queryStr, dept
 	    continue;
 	if (matchParams.contentType != null && matchParams.contentType != info.get_content_type())
 	    continue;
-	callback(child, cancellable);
+	if (!sortByName)
+	    callback(child, cancellable);
+	else
+	    sortedFiles.push(child);
+    }
+    if (sortByName) {
+	sortedFiles.sort(function (a, b) {
+	    return a.get_basename().localeCompare(b.get_basename());
+	});
+	for (let i = 0; i < sortedFiles.length; i++) {
+	    callback(sortedFiles[i], cancellable);
+	}
     }
 
     denum.close(cancellable);
 
+    if (sortByName) {
+	subdirs.sort(function (a, b) {
+	    return a.get_basename().localeCompare(b.get_basename());
+	});
+    }
     for (let i = 0; i < subdirs.length; i++) {
 	walkDirInternal(subdirs[i], matchParams, callback, cancellable, queryStr, depth);
     }
@@ -62,10 +79,11 @@ function walkDir(dir, matchParams, callback, cancellable) {
     matchParams = Params.parse(matchParams, { nameRegex: null,
 					      fileType: null,
 					      contentType: null,
-					      depth: -1 });
+					      depth: -1,
+					      sortByName: false });
     let queryStr = 'standard::name,standard::type,unix::mode';
     if (matchParams.contentType)
 	queryStr += ',standard::fast-content-type';
     let depth = matchParams.depth;
-    walkDirInternal(dir, matchParams, callback, cancellable, queryStr, depth);
+    walkDirInternal(dir, matchParams, callback, cancellable, queryStr, depth, matchParams.sortByName);
 }
