@@ -93,8 +93,8 @@ const TaskBuildDisks = new Lang.Class({
             if (!matched)
                 continue;
             let targetRevision = buildData['targets'][targetName];
-	          let squashedName = targetName.replace(/\//g, '_');
-	          let diskName = osname + '-' + squashedName + '-disk.qcow2';
+	          let squashedName = osname + '-' + targetName.substr(targetName.lastIndexOf('/') + 1);
+	          let diskName = squashedName + '.qcow2';
             let diskPath = workImageDir.get_child(diskName);
             let prevPath = currentImageLink.get_child(diskName);
             GSystem.shutil_rm_rf(diskPath, cancellable);
@@ -103,7 +103,7 @@ const TaskBuildDisks = new Lang.Class({
             } else {
                 LibQA.createDisk(diskPath, cancellable);
             }
-            let mntdir = subworkdir.get_child('mnt-' + osname + '-' + squashedName);
+            let mntdir = subworkdir.get_child('mnt-' + squashedName);
             GSystem.file_ensure_directory(mntdir, true, cancellable);
             let gfmnt = new GuestFish.GuestMount(diskPath, { partitionOpts: LibQA.DEFAULT_GF_PARTITION_OPTS,
                                                              readWrite: true });
