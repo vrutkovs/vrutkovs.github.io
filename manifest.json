@@ -867,6 +867,10 @@
 
 		{"src": "gnome:epiphany"},
 
+		{"src": "gnome:gnome-calculator"},
+
+		{"src": "gnome:gnome-weather"},
+
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"}
 	],
