@@ -1,30 +1,5 @@
 // -*- indent-tabs-mode: nil -*-
 
-function htmlescape(str) {
-    var pre = document.createElement('pre');
-    var text = document.createTextNode(str);
-    pre.appendChild(text);
-    return pre.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");;
-}
-
-function get_page_arg(key) {
-    var url = window.location.toString();
-    var pos = url.indexOf("?");
-    if (pos == -1)
-        return null;
-
-    var search = url.substr(pos + 1);
-    var params = search.split("&");
-
-    for (var n = 0; n < params.length; n++) {
-        var val = params[n].split("=");
-        if (val[0] == key)
-            return unescape(val[1]);
-    }
-
-    return null;
-}
-
 var repoDataSignal = {};
 var taskData = {};
 var taskNames = ['build', 'smoketest', 'integrationtest'];
@@ -110,7 +85,7 @@ function renderBuild(container, build) {
     }
 
     buildDiffAppend(a, build['diff']);
-    
+
     if (state != 'running') {
         var p = document.createElement('span');
         a.appendChild(p);
@@ -129,7 +104,7 @@ function _renderTask(taskName) {
     $(statusNode).empty();
     var spanNode = $("#" + taskName + "-span").get(0);
     $(spanNode).empty();
-    
+
     var meta = taskData[taskName];
     var ref = 'work/tasks/' + taskName;
     if (meta.success)
