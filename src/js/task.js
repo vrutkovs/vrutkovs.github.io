@@ -60,17 +60,14 @@ const TaskSet = new Lang.Class({
 	return this._tasks;
     },
 
-    getTask: function(taskName, params) {
-	params = Params.parse(params, { allowNone: false })
+    getTask: function(taskName) {
 	for (let i = 0; i < this._tasks.length; i++) {
 	    let taskDef = this._tasks[i];
-            let curName = taskDef.prototype.TaskName
+            let curName = taskDef.prototype.TaskName;
 	    if (curName == taskName)
 		return taskDef;
 	}
-	if (!params.allowNone)
-	    throw new Error("No task definition matches " + taskName);
-	return null;
+	throw new Error("No task definition matches " + taskName);
     },
 
     getTasksAfter: function(taskName) {
