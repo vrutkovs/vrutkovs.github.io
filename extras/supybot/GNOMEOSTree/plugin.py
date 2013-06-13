@@ -28,22 +28,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
-import time
 import os
-import re
-import shutil
-import tempfile
 import json
 
-import supybot.ircdb as ircdb
 import supybot.ircmsgs as ircmsgs
 import supybot.ircutils as ircutils
-import supybot.conf as conf
-import supybot.utils as utils
-from supybot.commands import *
 import supybot.schedule as schedule
 import supybot.callbacks as callbacks
-import supybot.world as world
 
 class GNOMEOSTree(callbacks.Plugin):
     def __init__(self, irc):
@@ -54,7 +45,6 @@ class GNOMEOSTree(callbacks.Plugin):
         self._flood_channels = ['#testable']
         self._status_channels = ['#gnome-hackers']
         self._last_task_state = {}
-        self._jsondb_re = re.compile(r'^(\d+\.\d+)-([0-9a-f]+)\.json$')
         tracked_build = 'buildmaster'
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
         self._workurl = "http://build.gnome.org/ostree/%s/" % (tracked_build, )
@@ -115,8 +105,6 @@ class GNOMEOSTree(callbacks.Plugin):
             msg = ircutils.mircColor(msg, fg='green')
 
         self._sendTo(self._flood_channels, msg)
-        #last_status_time = last_state['last-status-time'] if last_state else 0
-        #curtime = time.time();
         if success_changed:
             self._sendTo(self._status_channels, msg)
 
