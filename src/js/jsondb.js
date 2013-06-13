@@ -126,21 +126,28 @@ const JsonDB = new Lang.Class({
 	}
 	
 	let currentTime = GLib.DateTime.new_now_utc();
+	let currentYmd = Format.vprintf('%d%02d%02d', [currentTime.get_year(),
+						       currentTime.get_month(),
+						       currentTime.get_day_of_month()]);
 
 	let buf = JSON.stringify(obj, null, "  ");
 	let csum = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, buf, -1);
         
-	let latestVersion;
-        if (latest) {
-            if (csum == latest[2]) {
-                return [this._path.get_child(latest[3]), false];
-	    }
-            latestVersion = [latest[0], latest[1]];
-        } else {
-            latestVersion = [currentTime.get_year(), 0];
+        if (latest && csum == latest[2]) {
+            return [this._path.get_child(latest[3]), false];
+	}
+	
+	let version = null;
+	if (latest) {
+	    let lastYmd = latest[0];
+	    if (lastYmd == currentYmd)
+		version = currentYmd + '.' + (latest[1]+1);
+        }
+	if (version == null) {
+            version = currentYmd + '.0';
 	}
 
-        let targetName = Format.vprintf('%d.%d-%s.json', [currentTime.get_year(), latestVersion[1] + 1, csum]);
+        let targetName = Format.vprintf('%s-%s.json', [version, csum]);
         let targetPath = this._path.get_child(targetName);
 	targetPath.replace_contents(buf, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 
