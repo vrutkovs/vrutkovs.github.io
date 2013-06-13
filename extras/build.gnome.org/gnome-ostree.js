@@ -124,6 +124,8 @@
         });
     }
 
-    exports.repowebIndexInit = repowebIndexInit;
+    $(document).ready(function() {
+        repowebIndexInit();
+    });
 
 })(jQuery, window);
