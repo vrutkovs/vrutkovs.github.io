@@ -128,7 +128,7 @@ const TaskMaster = new Lang.Class({
 
     _pushTaskDefImmediate: function(taskDef, parameters) {
 	let name = taskDef.prototype.TaskName;
-	let instance = new taskDef(this, name, [], parameters);
+	let instance = new taskDef(this, name, parameters);
 	instance.onComplete = Lang.bind(this, this._onComplete, instance);
 	this._pendingTasksList.push(instance);
 	this._queueRecalculate();
@@ -307,7 +307,6 @@ Signals.addSignalMethods(TaskMaster.prototype);
 const TaskDef = new Lang.Class({
     Name: 'TaskDef',
 
-    TaskPattern: null,
     TaskAfter: [],
     TaskScheduleMinSecs: 0,
 
@@ -319,10 +318,9 @@ const TaskDef = new Lang.Class({
 
     _VERSION_RE: /^(\d+\d\d\d\d)\.(\d+)$/,
 
-    _init: function(taskmaster, name, vars, parameters) {
+    _init: function(taskmaster, name, parameters) {
 	this.taskmaster = taskmaster;
 	this.name = name;
-	this.vars = vars;
 	this.parameters = Params.parse(parameters, this.DefaultParameters);
 
 	if (taskmaster !== null)
@@ -341,10 +339,6 @@ const TaskDef = new Lang.Class({
 
 	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
 	this.repo = this.workdir.get_child('repo');
-    },
-
-    getDepends: function() {
-	return [];
     },
 
     _getResultDb: function(taskname) {
