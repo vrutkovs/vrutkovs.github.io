@@ -51,14 +51,16 @@ class GNOMEOSTree(callbacks.Plugin):
         self.__parent.__init__(irc)
         schedule.addPeriodicEvent(self._query_new_tasks, 1, now=False)
         self._irc = irc
-        self._last_task_versions = {}
+        self._flood_channels = ['#testable']
+        self._status_channels = ['#gnome-hackers']
+        self._last_task_state = {}
         self._jsondb_re = re.compile(r'^(\d+\.\d+)-([0-9a-f]+)\.json$')
         tracked_build = 'buildmaster'
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
         self._workurl = "http://build.gnome.org/ostree/%s/" % (tracked_build, )
 
-    def _broadcast(self, msg):
-        for channel in self._irc.state.channels:
+    def _sendTo(self, channels, msg):
+        for channel in channels:
             self._irc.queueMsg(ircmsgs.privmsg(channel, msg))
 
     def _query_new_tasks(self, status=False):
@@ -70,7 +72,7 @@ class GNOMEOSTree(callbacks.Plugin):
         meta_path = os.path.join(current_task_path, 'meta.json')
         if not os.path.exists(meta_path):
             if status:
-                self._broadcast("No current " + taskname + " completed")
+                self._sendTo(self._flood_channels, "No current " + taskname + " completed")
             return
 
         f = open(meta_path)
@@ -78,18 +80,22 @@ class GNOMEOSTree(callbacks.Plugin):
         f.close()
         
         taskver = metadata['taskVersion']
+        success = metadata['success']
 
-        last_version = self._last_task_versions.get(taskname)
+        last_state = self._last_task_state.get(taskname)
+        last_version = last_state['version'] if last_state else None
         version_unchanged = taskver == last_version
+        last_success = last_state['success'] if last_state else None
+        success_changed = last_success != success
         if (not status and version_unchanged):
             return
 
-        self._last_task_versions[taskname] = taskver
-        if (not status and not version_unchanged):
-            msg = "New " + taskname
-        else:
-            msg = "Current " + taskname
-        success = metadata['success']
+        msg = 'gnostree:' + taskname
+        print msg + "changed (success_changed: %s)" % (success_changed, )
+
+        new_state = {'version': taskver,
+                     'success': success}
+        self._last_task_state[taskname] = new_state
         success_str = success and 'successful' or 'failed'
         millis = float(metadata['elapsedMillis'])
         msg += " %s: %s in %.1f seconds. " % (taskver, success_str, millis / 1000.0)
@@ -108,7 +114,11 @@ class GNOMEOSTree(callbacks.Plugin):
         else:
             msg = ircutils.mircColor(msg, fg='green')
 
-        self._broadcast(msg)
+        self._sendTo(self._flood_channels, msg)
+        #last_status_time = last_state['last-status-time'] if last_state else 0
+        #curtime = time.time();
+        if success_changed:
+            self._sendTo(self._status_channels, msg)
 
     def buildstatus(self, irc, msg, args):
         self._query_new_tasks(status=True)
