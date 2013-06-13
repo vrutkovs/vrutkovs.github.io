@@ -501,11 +501,13 @@ const TaskDef = new Lang.Class({
 	}
 
 	let elapsedMillis = GLib.get_monotonic_time() / 1000 - this._startTimeMillis;
+	let targetPath = this.workdir.get_relative_path(this._taskCwd);
 	let meta = { taskMetaVersion: 0,
 		     taskVersion: this._version,
 		     success: success,
 		     errmsg: errmsg,
-		     elapsedMillis: elapsedMillis };
+		     elapsedMillis: elapsedMillis,
+		     path: targetPath };
 	let statusTxtPath = this._taskCwd.get_child('status.txt');
 	if (statusTxtPath.query_exists(null)) {
 	    let contents = GSystem.file_load_contents_utf8(statusTxtPath, cancellable);
