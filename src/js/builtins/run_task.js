@@ -48,7 +48,7 @@ const RunTask = new Lang.Class({
 	let taskset = Task.TaskSet.prototype.getInstance();
 	let taskDef = taskset.getTask(args.taskName);
 	let params = JSON.parse(args.parameters);
-	let instance = new taskDef(null, args.taskName, params);
+	let instance = new taskDef(args.taskName, params);
 	instance.execute(cancellable);
     }
 });

@@ -125,8 +125,7 @@ const TaskMaster = new Lang.Class({
 
     _pushTaskDefImmediate: function(taskDef, parameters) {
 	let name = taskDef.prototype.TaskName;
-	let instance = new taskDef(this, name, parameters);
-	instance.onComplete = Lang.bind(this, this._onComplete, instance);
+	let instance = new taskDef(name, parameters);
 	this._pendingTasksList.push(instance);
 	this._queueRecalculate();
     },
@@ -198,8 +197,8 @@ const TaskMaster = new Lang.Class({
 
     isTaskExecuting: function(taskName) {
 	for (let i = 0; i < this._executing.length; i++) {
-	    let executingTask = this._executing[i];
-	    if (executingTask.name == taskName)
+	    let executingRunner = this._executing[i];
+	    if (executingRunner.taskDef.name == taskName)
 		return true;
 	}
 	return false;
@@ -248,28 +247,28 @@ const TaskMaster = new Lang.Class({
 	this._reschedule();
     },
 
-    _onComplete: function(success, error, task) {
+    _onComplete: function(success, error, runner) {
 	let idx = -1;
 	for (let i = 0; i < this._executing.length; i++) {
-	    let executingTask = this._executing[i];
-	    if (executingTask !== task)
+	    let executingRunner = this._executing[i];
+	    if (executingRunner !== runner)
 		continue;
 	    idx = i;
 	    break;
 	}
 	if (idx == -1)
-	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + task.TaskName);
+	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskDef.name);
 	this._executing.splice(idx, 1);
-	this.emit('task-complete', task, success, error);
+	this.emit('task-complete', runner, success, error);
 	if (success && this._processAfter) {
 	    let changed = true;
-	    let version = task.queryVersion();
+	    let version = runner.taskDef.queryVersion();
 	    if (version !== null) {
-		let oldVersion = this._taskVersions[task.name];
+		let oldVersion = this._taskVersions[runner.taskDef.name];
 		if (oldVersion == version)
 		    changed = false;
 		else if (oldVersion != null)
-		    print("task " + task.name + " new version: " + version);
+		    print("task " + runner.taskDef.name + " new version: " + version);
 	    }
 	    if (changed) {
 		let tasksAfter = this._taskset.getTasksAfter(task.name);
@@ -293,9 +292,13 @@ const TaskMaster = new Lang.Class({
 	    if (version !== null) {
 		this._taskVersions[task.name] = version;
 	    }
-	    task._executeInSubprocessInternal(this.cancellable);
-	    this._executing.push(task);
-	    this.emit('task-executing', task);
+
+	    let runner = new TaskRunner(this, task, Lang.bind(this, function(success, error) {
+		this._onComplete(success, error, runner);
+	    }));
+	    runner.executeInSubprocess(this.cancellable);
+	    this._executing.push(runner);
+	    this.emit('task-executing', runner);
 	}
     }
 });
@@ -313,18 +316,11 @@ const TaskDef = new Lang.Class({
 
     DefaultParameters: {},
 
-    _VERSION_RE: /^(\d+\d\d\d\d)\.(\d+)$/,
-
-    _init: function(taskmaster, name, parameters) {
-	this.taskmaster = taskmaster;
+    _init: function(name, parameters) {
 	this.name = name;
 	this.parameters = Params.parse(parameters, this.DefaultParameters);
 
-	if (taskmaster !== null)
-	    this.workdir = taskmaster.path.get_parent();
-	else
-	    this.workdir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_WORKDIR'));
-
+	this.workdir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_WORKDIR'));
 	BuildUtil.checkIsWorkDirectory(this.workdir);
 
 	this.resultdir = this.workdir.get_child('results');
@@ -341,6 +337,30 @@ const TaskDef = new Lang.Class({
     _getResultDb: function(taskname) {
 	let path = this.resultdir.resolve_relative_path(taskname);
 	return new JsonDB.JsonDB(path);
+    },
+
+    queryVersion: function() {
+	return null;
+    },
+
+    execute: function(cancellable) {
+	throw new Error("Not implemented");
+    },
+});
+
+const TaskRunner = new Lang.Class({
+    Name: 'TaskRunner',
+
+    _VERSION_RE: /^(\d+\d\d\d\d)\.(\d+)$/,
+
+    _init: function(taskmaster, taskDef, onComplete) {
+	this.taskmaster = taskmaster;
+	this.taskDef = taskDef;
+	this.onComplete = onComplete;
+        this.name = taskDef.name;
+
+	this.workdir = taskmaster.path.get_parent();
+	BuildUtil.checkIsWorkDirectory(this.workdir);
     },
 
     _loadVersionsFrom: function(dir, cancellable) {
@@ -367,14 +387,6 @@ const TaskDef = new Lang.Class({
 	}
     },
 
-    queryVersion: function() {
-	return null;
-    },
-
-    execute: function(cancellable) {
-	throw new Error("Not implemented");
-    },
-
     _loadAllVersions: function(cancellable) {
 	let allVersions = [];
 
@@ -397,7 +409,7 @@ const TaskDef = new Lang.Class({
 	return allVersions;
     },
 
-    _executeInSubprocessInternal: function(cancellable) {
+    executeInSubprocess: function(cancellable) {
 	this._cancellable = cancellable;
 
 	this._startTimeMillis = GLib.get_monotonic_time() / 1000;
@@ -437,13 +449,13 @@ const TaskDef = new Lang.Class({
 	GSystem.shutil_rm_rf(this._taskCwd, cancellable);
 	GSystem.file_ensure_directory(this._taskCwd, true, cancellable);
 
-	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.parameters)];
+	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.taskDef.parameters)];
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
 	context.set_cwd(this._taskCwd.get_path());
 	let childEnv = GLib.get_environ();
 	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
 	context.set_environment(childEnv);
-	if (this.PreserveStdout) {
+	if (this.taskDef.PreserveStdout) {
 	    let outPath = this._taskCwd.get_child('output.txt');
 	    context.set_stdout_file_path(outPath.get_path());
 	    context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
@@ -481,13 +493,13 @@ const TaskDef = new Lang.Class({
 	    target = this._failedDir.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
-	    this._cleanOldVersions(this._failedDir, this.RetainFailed, null);
+	    this._cleanOldVersions(this._failedDir, this.taskDef.RetainFailed, null);
 	    this.onComplete(success, errmsg);
 	} else {
 	    target = this._successDir.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
-	    this._cleanOldVersions(this._successDir, this.RetainSuccess, null);
+	    this._cleanOldVersions(this._successDir, this.taskDef.RetainSuccess, null);
 	    this.onComplete(success, null);
 	}
 
