@@ -175,7 +175,7 @@ const TaskMaster = new Lang.Class({
 	info[0] = currentTime;
 	let params = info[1][1];
 	info[1] = null;
-	this._pushTaskDefImmediate(taskDef);
+	this._pushTaskDefImmediate(taskDef, params);
     },
 
     pushTask: function(taskName, parameters) {
