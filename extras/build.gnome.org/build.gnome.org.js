@@ -4,13 +4,15 @@
     "use strict";
 
     var HOSTNAME = "https://build.gnome.org/";
+    var TRACKED_BUILD = "buildmaster";
+    var WORKURL = HOSTNAME + "ostree/" + TRACKED_BUILD + "/";
 
     var repoDataSignal = {};
     var taskData = {};
     var taskNames = ['build', 'smoketest', 'integrationtest'];
 
     function _loadTask(taskname) {
-        var url = HOSTNAME + 'work/tasks/' + taskname + '/current/meta.json';
+        var url = WORKURL + 'tasks/' + taskname + '/current/meta.json';
         $.getJSON(url, function(data) {
             taskData[taskname] = data;
             $(repoDataSignal).trigger("taskdata-changed", [taskname]);
@@ -78,7 +80,7 @@
         container.appendChild(li);
         var a = document.createElement('a');
         li.appendChild(a);
-        a.setAttribute('href', HOSTNAME + 'work/tasks/build/' + build['v'] + '/log');
+        a.setAttribute('href', WORKURL + 'tasks/build/' + build['v'] + '/log');
         a.setAttribute('rel', 'external');
 
         var state = build['state'];
@@ -105,13 +107,7 @@
         $(spanNode).empty();
 
         var meta = taskData[taskName];
-        var ref = HOSTNAME + 'work/tasks/' + taskName;
-        if (meta.success)
-            ref += '/successful';
-        else
-            ref += '/failed';
-        ref += '/' + meta.taskVersion;
-        statusNode.setAttribute('href', ref);
+        statusNode.setAttribute('href', WORKURL + meta['path']);
         statusNode.setAttribute('rel', 'external');
         var text = meta.taskVersion + ': ' + (meta.success ? "success" : "failed ");
         statusNode.appendChild(document.createTextNode(text));
