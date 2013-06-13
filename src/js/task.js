@@ -122,8 +122,7 @@ const TaskMaster = new Lang.Class({
     },
 
     _pushTaskDefImmediate: function(taskDef, parameters) {
-	let name = taskDef.prototype.TaskName;
-	let instance = new taskDef(name, parameters);
+	let instance = new taskDef(parameters);
 	this._pendingTasksList.push(instance);
 	this._queueRecalculate();
     },
@@ -300,8 +299,8 @@ const TaskDef = new Lang.Class({
 
     DefaultParameters: {},
 
-    _init: function(name, parameters) {
-	this.name = name;
+    _init: function(parameters) {
+        this.name = this.TaskName;
 	this.parameters = Params.parse(parameters, this.DefaultParameters);
 
 	this.workdir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_WORKDIR'));
