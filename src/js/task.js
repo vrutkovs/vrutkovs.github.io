@@ -442,23 +442,23 @@ const TaskDef = new Lang.Class({
 	}
 
 	this._version = version;
-	this._workdir = this.dir.get_child(version);
-	GSystem.shutil_rm_rf(this._workdir, cancellable);
-	GSystem.file_ensure_directory(this._workdir, true, cancellable);
+	this._taskCwd = this.dir.get_child(version);
+	GSystem.shutil_rm_rf(this._taskCwd, cancellable);
+	GSystem.file_ensure_directory(this._taskCwd, true, cancellable);
 
 	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.parameters)];
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
-	context.set_cwd(this._workdir.get_path());
+	context.set_cwd(this._taskCwd.get_path());
 	let childEnv = GLib.get_environ();
 	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
 	context.set_environment(childEnv);
 	if (this.PreserveStdout) {
-	    let outPath = this._workdir.get_child('output.txt');
+	    let outPath = this._taskCwd.get_child('output.txt');
 	    context.set_stdout_file_path(outPath.get_path());
 	    context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	} else {
 	    context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.NULL);
-	    let errPath = this._workdir.get_child('errors.txt');
+	    let errPath = this._taskCwd.get_child('errors.txt');
 	    context.set_stderr_file_path(errPath.get_path());
 	}
 	this._proc = new GSystem.Subprocess({ context: context });
@@ -492,24 +492,24 @@ const TaskDef = new Lang.Class({
 		     success: success,
 		     errmsg: errmsg,
 		     elapsedMillis: elapsedMillis };
-	let statusTxtPath = this._workdir.get_child('status.txt');
+	let statusTxtPath = this._taskCwd.get_child('status.txt');
 	if (statusTxtPath.query_exists(null)) {
 	    let contents = GSystem.file_load_contents_utf8(statusTxtPath, cancellable);
 	    meta['status'] = contents.replace(/[ \n]+$/, '');
 	}
 
-	JsonUtil.writeJsonFileAtomic(this._workdir.get_child('meta.json'), meta, cancellable);
+	JsonUtil.writeJsonFileAtomic(this._taskCwd.get_child('meta.json'), meta, cancellable);
 
 	if (!success) {
 	    target = this._failedDir.get_child(this._version);
-	    GSystem.file_rename(this._workdir, target, null);
-	    this._workdir = target;
+	    GSystem.file_rename(this._taskCwd, target, null);
+	    this._taskCwd = target;
 	    this._cleanOldVersions(this._failedDir, this.RetainFailed, null);
 	    this.onComplete(success, errmsg);
 	} else {
 	    target = this._successDir.get_child(this._version);
-	    GSystem.file_rename(this._workdir, target, null);
-	    this._workdir = target;
+	    GSystem.file_rename(this._taskCwd, target, null);
+	    this._taskCwd = target;
 	    this._cleanOldVersions(this._successDir, this.RetainSuccess, null);
 	    this.onComplete(success, null);
 	}
