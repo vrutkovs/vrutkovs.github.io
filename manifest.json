@@ -418,6 +418,8 @@
 		 "config-opts": ["--disable-cups", "--disable-obex", "--disable-usb", "--disable-tools"],
 		 "patches": ["bluez-autogen.patch"]},
 
+                {"src": "git:git://github.com/jpirko/libndp.git"},
+
 		{"src": "fd-NM:NetworkManager",
 		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
