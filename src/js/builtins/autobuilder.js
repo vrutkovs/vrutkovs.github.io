@@ -100,8 +100,7 @@ const Autobuilder = new Lang.Class({
     },
 
     _onTaskExecuting: function(taskmaster, task) {
-	let workdir = task._workdir;
-	print("Task " + task.name + " executing in " + workdir.get_path());
+	print("Task " + task.name + " executing in " + task._taskCwd.get_path());
 	this._updateStatus();
     },
 
@@ -109,10 +108,10 @@ const Autobuilder = new Lang.Class({
 	if (task.name == 'resolve')
 	    this._runResolve();
 	if (success) {
-	    print("Task " + task.name + " complete: " + task._workdir.get_path());
+	    print("Task " + task.name + " complete: " + task._taskCwd.get_path());
 	} else {
 	    this._failed = true;
-	    print("Task " + task.name + " failed: " + task._workdir.get_path());
+	    print("Task " + task.name + " failed: " + task._taskCwd.get_path());
 	}
 	this._updateStatus();
     },
