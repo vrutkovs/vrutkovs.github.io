@@ -52,7 +52,7 @@
         if (modified.length > 0)
             buildDiffComponentAppend(container, 'Updated', modified);
         if (removed.length > 0)
-            buildDiffComponentAppend(container, 'removed', removed);
+            buildDiffComponentAppend(container, 'Removed', removed);
     }
 
     function renderBuild(container, build) {
