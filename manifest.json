@@ -546,9 +546,6 @@
 		{"src": "gnome:cogl",
 		 "branch": "cogl-1.14"},
 
-		{"src": "gnome:clutter",
-		 "branch": "clutter-1.16"},
-
 		{"src": "gnome:libnotify"},
 
 		{"src": "fd-spice:linux/vd_agent",
@@ -795,6 +792,12 @@
 
 		{"src": "gnome:gnome-session",
 		 "config-opts": ["--disable-docbook-docs",
+				 "--disable-man"]},
+
+		{"src": "gnome:gnome-settings-daemon",
+		 "config-opts": ["--disable-packagekit",
+		                 "--disable-cups",
+		                 "--enable-systemd",
 				 "--disable-man"]},
 
 		{"src": "gnome:libgtop"},
