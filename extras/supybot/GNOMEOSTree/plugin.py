@@ -46,7 +46,7 @@ class GNOMEOSTree(callbacks.Plugin):
         self._last_task_state = {}
         tracked_build = 'buildmaster'
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
-        self._workurl = "http://build.gnome.org/ostree/%s/" % (tracked_build, )
+        self._workurl = "http://build.gnome.org/ostree/%s" % (tracked_build, )
 
     def _sendTo(self, channels, msg):
         for channel in channels:
@@ -57,11 +57,11 @@ class GNOMEOSTree(callbacks.Plugin):
             self._query_new_task(taskname, status=status)
 
     def _query_new_task(self, taskname, status=False):
-        current_task_path = os.path.join(self._workdir, 'tasks/' + taskname + '/current')
+        current_task_path = os.path.join(self._workdir, 'tasks/%s/current' % (taskname, ))
         meta_path = os.path.join(current_task_path, 'meta.json')
         if not os.path.exists(meta_path):
             if status:
-                self._sendTo(self._flood_channels, "No current " + taskname + " completed")
+                self._sendTo(self._flood_channels, "No current %s completed" % (taskname, ))
             return
 
         f = open(meta_path)
@@ -79,7 +79,7 @@ class GNOMEOSTree(callbacks.Plugin):
         if (not status and version_unchanged):
             return
 
-        msg = 'gnostree:' + taskname
+        msg = 'gnostree:%s' % (taskname, )
         print msg + "changed (success_changed: %s)" % (success_changed, )
 
         new_state = {'version': taskver,
@@ -96,7 +96,7 @@ class GNOMEOSTree(callbacks.Plugin):
             f.close()
             msg += status_msg + ' '
 
-        msg += self._workurl + "tasks/" + taskname + "/%s/%s/output.txt" % (success_str, taskver)
+        msg += "%s/tasks/%s/%s/%s/output.txt" % (self._workurl, taskname, success_str, taskver)
 
         if not success:
             msg = ircutils.mircColor(msg, fg='red')
