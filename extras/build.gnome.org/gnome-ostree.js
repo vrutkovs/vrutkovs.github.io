@@ -90,10 +90,6 @@
         buildDiffAppend(a, build['diff']);
 
         if (state != 'running') {
-            var p = document.createElement('span');
-            a.appendChild(p);
-            var stateSpan = document.createElement('span');
-            p.appendChild(stateSpan);
             if (state == 'success')
                 li.setAttribute('data-icon', 'check');
             else if (state == 'failed')
