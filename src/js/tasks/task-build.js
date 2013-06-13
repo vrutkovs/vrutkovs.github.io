@@ -46,10 +46,12 @@ const DOC_DIRS = ['usr/share/doc', 'usr/share/gtk-doc',
 
 const TaskBuild = new Lang.Class({
     Name: "TaskBuild",
-    Extends: Task.TaskDef,
+    Extends: Task.Task,
 
-    TaskName: "build",
-    TaskAfter: ['resolve'],
+    TaskDef: {
+        TaskName: "build",
+        TaskAfter: ['resolve'],
+    },
 
     DefaultParameters: {forceComponents: []},
 

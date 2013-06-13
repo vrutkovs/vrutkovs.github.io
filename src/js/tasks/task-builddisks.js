@@ -38,10 +38,12 @@ const IMAGE_RETAIN_COUNT = 2;
 
 const TaskBuildDisks = new Lang.Class({
     Name: 'TaskBuildDisks',
-    Extends: Task.TaskDef,
+    Extends: Task.Task,
 
-    TaskName: "builddisks",
-    TaskAfter: ['build'],
+    TaskDef: {
+        TaskName: "builddisks",
+        TaskAfter: ['build'],
+    },
 
     // Legacy
     _VERSION_RE: /^(\d+)\.(\d+)$/,

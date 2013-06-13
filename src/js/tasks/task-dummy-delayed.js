@@ -34,11 +34,13 @@ const ArgParse = imports.argparse;
 
 const TaskDummyDelayed = new Lang.Class({
     Name: "TaskDummyDelayed",
-    Extends: Task.TaskDef,
+    Extends: Task.Task,
 
-    TaskName: "dummy-delayed",
-    TaskAfter: ['dummy-resolve'], 
-    TaskScheduleMinSecs: 5,
+    TaskDef: {
+        TaskName: "dummy-delayed",
+        TaskAfter: ['dummy-resolve'],
+        TaskScheduleMinSecs: 5,
+    },
 
     execute: function(cancellable) {
 	print("delayed firing!");

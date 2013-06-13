@@ -36,8 +36,10 @@ const TaskSmoketest = new Lang.Class({
     Name: 'TaskSmoketest',
     Extends: TestBase.TestBase,
 
-    TaskName: "smoketest",
-    TaskAfter: ['builddisks'],
+    TaskDef: {
+        TaskName: "smoketest",
+        TaskAfter: ['builddisks'],
+    },
 
     RequiredMessageIDs: ["0ce153587afa4095832d233c17a88001" // gnome-session startup ok
                         ],

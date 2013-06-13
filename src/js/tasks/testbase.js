@@ -331,10 +331,12 @@ const TestOneDisk = new Lang.Class({
 
 const TestBase = new Lang.Class({
     Name: 'TestBase',
-    Extends: Task.TaskDef,
+    Extends: Task.Task,
 
-    TaskName: "testbase",
-    TaskAfter: ['builddisks'],
+    TaskDef: {
+        TaskName: "testbase",
+        TaskAfter: ['builddisks'],
+    },
 
     BaseRequiredMessageIDs: ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
                              "f77379a8490b408bbe5f6940505a777b",  // systemd-journald

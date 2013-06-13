@@ -28,6 +28,16 @@ const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
 
+const DefaultTaskDef = {
+    TaskName: '',
+    TaskAfter: [],
+    TaskScheduleMinSecs: 0,
+
+    PreserveStdout: true,
+    RetainFailed: 5,
+    RetainSuccess: 5,
+};
+
 var _tasksetInstance = null;
 const TaskSet = new Lang.Class({
     Name: 'TaskSet',
@@ -52,8 +62,8 @@ const TaskSet = new Lang.Class({
 	denum.close(null);
     },
 
-    register: function(taskdef) {
-	this._tasks.push(taskdef);
+    register: function(task) {
+	this._tasks.push(task);
     },
 
     getAllTasks: function() {
@@ -62,28 +72,18 @@ const TaskSet = new Lang.Class({
 
     getTask: function(taskName) {
 	for (let i = 0; i < this._tasks.length; i++) {
-	    let taskDef = this._tasks[i];
-            let curName = taskDef.prototype.TaskName;
+	    let taskConstructor = this._tasks[i];
+	    let taskDef = taskConstructor.prototype.TaskDef;
+	    let curName = taskDef.TaskName;
 	    if (curName == taskName)
-		return taskDef;
+		return taskConstructor;
 	}
 	throw new Error("No task definition matches " + taskName);
     },
 
-    getTasksAfter: function(taskName) {
-	let ret = [];
-	for (let i = 0; i < this._tasks.length; i++) {
-	    let taskDef = this._tasks[i];
-	    let after = taskDef.prototype.TaskAfter;
-	    for (let j = 0; j < after.length; j++) {
-		let a = after[j];
-		if (a == taskName) {
-		    ret.push(taskDef);
-		    break;
-		}
-	    }
-	}
-	return ret;
+    getTaskDef: function(taskName) {
+	let taskDef = this.getTask(taskName).prototype.TaskDef;
+	return Params.parse(taskDef, DefaultTaskDef);
     },
 
     getInstance: function() {
@@ -91,6 +91,16 @@ const TaskSet = new Lang.Class({
 	    _tasksetInstance = new TaskSet();
 	return _tasksetInstance;
     }
+});
+
+const TaskData = new Lang.Class({
+    Name: 'TaskData',
+
+    _init: function(taskDef, parameters) {
+	this.name = taskDef.TaskName;
+	this.taskDef = taskDef;
+	this.parameters = parameters;
+    },
 });
     
 const TaskMaster = new Lang.Class({
@@ -117,20 +127,20 @@ const TaskMaster = new Lang.Class({
 
 	this._taskset = TaskSet.prototype.getInstance();
 
-	// string -> [ lastExecutedSecs, [timeoutId, parameters]]
+	// string -> [ lastExecutedSecs, taskData ]
 	this._scheduledTaskTimeouts = {};
     },
 
-    _pushTaskDefImmediate: function(taskDef, parameters) {
-	let instance = new taskDef(parameters);
-	this._pendingTasksList.push(instance);
+    _pushTaskDataImmediate: function(taskData) {
+	this._pendingTasksList.push(taskData);
 	this._queueRecalculate();
     },
 
-    _pushTaskDef: function(taskDef, parameters) {
-	let name = taskDef.prototype.TaskName;
+    pushTask: function(name, parameters) {
+	let taskDef = this._taskset.getTaskDef(name);
+        let taskData = new TaskData(taskDef, parameters);
 	if (!this._isTaskPending(name)) {
-	    let scheduleMinSecs = taskDef.prototype.TaskScheduleMinSecs;
+	    let scheduleMinSecs = taskDef.TaskScheduleMinSecs;
 	    if (scheduleMinSecs > 0) {
 		let info = this._scheduledTaskTimeouts[name];
 		if (!info) {
@@ -146,37 +156,31 @@ const TaskMaster = new Lang.Class({
 		    print("Already scheduled task " + name + " remaining=" + delta);
 		} else if (lastExecutedSecs == 0) {
 		    print("Scheduled task " + name + " executing immediately");
-		    this._pushTaskDefImmediate(taskDef, parameters);
+		    this._pushTaskDataImmediate(taskData);
 		    info[0] = currentTime;
                 } else {
                     let delta = (lastExecutedSecs + scheduleMinSecs) - currentTime;
 		    print("Scheduled task " + name + " delta=" + delta);
 		    let timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
 							     Math.max(delta, 0),
-							     Lang.bind(this, this._executeScheduledTask, taskDef));
+							     Lang.bind(this, this._executeScheduledTask, name));
 		    info[0] = currentTime;
-		    info[1] = [ timeoutId, parameters ];
+		    info[1] = taskData;
 		}
 	    } else {
-		this._pushTaskDefImmediate(taskDef, parameters);
+		this._pushTaskDataImmediate(taskData);
 	    }
 	}
     },
     
-    _executeScheduledTask: function(taskDef) {
-	let name = taskDef.prototype.TaskName;
+    _executeScheduledTask: function(name) {
 	print("Executing scheduled task " + name);
 	let currentTime = GLib.get_monotonic_time() / GLib.USEC_PER_SEC;
 	let info = this._scheduledTaskTimeouts[name];
+        let taskData = info[1];
 	info[0] = currentTime;
-	let params = info[1][1];
 	info[1] = null;
-	this._pushTaskDefImmediate(taskDef, params);
-    },
-
-    pushTask: function(taskName, parameters) {
-	let taskDef = this._taskset.getTask(taskName);
-	this._pushTaskDef(taskDef, parameters);
+	this._pushTaskDataImmediate(taskData);
     },
 
     _isTaskPending: function(taskName) {
@@ -195,7 +199,7 @@ const TaskMaster = new Lang.Class({
     isTaskExecuting: function(taskName) {
 	for (let i = 0; i < this._executing.length; i++) {
 	    let executingRunner = this._executing[i];
-	    if (executingRunner.taskDef.name == taskName)
+	    if (executingRunner.taskData.name == taskName)
 		return true;
 	}
 	return false;
@@ -254,17 +258,16 @@ const TaskMaster = new Lang.Class({
 	    break;
 	}
 	if (idx == -1)
-	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskDef.name);
+	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskData.name);
 	this._executing.splice(idx, 1);
 	this.emit('task-complete', runner, success, error);
 	if (success && this._processAfter) {
 	    if (runner.changed) {
-		let tasksAfter = this._taskset.getTasksAfter(task.name);
-		for (let i = 0; i < tasksAfter.length; i++) {
-		    let after = tasksAfter[i];
-		    let name = after.prototype.TaskName;
-		    if (!this._skipTasks[name])
-			this._pushTaskDef(tasksAfter[i], {});
+		let taskDef = runner.taskData.taskDef;
+		for (let i = 0; i < taskDef.TasksAfter.length; i++) {
+		    let taskName = taskDef.TasksAfter[i];
+		    if (!this._skipTasks[taskName])
+			this.pushTaskDef(taskName, {});
 		}
 	    }
 	}
@@ -287,15 +290,8 @@ const TaskMaster = new Lang.Class({
 });
 Signals.addSignalMethods(TaskMaster.prototype);
 
-const TaskDef = new Lang.Class({
-    Name: 'TaskDef',
-
-    TaskAfter: [],
-    TaskScheduleMinSecs: 0,
-
-    PreserveStdout: true,
-    RetainFailed: 5,
-    RetainSuccess: 5,
+const Task = new Lang.Class({
+    Name: 'Task',
 
     DefaultParameters: {},
 
@@ -332,11 +328,11 @@ const TaskRunner = new Lang.Class({
 
     _VERSION_RE: /^(\d+\d\d\d\d)\.(\d+)$/,
 
-    _init: function(taskmaster, taskDef, onComplete) {
+    _init: function(taskmaster, taskData, onComplete) {
 	this.taskmaster = taskmaster;
-	this.taskDef = taskDef;
+	this.taskData = taskData;
 	this.onComplete = onComplete;
-        this.name = taskDef.name;
+        this.name = taskData.name;
 
 	this.workdir = taskmaster.path.get_parent();
 	BuildUtil.checkIsWorkDirectory(this.workdir);
@@ -428,13 +424,13 @@ const TaskRunner = new Lang.Class({
 	GSystem.shutil_rm_rf(this._taskCwd, cancellable);
 	GSystem.file_ensure_directory(this._taskCwd, true, cancellable);
 
-	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.taskDef.parameters)];
+	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.taskData.parameters)];
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
 	context.set_cwd(this._taskCwd.get_path());
 	let childEnv = GLib.get_environ();
 	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
 	context.set_environment(childEnv);
-	if (this.taskDef.PreserveStdout) {
+	if (this.taskData.taskDef.PreserveStdout) {
 	    let outPath = this._taskCwd.get_child('output.txt');
 	    context.set_stdout_file_path(outPath.get_path());
 	    context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
@@ -479,13 +475,13 @@ const TaskRunner = new Lang.Class({
 	    target = this._failedDir.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
-	    this._cleanOldVersions(this._failedDir, this.taskDef.RetainFailed, null);
+	    this._cleanOldVersions(this._failedDir, this.taskData.taskDef.RetainFailed, null);
 	    this.onComplete(success, errmsg);
 	} else {
 	    target = this._successDir.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
-	    this._cleanOldVersions(this._successDir, this.taskDef.RetainSuccess, null);
+	    this._cleanOldVersions(this._successDir, this.taskData.taskDef.RetainSuccess, null);
 	    this.onComplete(success, null);
 	}
 

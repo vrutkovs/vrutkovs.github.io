@@ -35,10 +35,12 @@ const ArgParse = imports.argparse;
 
 const TaskBdiff = new Lang.Class({
     Name: "TaskBdiff",
-    Extends: Task.TaskDef,
+    Extends: Task.Task,
 
-    TaskName: "bdiff",
-    TaskAfter: ['build'],
+    TaskDef: {
+        TaskName: "bdiff",
+        TaskAfter: ['build'],
+    },
 
     _gitLogToJson: function(repoDir, specification) {
 	let log = ProcUtil.runSyncGetOutputLines(['git', 'log', '--format=email', specification],

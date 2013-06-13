@@ -34,9 +34,11 @@ const ArgParse = imports.argparse;
 
 const TaskDummyResolve = new Lang.Class({
     Name: "TaskDummyResolve",
-    Extends: Task.TaskDef,
+    Extends: Task.Task,
 
-    TaskName: "dummy-resolve",
+    TaskDef: {
+        TaskName: "dummy-resolve",
+    },
 
     DefaultParameters: {change: false},
 

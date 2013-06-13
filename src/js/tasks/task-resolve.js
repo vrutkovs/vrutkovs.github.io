@@ -34,9 +34,11 @@ const ArgParse = imports.argparse;
 
 const TaskResolve = new Lang.Class({
     Name: "TaskResolve",
-    Extends: Task.TaskDef,
+    Extends: Task.Task,
 
-    TaskName: "resolve",
+    TaskDef: {
+        TaskName: "resolve",
+    },
 
     DefaultParameters: {fetchAll: false,
 			fetchComponents: [],

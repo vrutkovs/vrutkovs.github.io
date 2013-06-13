@@ -40,9 +40,11 @@ const TaskZDisks = new Lang.Class({
     Name: 'TaskZDisks',
     Extends: BuildDisks.TaskBuildDisks,
 
-    TaskName: "zdisks",
-    TaskAfter: ['smoketest'],
-    TaskScheduleMinSecs: 3*60*60,  // Only do this every 3 hours
+    TaskDef: {
+        TaskName: "zdisks",
+        TaskAfter: ['smoketest'],
+        TaskScheduleMinSecs: 3*60*60,  // Only do this every 3 hours
+    },
 
     // Legacy
     _VERSION_RE: /^(\d+)\.(\d+)$/,

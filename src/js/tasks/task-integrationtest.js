@@ -36,8 +36,10 @@ const TaskIntegrationTest = new Lang.Class({
     Name: 'TaskIntegrationTest',
     Extends: TestBase.TestBase,
 
-    TaskName: "integrationtest",
-    TaskAfter: ['smoketest'],
+    TaskDef: {
+        TaskName: "integrationtest",
+        TaskAfter: ['smoketest'],
+    },
 
     RequiredMessageIDs: ["4d013788dd704743b826436c951e551d" // Tests succeeded
                         ],
