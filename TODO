@@ -13,7 +13,11 @@ Highlevel stuff:
   EC2 instance with all this stuff.
 
 * Improve QA web page: Allow browsing multiple builds, look at build
-  diff, etc.
+  diff, etc.  
+  - Show test results for "session" type as a pie chart
+    and allow diving into their stdout/stderr/associated core dumps etc.
+  - Show "session-exclusive" type tests with the above, plus screenshots.
+  - Export test tmpdir data from guest to host (e.g. gtk reftest images).
 
 * Automatic reverse dependency rebuilds on soname bumps
 
