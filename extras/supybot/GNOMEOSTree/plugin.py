@@ -38,8 +38,7 @@ import supybot.callbacks as callbacks
 
 class GNOMEOSTree(callbacks.Plugin):
     def __init__(self, irc):
-        self.__parent = super(GNOMEOSTree, self)
-        self.__parent.__init__(irc)
+        super(GNOMEOSTree, self).__init__(irc)
         schedule.addPeriodicEvent(self._query_new_tasks, 1, now=False)
         self._irc = irc
         self._flood_channels = ['#testable']
