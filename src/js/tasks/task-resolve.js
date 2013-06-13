@@ -50,10 +50,6 @@ const TaskResolve = new Lang.Class({
 	return this._db;
     },
 
-    queryVersion: function() {
-	return this._getDb().getLatestVersion();
-    },
-
     execute: function(cancellable) {
         let manifestPath = this.workdir.get_child('manifest.json');
 	let data = JsonUtil.loadJson(manifestPath, cancellable);
@@ -84,5 +80,8 @@ const TaskResolve = new Lang.Class({
         } else {
             print("Source snapshot unchanged: " + path.get_path());
 	}
+
+        let modifiedPath = Gio.File.new_for_path('modified.json');
+        JsonUtil.writeJsonFileAtomic(modifiedPath, { modified: modified }, cancellable);
     }
 });

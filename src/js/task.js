@@ -117,8 +117,6 @@ const TaskMaster = new Lang.Class({
 
 	this._taskset = TaskSet.prototype.getInstance();
 
-	this._taskVersions = {};
-
 	// string -> [ lastExecutedSecs, [timeoutId, parameters]]
 	this._scheduledTaskTimeouts = {};
     },
@@ -261,16 +259,7 @@ const TaskMaster = new Lang.Class({
 	this._executing.splice(idx, 1);
 	this.emit('task-complete', runner, success, error);
 	if (success && this._processAfter) {
-	    let changed = true;
-	    let version = runner.taskDef.queryVersion();
-	    if (version !== null) {
-		let oldVersion = this._taskVersions[runner.taskDef.name];
-		if (oldVersion == version)
-		    changed = false;
-		else if (oldVersion != null)
-		    print("task " + runner.taskDef.name + " new version: " + version);
-	    }
-	    if (changed) {
+	    if (runner.changed) {
 		let tasksAfter = this._taskset.getTasksAfter(task.name);
 		for (let i = 0; i < tasksAfter.length; i++) {
 		    let after = tasksAfter[i];
@@ -288,11 +277,6 @@ const TaskMaster = new Lang.Class({
 	       this._pendingTasksList.length > 0 &&
 	       !this.isTaskExecuting(this._pendingTasksList[0].name)) {
 	    let task = this._pendingTasksList.shift();
-	    let version = task.queryVersion();
-	    if (version !== null) {
-		this._taskVersions[task.name] = version;
-	    }
-
 	    let runner = new TaskRunner(this, task, Lang.bind(this, function(success, error) {
 		this._onComplete(success, error, runner);
 	    }));
@@ -337,10 +321,6 @@ const TaskDef = new Lang.Class({
     _getResultDb: function(taskname) {
 	let path = this.resultdir.resolve_relative_path(taskname);
 	return new JsonDB.JsonDB(path);
-    },
-
-    queryVersion: function() {
-	return null;
     },
 
     execute: function(cancellable) {
@@ -488,6 +468,13 @@ const TaskRunner = new Lang.Class({
 	let cancellable = this._cancellable;
 	let [success, errmsg] = ProcUtil.asyncWaitCheckFinish(proc, result);
 	let target;
+
+        this.changed = true;
+        let modifiedPath = this._taskCwd.get_child('modified.json');
+        if (modifiedPath.query_exists(null)) {
+            let data = JsonUtil.loadJson(modifiedPath);
+            this.changed = data['modified'];
+        }
 
 	if (!success) {
 	    target = this._failedDir.get_child(this._version);
