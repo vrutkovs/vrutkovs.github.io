@@ -797,12 +797,6 @@
 		 "config-opts": ["--disable-docbook-docs",
 				 "--disable-man"]},
 
-		{"src": "gnome:gnome-settings-daemon",
-		 "config-opts": ["--disable-packagekit",
-		                 "--disable-cups",
-		                 "--enable-systemd",
-				 "--disable-man"]},
-
 		{"src": "gnome:libgtop"},
 
 		{"src": "gnome:clutter-gst",
