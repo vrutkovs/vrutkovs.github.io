@@ -9,9 +9,7 @@
 
     function _loadTask(taskname) {
         var url = 'work/tasks/' + taskname + '/current/meta.json';
-        console.log("loading " + url);
         $.getJSON(url, function(data) {
-            console.log("load of " + taskname + " complete");
             taskData[taskname] = data;
             $(repoDataSignal).trigger("taskdata-changed", [taskname]);
         });
