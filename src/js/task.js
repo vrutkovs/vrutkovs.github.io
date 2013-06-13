@@ -486,6 +486,20 @@ const TaskDef = new Lang.Class({
 	let [success, errmsg] = ProcUtil.asyncWaitCheckFinish(proc, result);
 	let target;
 
+	if (!success) {
+	    target = this._failedDir.get_child(this._version);
+	    GSystem.file_rename(this._taskCwd, target, null);
+	    this._taskCwd = target;
+	    this._cleanOldVersions(this._failedDir, this.RetainFailed, null);
+	    this.onComplete(success, errmsg);
+	} else {
+	    target = this._successDir.get_child(this._version);
+	    GSystem.file_rename(this._taskCwd, target, null);
+	    this._taskCwd = target;
+	    this._cleanOldVersions(this._successDir, this.RetainSuccess, null);
+	    this.onComplete(success, null);
+	}
+
 	let elapsedMillis = GLib.get_monotonic_time() / 1000 - this._startTimeMillis;
 	let meta = { taskMetaVersion: 0,
 		     taskVersion: this._version,
@@ -500,19 +514,6 @@ const TaskDef = new Lang.Class({
 
 	JsonUtil.writeJsonFileAtomic(this._taskCwd.get_child('meta.json'), meta, cancellable);
 
-	if (!success) {
-	    target = this._failedDir.get_child(this._version);
-	    GSystem.file_rename(this._taskCwd, target, null);
-	    this._taskCwd = target;
-	    this._cleanOldVersions(this._failedDir, this.RetainFailed, null);
-	    this.onComplete(success, errmsg);
-	} else {
-	    target = this._successDir.get_child(this._version);
-	    GSystem.file_rename(this._taskCwd, target, null);
-	    this._taskCwd = target;
-	    this._cleanOldVersions(this._successDir, this.RetainSuccess, null);
-	    this.onComplete(success, null);
-	}
 	// Also remove any old interrupted versions
 	this._cleanOldVersions(this.dir, 0, null);
 
