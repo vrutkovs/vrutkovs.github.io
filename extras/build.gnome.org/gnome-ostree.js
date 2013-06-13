@@ -1,6 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
 (function($, exports) {
+    "use strict";
 
     var repoDataSignal = {};
     var taskData = {};
