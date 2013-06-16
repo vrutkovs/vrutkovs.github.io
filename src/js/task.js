@@ -90,6 +90,23 @@ const TaskSet = new Lang.Class({
 	if (!_tasksetInstance)
 	    _tasksetInstance = new TaskSet();
 	return _tasksetInstance;
+    },
+
+    getTasksAfter: function(taskName) {
+	let ret = [];
+	for (let i = 0; i < this._tasks.length; i++) {
+	    let taskConstructor = this._tasks[i];
+	    let taskDef = Params.parse(taskConstructor.prototype.TaskDef, DefaultTaskDef);
+	    let after = taskDef.TaskAfter;
+	    for (let j = 0; j < after.length; j++) {
+		let a = after[j];
+		if (a == taskName) {
+		    ret.push(taskDef.TaskName);
+		    break;
+		}
+	    }
+	}
+	return ret;
     }
 });
 
@@ -263,11 +280,13 @@ const TaskMaster = new Lang.Class({
 	this.emit('task-complete', runner, success, error);
 	if (success && this._processAfter) {
 	    if (runner.changed) {
+		let taskName = runner.taskData.name;
 		let taskDef = runner.taskData.taskDef;
-		for (let i = 0; i < taskDef.TasksAfter.length; i++) {
-		    let taskName = taskDef.TasksAfter[i];
-		    if (!this._skipTasks[taskName])
-			this.pushTaskDef(taskName, {});
+		let after = this._taskset.getTasksAfter(taskName);
+		for (let i = 0; i < after.length; i++) {
+		    let afterTaskName = after[i];
+		    if (!this._skipTasks[afterTaskName])
+			this.pushTask(afterTaskName, {});
 		}
 	    }
 	}
