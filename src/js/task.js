@@ -467,7 +467,7 @@ const TaskRunner = new Lang.Class({
         this.changed = true;
         let modifiedPath = this._taskCwd.get_child('modified.json');
         if (modifiedPath.query_exists(null)) {
-            let data = JsonUtil.loadJson(modifiedPath);
+            let data = JsonUtil.loadJson(modifiedPath, null);
             this.changed = data['modified'];
         }
 
