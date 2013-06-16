@@ -34,8 +34,11 @@ function _componentDict(snapshot) {
             throw new Error("Duplicate component name " + name);
         r[name] = component;
     }
+
     let patches = snapshot['patches'];
-    r[patches['name']] = patches;
+    if (patches['name'])
+        r[patches['name']] = patches;
+
     let base = snapshot['base'];
     r[base['name']] = base;
     return r;
