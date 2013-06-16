@@ -88,6 +88,9 @@ const Snapshot = new Lang.Class({
     },
 
     _resolveComponent: function(manifest, componentMeta) {
+        if (!componentMeta)
+            return {};
+
 	let result = {};
 	Lang.copyProperties(componentMeta, result);
 	let origSrc = componentMeta['src'];
