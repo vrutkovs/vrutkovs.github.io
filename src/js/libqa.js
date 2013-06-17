@@ -382,7 +382,7 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
                                    '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson',
 				   '-kernel', tmpKernelPath.get_path(),
 				   '-initrd', tmpInitrdPath.get_path(),
-				   '-append', 'console=ttyS0 root=LABEL=gnostree-root rw ostree=' + osname + '/current systemd.unit=gnome-ostree-install-bootloader.target'
+				   '-append', 'console=ttyS0 root=LABEL=gnostree-root rw ostree=' + osname + '/current systemd.unit=gnome-ostree-install-bootloader.target systemd.journald.forward_to_console=true'
 				  ]);
 
     ProcUtil.runSync(qemuArgs, cancellable, { cwd: workdir.get_path(),
