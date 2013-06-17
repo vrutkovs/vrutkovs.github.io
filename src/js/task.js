@@ -27,6 +27,7 @@ const JsonUtil = imports.jsonutil;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
+const VersionedDir = imports.versioneddir;
 
 const DefaultTaskDef = {
     TaskName: '',
@@ -357,39 +358,15 @@ const TaskRunner = new Lang.Class({
 	BuildUtil.checkIsWorkDirectory(this.workdir);
     },
 
-    _loadVersionsFrom: function(dir, cancellable) {
-	let e = dir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
-	let info;
-	let results = [];
-	while ((info = e.next_file(cancellable)) != null) {
-	    let name = info.get_name();
-	    let match = this._VERSION_RE.exec(name);
-	    if (!match)
-		continue;
-	    results.push(name);
-	}
-	e.close(null);
-	results.sort(BuildUtil.compareVersions);
-	return results;
-    },
-
-    _cleanOldVersions: function(dir, retain, cancellable) {
-	let versions = this._loadVersionsFrom(dir, cancellable);
-	while (versions.length > retain) {
-	    let child = dir.get_child(versions.shift());
-	    GSystem.shutil_rm_rf(child, cancellable);
-	}
-    },
-
     _loadAllVersions: function(cancellable) {
 	let allVersions = [];
 
-	let successVersions = this._loadVersionsFrom(this._successDir, cancellable);
+	let successVersions = this._successDir.loadVersions(cancellable);
 	for (let i = 0; i < successVersions.length; i++) {
 	    allVersions.push([true, successVersions[i]]);
 	}
 
-	let failedVersions = this._loadVersionsFrom(this._failedDir, cancellable);
+	let failedVersions = this._failedDir.loadVersions(cancellable);
 	for (let i = 0; i < failedVersions.length; i++) {
 	    allVersions.push([false, failedVersions[i]]);
 	}
@@ -411,10 +388,11 @@ const TaskRunner = new Lang.Class({
 	this.dir = this.taskmaster.path.resolve_relative_path(this.name);
 	GSystem.file_ensure_directory(this.dir, true, cancellable);
 	
-	this._successDir = this.dir.get_child('successful');
-	GSystem.file_ensure_directory(this._successDir, true, cancellable);
-	this._failedDir = this.dir.get_child('failed');
-	GSystem.file_ensure_directory(this._failedDir, true, cancellable);
+	this._topDir = new VersionedDir.VersionedDir(this.dir, this._VERSION_RE);
+	this._successDir = new VersionedDir.VersionedDir(this.dir.get_child('successful'),
+							 this._VERSION_RE);
+	this._failedDir = new VersionedDir.VersionedDir(this.dir.get_child('failed'),
+							this._VERSION_RE);
 
 	let allVersions = this._loadAllVersions(cancellable);
 
@@ -491,16 +469,16 @@ const TaskRunner = new Lang.Class({
         }
 
 	if (!success) {
-	    target = this._failedDir.get_child(this._version);
+	    target = this._failedDir.path.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
-	    this._cleanOldVersions(this._failedDir, this.taskData.taskDef.RetainFailed, null);
+	    this._failedDir.cleanOldVersions(this.taskData.taskDef.RetainFailed, null);
 	    this.onComplete(success, errmsg);
 	} else {
-	    target = this._successDir.get_child(this._version);
+	    target = this._successDir.path.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
-	    this._cleanOldVersions(this._successDir, this.taskData.taskDef.RetainSuccess, null);
+	    this._successDir.cleanOldVersions(this.taskData.taskDef.RetainSuccess, null);
 	    this.onComplete(success, null);
 	}
 
@@ -521,7 +499,7 @@ const TaskRunner = new Lang.Class({
 	JsonUtil.writeJsonFileAtomic(this._taskCwd.get_child('meta.json'), meta, cancellable);
 
 	// Also remove any old interrupted versions
-	this._cleanOldVersions(this.dir, 0, null);
+	this._topDir.cleanOldVersions(0, null);
 
 	this._updateIndex(cancellable);
 

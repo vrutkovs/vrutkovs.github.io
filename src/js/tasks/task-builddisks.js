@@ -30,6 +30,7 @@ const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
 const LibQA = imports.libqa;
 const JsonDB = imports.jsondb;
+const VersionedDir = imports.versioneddir;
 const JsonUtil = imports.jsonutil;
 const JSUtil = imports.jsutil;
 const GuestFish = imports.guestfish;
@@ -56,6 +57,7 @@ const TaskBuildDisks = new Lang.Class({
         let subworkdir = Gio.File.new_for_path('.');
 
 	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
+        let baseImageVersionedDir = new VersionedDir.VersionedDir(baseImageDir, this._VERSION_RE);
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
 	      let currentImageLink = baseImageDir.get_child('current');
 	      let previousImageLink = baseImageDir.get_child('previous');
@@ -146,7 +148,7 @@ const TaskBuildDisks = new Lang.Class({
         }
         BuildUtil.atomicSymlinkSwap(baseImageDir.get_child('current'), targetImageDir, cancellable);
 
-        this._cleanOldVersions(baseImageDir, IMAGE_RETAIN_COUNT, cancellable);
+        baseImageVersionedDir.cleanOldVersions(IMAGE_RETAIN_COUNT, cancellable);
     },
 
     _postDiskCreation: function(diskPath, cancellable) {
