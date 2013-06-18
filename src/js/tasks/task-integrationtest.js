@@ -77,7 +77,7 @@ const TaskIntegrationTest = new Lang.Class({
         let desktopFile = '[Desktop Entry]\n\
 Encoding=UTF-8\n\
 Name=GNOME installed tests runner\n\
-Exec=gnome-desktop-testing-runner --parallel 0\n\
+Exec=gnome-desktop-testing-runner --parallel 0 --status=yes\n\
 Terminal=false\n\
 Type=Application\n';
         let dest = deployEtcDir.resolve_relative_path('xdg/autostart/gnome-desktop-testing.desktop');
