@@ -16,23 +16,8 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
-const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
-const Format = imports.format;
-
-const GSystem = imports.gi.GSystem;
-
-const Builtin = imports.builtin;
-const ArgParse = imports.argparse;
-const Task = imports.task;
-const ProcUtil = imports.procutil;
-const BuildUtil = imports.buildutil;
-const LibQA = imports.libqa;
-const JsonDB = imports.jsondb;
-const JsonUtil = imports.jsonutil;
-const JSUtil = imports.jsutil;
-const GuestFish = imports.guestfish;
 
 const BuildDisks = imports.tasks['task-builddisks'];
 

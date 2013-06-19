@@ -24,7 +24,6 @@ const GSystem = imports.gi.GSystem;
 
 const Builtin = imports.builtin;
 const Task = imports.task;
-const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;

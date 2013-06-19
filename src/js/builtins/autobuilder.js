@@ -18,15 +18,11 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
-const Format = imports.format;
-
-const GSystem = imports.gi.GSystem;
 
 const Builtin = imports.builtin;
 const Task = imports.task;
 const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
-const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
 
 const loop = GLib.MainLoop.new(null, true);

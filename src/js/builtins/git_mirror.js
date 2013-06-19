@@ -15,19 +15,13 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
-const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
-const Format = imports.format;
 
 const Builtin = imports.builtin;
-const ProcUtil = imports.procutil;
 const Snapshot = imports.snapshot;
-const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 const JsonUtil = imports.jsonutil;
-const JsonDB = imports.jsondb;
-const ArgParse = imports.argparse;
 
 const GitMirror = new Lang.Class({
     Name: 'GitMirror',
@@ -50,8 +44,6 @@ const GitMirror = new Lang.Class({
 
     execute: function(args, loop, cancellable) {
 	this._initWorkdir(args.workdir, cancellable);
-
-        let parser = new ArgParse.ArgumentParser();
 
 	if (!args.timeout_sec)
 	    args.timeout_sec = 0;

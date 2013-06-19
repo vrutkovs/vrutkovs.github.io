@@ -22,19 +22,17 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 
-const Builtin = imports.builtin;
 const Task = imports.task;
 const Params = imports.params;
-const JsonDB = imports.jsondb;
 const FileUtil = imports.fileutil;
 const AsyncUtil = imports.asyncutil;
 const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
+const JsonDB = imports.jsondb;
 const Snapshot = imports.snapshot;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
-const ArgParse = imports.argparse;
 
 const OPT_COMMON_CFLAGS = {'i686': '-O2 -g -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables',
                            'x86_64': '-O2 -g -m64 -mtune=generic'};

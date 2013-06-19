@@ -29,7 +29,6 @@ const Task = imports.task;
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
 const LibQA = imports.libqa;
-const JsonDB = imports.jsondb;
 const VersionedDir = imports.versioneddir;
 const JsonUtil = imports.jsonutil;
 const JSUtil = imports.jsutil;
