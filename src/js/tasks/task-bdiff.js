@@ -83,8 +83,6 @@ const TaskBdiff = new Lang.Class({
     },
 
     execute: function(cancellable) {
-	this.subworkdir = Gio.File.new_for_path('.');
-
 	let builddb = this._getResultDb('build');
         let latestPath = builddb.getLatestPath();
 	if (!latestPath)

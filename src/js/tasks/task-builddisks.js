@@ -53,8 +53,6 @@ const TaskBuildDisks = new Lang.Class({
     _onlyTreeSuffixes: ['-runtime'],
 
     execute: function(cancellable) {
-        let subworkdir = Gio.File.new_for_path('.');
-
 	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
         let baseImageVersionedDir = new VersionedDir.VersionedDir(baseImageDir, this._VERSION_RE);
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
@@ -74,7 +72,7 @@ const TaskBuildDisks = new Lang.Class({
             return;
         }
 
-        let workImageDir = subworkdir.get_child('images');
+        let workImageDir = Gio.File.new_for_path('images');
         GSystem.file_ensure_directory(workImageDir, true, cancellable);
 
         let destPath = workImageDir.get_child('build-' + buildVersion + '.json');
@@ -107,7 +105,7 @@ const TaskBuildDisks = new Lang.Class({
             } else {
                 LibQA.createDisk(diskPath, cancellable);
             }
-            let mntdir = subworkdir.get_child('mnt-' + squashedName);
+            let mntdir = Gio.File.new_for_path('mnt-' + squashedName);
             GSystem.file_ensure_directory(mntdir, true, cancellable);
             let gfmnt = new GuestFish.GuestMount(diskPath, { partitionOpts: LibQA.DEFAULT_GF_PARTITION_OPTS,
                                                              readWrite: true });
@@ -120,7 +118,7 @@ const TaskBuildDisks = new Lang.Class({
             }
             // Assume previous disks have successfully installed a bootloader
             if (!doCloneDisk) {
-                LibQA.bootloaderInstall(diskPath, subworkdir, osname, cancellable);
+                LibQA.bootloaderInstall(diskPath, Gio.File.new_for_path('.'), osname, cancellable);
                 print("Bootloader installation complete");
             }
 

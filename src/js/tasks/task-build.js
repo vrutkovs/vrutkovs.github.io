@@ -706,7 +706,7 @@ const TaskBuild = new Lang.Class({
     _checkoutOneTreeCoreAsync: function(name, composeContents, cancellable, callback,
 					params) {
 	params = Params.parse(params, { runTriggers: true });
-        let composeRootdir = this.subworkdir.get_child(name);
+        let composeRootdir = Gio.File.new_for_path(name);
 	print("Checking out " + composeRootdir.get_path());
 	GSystem.shutil_rm_rf(composeRootdir, cancellable);
         GSystem.file_ensure_directory(composeRootdir, true, cancellable);
@@ -1079,7 +1079,7 @@ const TaskBuild = new Lang.Class({
     _buildBase: function(architecture, cancellable) {
         let basemeta = this._snapshot.getExpanded(this._snapshot.data['base']['name']);
 	let basename = basemeta['name'];
-	let buildWorkdir = this.subworkdir.get_child('build-' + basemeta['name'] + '-' + architecture);
+	let buildWorkdir = Gio.File.new_for_path('build-' + basemeta['name'] + '-' + architecture);
         let checkoutdir = buildWorkdir.get_child(basemeta['name']);
         let builddirName = Format.vprintf('build-%s-%s', [basename, architecture]);
         let builddir = this.workdir.get_child(builddirName);
@@ -1163,8 +1163,6 @@ const TaskBuild = new Lang.Class({
     },
 
     execute: function(cancellable) {
-	this.subworkdir = Gio.File.new_for_path('.');
-
         this.forceBuildComponents = {};
 	for (let i = 0; i < this.parameters.forceComponents.length; i++)
 	    this.forceBuildComponents[this.parameters.forceComponents[i]] = true;
@@ -1173,7 +1171,7 @@ const TaskBuild = new Lang.Class({
 	let snapshotDir = this.workdir.get_child('snapshots');
 	let srcdb = new JsonDB.JsonDB(snapshotDir);
 	let snapshotPath = srcdb.getLatestPath();
-	let workingSnapshotPath = this.subworkdir.get_child(snapshotPath.get_basename());
+	let workingSnapshotPath = Gio.File.new_for_path(snapshotPath.get_basename());
 	GSystem.file_linkcopy(snapshotPath, workingSnapshotPath, Gio.FileCopyFlags.OVERWRITE,
 			      cancellable);
 	let data = srcdb.loadFromPath(workingSnapshotPath, cancellable);
