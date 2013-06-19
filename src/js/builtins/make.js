@@ -36,8 +36,6 @@ const Make = new Lang.Class({
 						    help: "Don't process tasks after this" });
 	this.parser.addArgument(['-x', '--skip'], { action: 'append',
 						    help: "Don't process tasks after this" });
-	this.parser.addArgument(['--shell'], { action: 'storeTrue',
-					       help: "Start an interactive shell" });
 	this.parser.addArgument('taskname');
 	this.parser.addArgument('parameters', { nargs: '*' });
     },
@@ -46,9 +44,7 @@ const Make = new Lang.Class({
 	this._initWorkdir(null, cancellable);
 	this._loop = loop;
 	this._failed = false;
-	this._shell = false;
 	this._cancellable = cancellable;
-	this._shellComplete = false;
 	this._tasksComplete = false;
 	this._oneOnly = args.only;
 	let taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
@@ -60,13 +56,6 @@ const Make = new Lang.Class({
 	taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
 	let params = this._parseParameters(args.parameters);
 	taskmaster.pushTask(args.taskname, params);
-	if (args.shell) {
-	    this._stdin = new Gio.DataInputStream({ base_stream: GSystem.Console.get_stdin() });
-	    this._stdin.read_line_async(GLib.PRIORITY_DEFAULT, cancellable,
-					Lang.bind(this, this._onStdinRead));
-	    this._shell = true;
-	}
-	this._console = GSystem.Console.get();
 	loop.run();
 	if (!this._failed)
 	    print("Success!")
@@ -84,30 +73,6 @@ const Make = new Lang.Class({
 	    params[k] = v;
 	}
 	return params;
-    },
-
-    _onStdinRead: function(stdin, result) {
-	let cancellable = this._cancellable;
-	let [line, len] = stdin.read_line_finish_utf8(result);
-	let args = line.split(' ');
-	if (args.length > 1) {
-	    let cmd = args[0];
-	    let params = null; 
-	    try {
-		params = this._parseParameters(args.slice(1));
-	    } catch (e) {
-		print(e);
-	    }
-	    if (params !== null) {
-		this._taskmaster.pushTask(cmd, params);
-	    }
-	    this._stdin.read_line_async(GLib.PRIORITY_DEFAULT, cancellable,
-					Lang.bind(this, this._onStdinRead));
-	} else if (line == "") {
-	    this._shellComplete = true;
-	    if (this._tasksComplete)
-		this._loop.quit();
-	}
     },
 
     _onTaskExecuting: function(taskmaster, task) {
@@ -132,12 +97,9 @@ const Make = new Lang.Class({
     },
 
     _onTasksComplete: function(success, err) {
-	if (this._shell && !this._shellComplete)
-	    return;
 	this._tasksComplete = true;
 	if (!success)
 	    this._err = err;
-	if (!this._shell || this._shellComplete)
-	    this._loop.quit();
+	this._loop.quit();
     }
 });
