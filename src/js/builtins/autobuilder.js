@@ -25,8 +25,6 @@ const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const Snapshot = imports.snapshot;
 
-const loop = GLib.MainLoop.new(null, true);
-
 var AutoBuilderIface = <interface name="org.gnome.OSTreeBuild.AutoBuilder">
 <method name="queueResolve">
     <arg type="as" direction="in" />
@@ -49,17 +47,14 @@ const Autobuilder = new Lang.Class({
 	this._initialResolveNeeded = true;
 	this._fullResolveNeeded = true;
 	this._resolveTimeout = 0;
-	this._prevSourceSnapshotPath = null;
 	this._queuedForceResolve = [];
     },
 
     execute: function(args, loop, cancellable) {
-	this._initSnapshot(null, null, cancellable);
+	this._initWorkdir(null, cancellable);
 
 	if (args.autoupdate_self)
 	    this._autoupdate_self = Gio.File.new_for_path(args.autoupdate_self);
-
-	this._manifestPath = Gio.File.new_for_path('manifest.json');
 
 	this._ownId = Gio.DBus.session.own_name('org.gnome.OSTreeBuild', Gio.BusNameOwnerFlags.NONE,
 						function(name) {},
