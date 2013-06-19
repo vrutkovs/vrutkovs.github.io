@@ -34,6 +34,7 @@ const TaskResolve = new Lang.Class({
     },
 
     DefaultParameters: {fetchAll: false,
+                        fetchSrcUrls: [],
 			fetchComponents: [],
 		        timeoutSec: 10},
 
@@ -49,14 +50,21 @@ const TaskResolve = new Lang.Class({
         let manifestPath = this.workdir.get_child('manifest.json');
 	let data = JsonUtil.loadJson(manifestPath, cancellable);
         this._snapshot = new Snapshot.Snapshot(data, manifestPath, { prepareResolve: true });
-	
+
+        let componentsToFetch = this.parameters.fetchComponents.slice();
+        let srcUrls = this.parameters.fetchSrcUrls;
+        for (let i = 0; i < srcUrls; i++) {
+            let matches = snapshot.getMatchingSrc(srcUrls[i]);
+            componentsToFetch.push.apply(matches);
+        }
+
         let gitMirrorArgs = ['ostbuild', 'git-mirror', '--timeout-sec=' + this.parameters.timeoutSec,
 			     '--workdir=' + this.workdir.get_path(),
 			     '--manifest=' + manifestPath.get_path()];
-        if (this.parameters.fetchAll || this.parameters.fetchComponents.length > 0) {
+        if (this.parameters.fetchAll || componentsToFetch.length > 0) {
             gitMirrorArgs.push('--fetch');
             gitMirrorArgs.push('-k');
-	    gitMirrorArgs.push.apply(gitMirrorArgs, this.parameters.fetchComponents);
+	    gitMirrorArgs.push.apply(gitMirrorArgs, componentsToFetch);
 	}
 	ProcUtil.runSync(gitMirrorArgs, cancellable, { logInitiation: true });
 	

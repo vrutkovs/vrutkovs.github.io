@@ -21,9 +21,7 @@ const Lang = imports.lang;
 
 const Builtin = imports.builtin;
 const Task = imports.task;
-const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
-const Snapshot = imports.snapshot;
 
 var AutoBuilderIface = <interface name="org.gnome.OSTreeBuild.AutoBuilder">
 <method name="queueResolve">
@@ -47,7 +45,7 @@ const Autobuilder = new Lang.Class({
 	this._initialResolveNeeded = true;
 	this._fullResolveNeeded = true;
 	this._resolveTimeout = 0;
-	this._queuedForceResolve = [];
+	this._resolveSrcUrls = [];
     },
 
     execute: function(args, loop, cancellable) {
@@ -62,9 +60,6 @@ const Autobuilder = new Lang.Class({
 
 	this._impl = Gio.DBusExportedObject.wrapJSObject(AutoBuilderIface, this);
 	this._impl.export(Gio.DBus.session, '/org/gnome/OSTreeBuild/AutoBuilder');
-
-	this._snapshot_dir = this.workdir.get_child('snapshots');
-	this._src_db = new JsonDB.JsonDB(this._snapshot_dir);
 
 	this._taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
 						  { onEmpty: Lang.bind(this, this._onTasksComplete) });
@@ -128,21 +123,10 @@ const Autobuilder = new Lang.Class({
     },
 
     queueResolve: function(srcUrls) {
-	let matchingComponents = [];
-	let latestPath = this._src_db.getLatestPath();
-	let snapshotData = this._src_db.loadFromPath(latestPath, null);
-	let snapshot = new Snapshot.Snapshot(snapshotData, latestPath);
-	for (let i = 0; i < srcUrls.length; i++) {
-	    let matches = snapshot.getMatchingSrc(srcUrls[i]);
-	    for (let j = 0; j < matches.length; j++) {
-		let name = matches[i]['name'];
-		this._queuedForceResolve.push(name);
-		print("Queued force resolve for " + name);
-	    }
-	}
-	this._runResolve();
+        this._resolveSrcUrls.push.apply(srcUrls);
+        this._runResolve();
     },
-    
+
     _triggerFullResolve: function() {
 	this._fullResolveNeeded = true;
 	this._runResolve();
@@ -153,7 +137,7 @@ const Autobuilder = new Lang.Class({
 	let cancellable = null;
 	
 	if (!(this._initialResolveNeeded ||
-	      this._queuedForceResolve.length > 0 ||
+	      this._resolveSrcUrls.length > 0 ||
 	      this._fullResolveNeeded))
 	    return;
 
@@ -171,9 +155,9 @@ const Autobuilder = new Lang.Class({
 	    this._fullResolveNeeded = false;
 	    this._taskmaster.pushTask('resolve', { fetchAll: true });
 	} else {
-	    this._taskmaster.pushTask('resolve', { fetchComponents: this._queuedForceResolve });
+	    this._taskmaster.pushTask('resolve', { fetchSrcUrls: this._resolveSrcUrls });
 	}
-	this._queuedForceResolve = [];
+	this._resolveSrcUrls = [];
 
 	this._updateStatus();
     }
