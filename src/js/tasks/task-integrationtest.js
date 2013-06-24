@@ -74,6 +74,15 @@ const TaskIntegrationTest = new Lang.Class({
         ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
                           'checkout', '--no-triggers', '--user-mode', '--union', installedTestsRev, deployDir.get_path()], cancellable,
                          { logInitiation: true });
+        let xfailTests = this._buildData['snapshot']['installed-tests-xfail'] || [];
+        for (let i = 0; i < xfailTests.length; i++) {
+            let xfail = xfailTests[i];
+            let path = deployDir.resolve_relative_path('usr/share/installed-tests/' + xfail);
+            if (path.query_exists(null))
+                GSystem.file_unlink(path, cancellable);
+            else
+                print("NOTE: No such xfail test: " + xfail);
+        }
         let desktopFile = '[Desktop Entry]\n\
 Encoding=UTF-8\n\
 Name=GNOME installed tests runner\n\

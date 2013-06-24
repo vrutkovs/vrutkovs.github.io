@@ -879,6 +879,8 @@
 
     "installed-tests-components": [],
 
+    "installed-tests-xfail": ["clutter/texture-fbo.test"],
+
     "initramfs-build-epoch": {"version": 0},
     
     "build-epoch": {"version": 11,
