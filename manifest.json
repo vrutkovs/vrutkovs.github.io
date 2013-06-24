@@ -46,6 +46,7 @@
 		 "tag": "v3.0.10"},
 
 		{"src": "gnome:glib",
+		 "tag": "ebdbbd9b62efa40542a467862a5401e0a8b4e07e",
                  "config-opts": ["--disable-modular-tests",
 				 "--enable-installed-tests"]},
 
