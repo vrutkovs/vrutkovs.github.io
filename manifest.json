@@ -861,7 +861,7 @@
 		{"src": "gnome:gnome-clocks"},
 
 		{"src": "gnome:glade",
-		 "config-opts": ["--disable-man-pages"]},
+		 "config-opts": ["--disable-man-pages"],
 		 "component": "devel"},
 
 		{"src": "gnome:nautilus"},
