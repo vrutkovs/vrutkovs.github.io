@@ -1054,6 +1054,9 @@ const TaskBuild = new Lang.Class({
 	    if (overridePath.query_exists(null)) {
 		print("Using override:  " + overridePath.get_path());
 		component['src'] = 'local:' + overridePath.get_path();
+		// We don't want to attempt to apply patches over top
+		// of what the override has.
+		delete component['patches'];
 	    }
 	}
 
