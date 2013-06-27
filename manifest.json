@@ -762,6 +762,7 @@
 		 "patches": ["desktop-file-utils-autogen.patch"]},
 
 		{"src": "fd-xdg:xdg-user-dirs",
+		 "config-opts": ["--disable-documentation"],
 		 "patches": ["xdg-user-dirs-autostart.patch"]},
 
 		{"src": "gnome:xdg-user-dirs-gtk"},
