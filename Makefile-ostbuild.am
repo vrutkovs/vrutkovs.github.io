@@ -33,9 +33,26 @@ bin_SCRIPTS += ostbuild \
 
 utils_SCRIPTS = \
 	src/ostree-build-compile-one \
+	src/gnome-ostree-run-triggers \
 	src/ostree-build-yocto \
 	$(NULL)
 utilsdir = $(pkglibdir)
+
+triggersdir = $(pkglibdir)/triggers
+triggers_SCRIPTS = \
+	src/triggers/0001ldconfig.trigger \
+	src/triggers/0005depmod.trigger \
+	src/triggers/0010mime-database.trigger \
+	src/triggers/0020dconf.trigger \
+	src/triggers/0030glib.trigger \
+	src/triggers/0040gdk-pixbuf.trigger \
+	src/triggers/0060immodules.trigger \
+	src/triggers/0070pango.trigger \
+	src/triggers/0080gtk+.trigger \
+	src/triggers/0090desktop-database.trigger \
+	src/triggers/0100fontconfig-cache.trigger \
+	$(NULL)
+EXTRA_DIST += $(triggers_SCRIPTS)
 
 jsostbuilddir=$(pkgdatadir)/js
 jsostbuild_DATA= \

@@ -49,11 +49,6 @@
                  "config-opts": ["--disable-modular-tests",
 				 "--enable-installed-tests"]},
 
-		{"src": "gnome:ostree",
-		 "name": "ostree-triggers",
-		 "bootstrap": true,
-		 "config-opts": ["--enable-triggers-only"]},
-
 		{"src": "gnome:gnome-common",
 		 "component": "devel"},
 

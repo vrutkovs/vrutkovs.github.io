@@ -138,6 +138,8 @@ const TaskBuild = new Lang.Class({
 			  'checkout', '--user-mode', '--union',
 			  '--from-file=' + tmpPath.get_path(), cachedRootTmp.get_path()], cancellable);
         GSystem.file_unlink(tmpPath, cancellable);
+	
+	this._runTriggersInRoot(cachedRootTmp, cancellable);
 
         let builddirTmp = cachedRootTmp.get_child('ostbuild');
         GSystem.file_ensure_directory(builddirTmp.resolve_relative_path('source/' + componentName), true, cancellable);
@@ -507,17 +509,6 @@ const TaskBuild = new Lang.Class({
 	return this._componentBuildRefFromName(component['name'], architecture);
     },
     
-    _replaceTmpWithDir: function(root, cancellable) {
-	// The default now is for tmp -> sysroot/tmp, which doesn't
-	// exist.  Make tmp in the buildroot a regular dir, which
-	// we'll then bind mount to the host's /tmp.
-	let tmp = root.get_child('tmp');
-	if (tmp.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null) == Gio.FileType.SYMBOLIC_LINK) {
-	    GSystem.file_unlink(tmp, cancellable);
-	    GSystem.file_ensure_directory(tmp, true, cancellable);
-	}
-    },
-
     _buildOneComponent: function(component, architecture, cancellable, params) {
 	params = Params.parse(params, { installedTests: false });
         let basename = component['name'];
@@ -638,21 +629,19 @@ const TaskBuild = new Lang.Class({
 	    }
 	}
 
-	this._replaceTmpWithDir(rootdir, cancellable);
-
         childArgs = ['setarch', architecture];
         childArgs.push.apply(childArgs, BuildUtil.getBaseUserChrootArgs());
         childArgs.push.apply(childArgs, [
-                '--mount-readonly', '/',
-                '--mount-proc', '/proc', 
-                '--mount-bind', '/dev', '/dev',
-                '--mount-bind', tmpdir.get_path(), '/tmp',
-                '--mount-bind', componentSrc.get_path(), chrootSourcedir.get_path(),
-                '--mount-bind', componentResultdir.get_path(), '/ostbuild/results',
-                '--chdir', chrootChdir.get_path(),
-                rootdir.get_path(), '/ostree-build-compile-one',
-                '--ostbuild-resultdir=/ostbuild/results',
-                '--ostbuild-meta=_ostbuild-meta.json']);
+            '--mount-readonly', '/',
+            '--mount-bind', '/', '/sysroot',
+            '--mount-proc', '/proc', 
+            '--mount-bind', '/dev', '/dev',
+            '--mount-bind', componentSrc.get_path(), chrootSourcedir.get_path(),
+            '--mount-bind', componentResultdir.get_path(), '/ostbuild/results',
+            '--chdir', chrootChdir.get_path(),
+            rootdir.get_path(), '/ostree-build-compile-one',
+            '--ostbuild-resultdir=/ostbuild/results',
+            '--ostbuild-meta=_ostbuild-meta.json']);
 	let envCopy = {};
 	Lang.copyProperties(BuildUtil.BUILD_ENV, envCopy);
         envCopy['PWD'] = chrootSourcedir.get_path();
@@ -714,7 +703,9 @@ const TaskBuild = new Lang.Class({
         return ostreeRevision;
     },
     
-    _checkoutOneTreeCoreAsync: function(name, composeContents, cancellable, callback) {
+    _checkoutOneTreeCoreAsync: function(name, composeContents, cancellable, callback,
+					params) {
+	params = Params.parse(params, { runTriggers: true });
         let composeRootdir = this.subworkdir.get_child(name);
 	print("Checking out " + composeRootdir.get_path());
 	GSystem.shutil_rm_rf(composeRootdir, cancellable);
@@ -748,6 +739,9 @@ const TaskBuild = new Lang.Class({
 		callback(null, ""+e);
 		return;
 	    }
+
+	    if (params.runTriggers)
+		this._runTriggersInRoot(composeRootdir, cancellable);
 	    
             let contentsPath = composeRootdir.resolve_relative_path('usr/share/contents.json');
 	    GSystem.file_ensure_directory(contentsPath.get_parent(), true, cancellable);
@@ -816,16 +810,35 @@ const TaskBuild = new Lang.Class({
 					   }
 				       }));
     },
+    
+    _runTriggersInRoot: function(rootdir, cancellable) {
+	let triggersScriptPath = this.libdir.resolve_relative_path('gnome-ostree-run-triggers');
+	let triggersPath = this.libdir.resolve_relative_path('triggers');
+	let childArgs = BuildUtil.getBaseUserChrootArgs();
+        childArgs.push.apply(childArgs, [
+	    '--mount-bind', '/', '/sysroot',
+            '--mount-proc', '/proc', 
+            '--mount-bind', '/dev', '/dev',
+            rootdir.get_path(), '/sysroot' + triggersScriptPath.get_path(),
+	    '/sysroot' + triggersPath.get_path()]);
+	let envCopy = {};
+	Lang.copyProperties(BuildUtil.BUILD_ENV, envCopy);
+        envCopy['PWD'] = '/';
+
+	let context = new GSystem.SubprocessContext({ argv: childArgs });
+	context.set_environment(ProcUtil.objectToEnvironment(envCopy));
+	let proc = new GSystem.Subprocess({ context: context });
+	proc.init(cancellable);
+	print("Started child process " + context.argv.map(GLib.shell_quote).join(' '));
+	try {
+	    proc.wait_sync_check(cancellable);
+	} catch (e) {
+	    print("Trigger execution in root " + rootdir.get_path() + " failed");
+	    throw e;
+	}
+    },
 
     _postComposeTransform: function(composeRootdir, cancellable) {
-	// Create /usr/share/ostree/triggers-run; this is a temporary
-	// hack until the trigger functionality moves outside of ostree
-	// entirely.
-	let shareOstree = composeRootdir.resolve_relative_path('usr/share/ostree');
-	GSystem.file_ensure_directory(shareOstree, true, cancellable);
-	let triggersRunPath = shareOstree.get_child('triggers-run');
-	triggersRunPath.create(Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable).close(cancellable);
-	
 	// Move /etc to /usr/etc, since it contains defaults.
 	let etc = composeRootdir.resolve_relative_path("etc");
 	let usrEtc = composeRootdir.resolve_relative_path("usr/etc");
@@ -958,19 +971,18 @@ const TaskBuild = new Lang.Class({
 	    GSystem.file_ensure_directory(tmpDir, true, cancellable);
 	    let initramfsTmp = tmpDir.get_child('initramfs-ostree.img');
 
-	    this._replaceTmpWithDir(composeRootdir, cancellable);
-
 	    // HACK: Temporarily move /usr/etc to /etc to help dracut
 	    // find stuff, like the config file telling it to use the
 	    // ostree module.
 	    let etcDir = composeRootdir.resolve_relative_path('etc');
 	    let usrEtcDir = composeRootdir.resolve_relative_path('usr/etc');
 	    GSystem.file_rename(usrEtcDir, etcDir, cancellable);
-	    let args = ['linux-user-chroot', '--mount-readonly', '/',
+	    let args = ['linux-user-chroot',
 			'--mount-proc', '/proc',
 			'--mount-bind', '/dev', '/dev',
+			'--mount-bind', '/', '/sysroot',
+			'--mount-bind', tmpDir.get_path(), '/sysroot/tmp',
 			'--mount-bind', varDir.get_path(), '/var',
-			'--mount-bind', tmpDir.get_path(), '/tmp',
 			composeRootdir.get_path(),
 			'dracut', '--tmpdir=/tmp', '-f', '/tmp/initramfs-ostree.img',
 			kernelRelease];
@@ -1530,7 +1542,8 @@ const TaskBuild = new Lang.Class({
 										 if (composeTreeTaskCount == 0)
 										     composeTreeTaskLoop.quit();
 									     }));
-					   }));
+					   }),
+					  { runTriggers: false });
 	}
 
 	composeTreeTaskLoop.run();
