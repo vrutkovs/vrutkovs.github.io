@@ -272,7 +272,7 @@ function _findCurrentOstreeBootArg(mntdir, cancellable) {
     throw new Error("Failed to find ostree= kernel argument");
 }
 
-function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
+function pullDeploy(mntdir, srcrepo, osname, target, revision, originRepoUrl, cancellable) {
     let ostreedir = mntdir.get_child('ostree');
     let ostreeOsdir = ostreedir.resolve_relative_path('deploy/' + osname);
 
@@ -313,15 +313,28 @@ function pullDeploy(mntdir, srcrepo, osname, target, revision, cancellable) {
     // will clean up disks that were using the old ostree model.
     GSystem.shutil_rm_rf(ostreeOsdir, cancellable);
     
+    let repoPath = ostreedir.get_child('repo');
+    let repoArg = '--repo=' + repoPath.get_path();
     ProcUtil.runSync(adminCmd.concat(['os-init', osname]), cancellable,
                      {logInitiation: true, env: adminEnv});
-    ProcUtil.runSync(['ostree', '--repo=' + ostreedir.get_child('repo').get_path(),
-                      'pull-local', srcrepo.get_path(), revOrTarget], cancellable,
+    if (originRepoUrl)
+        ProcUtil.runSync(['ostree', repoArg,
+                          'remote', 'add', osname, originRepoUrl, target],
+                         cancellable, { logInitiation: true });
+    
+    ProcUtil.runSync(['ostree', repoArg,
+                      'pull-local', '--remote=' + osname, srcrepo.get_path(), revOrTarget], cancellable,
                      {logInitiation: true, env: adminEnv});
+
+    let origin = GLib.KeyFile.new();
+    origin.set_string('origin', 'refspec', osname + ':' + target);
+    let [originData, len] = origin.to_data();
+    let tmpOrigin = Gio.File.new_for_path('origin.tmp');
+    tmpOrigin.replace_contents(originData, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 
     let rootArg = 'root=LABEL=gnostree-root';
     ProcUtil.runSync(adminCmd.concat(['deploy', '--karg=' + rootArg, '--karg=quiet', '--karg=splash',
-				      osname, revOrTarget]), cancellable,
+				      '--os=' + osname, '--origin-file=' + tmpOrigin.get_path(), revOrTarget]), cancellable,
                      {logInitiation: true, env: adminEnv});
 
     let defaultFstab = 'LABEL=gnostree-root / ext4 defaults 1 1\n\
