@@ -72,7 +72,7 @@ const TaskIntegrationTest = new Lang.Class({
         if (!installedTestsRev)
             throw new Error("No installed tests rev for " + installedTestsName);
         ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
-                          'checkout', '--no-triggers', '--user-mode', '--union', installedTestsRev, deployDir.get_path()], cancellable,
+                          'checkout', '--user-mode', '--union', installedTestsRev, deployDir.get_path()], cancellable,
                          { logInitiation: true });
         let xfailTests = this._buildData['snapshot']['installed-tests-xfail'] || [];
         for (let i = 0; i < xfailTests.length; i++) {
