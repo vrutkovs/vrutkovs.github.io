@@ -101,7 +101,8 @@ const TaskBuildDisks = new Lang.Class({
             let diskPath = workImageDir.get_child(diskName);
             let prevPath = currentImageLink.get_child(diskName);
             GSystem.shutil_rm_rf(diskPath, cancellable);
-            if (this._inheritPreviousDisk && prevPath.query_exists(null)) {
+            let doCloneDisk = this._inheritPreviousDisk && prevPath.query_exists(null);
+            if (doCloneDisk) {
                 LibQA.copyDisk(prevPath, diskPath, cancellable);
             } else {
                 LibQA.createDisk(diskPath, cancellable);
@@ -117,8 +118,11 @@ const TaskBuildDisks = new Lang.Class({
             } finally {
                 gfmnt.umount(cancellable);
             }
-            LibQA.bootloaderInstall(diskPath, subworkdir, osname, cancellable);
-            print("Bootloader installation complete");
+            // Assume previous disks have successfully installed a bootloader
+            if (!doCloneDisk) {
+                LibQA.bootloaderInstall(diskPath, subworkdir, osname, cancellable);
+                print("Bootloader installation complete");
+            }
 
             this._postDiskCreation(diskPath, cancellable);
             print("post-disk creation complete");
