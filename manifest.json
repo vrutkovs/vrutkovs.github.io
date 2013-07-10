@@ -862,6 +862,10 @@
 
 		{"src": "gnome:nautilus"},
 
+		{"src": "gnome:gedit",
+		 "config-opts": ["--enable-python=no",
+				 "--disable-spell"]},
+
 		{"src": "gnome:gnome-software"},
 
 		{"src": "gnome:epiphany"},
