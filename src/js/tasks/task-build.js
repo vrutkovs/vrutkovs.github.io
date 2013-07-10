@@ -859,6 +859,12 @@ const TaskBuild = new Lang.Class({
 	let etc = composeRootdir.resolve_relative_path("etc");
 	let usrEtc = composeRootdir.resolve_relative_path("usr/etc");
 	GSystem.file_rename(etc, usrEtc, cancellable);
+
+	// http://lists.freedesktop.org/archives/systemd-devel/2013-July/011770.html
+	let machineId = '45bb3b96146aa94f299b9eb43646eb35\n'
+	let machineIdPath = usrEtc.resolve_relative_path('machine-id');
+	machineIdPath.replace_contents(machineId, null, false,
+				       Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
     },
     
     _commitComposedTreeAsync: function(targetName, composeRootdir, relatedTmpPath, cancellable, callback) {
