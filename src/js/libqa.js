@@ -353,10 +353,6 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
     let [gfmnt, mntdir] = newReadWriteMount(diskpath, cancellable);
     let ostreeArg;
     try {
-        let [currentDir, currentEtcDir] = getDeployDirs(mntdir, 'gnome-ostree');
-
-        injectExportJournal(currentDir, currentEtcDir, cancellable);
-
 	let [kernelPath, initrdPath] = _findCurrentKernel(mntdir, osname, cancellable)
 	ostreeArg = _findCurrentOstreeBootArg(mntdir, cancellable);
 
@@ -368,7 +364,6 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
     }
 
     let consoleOutput = workdir.get_child('bootloader-console.out');
-    let journalOutput = workdir.get_child('bootloader-journal-json.txt');
     
     let kernelArgv = ['console=ttyS0', 'panic=1', 'root=LABEL=gnostree-root', 'rw', ostreeArg,
 		      'systemd.journald.forward_to_console=true',
@@ -380,9 +375,6 @@ function bootloaderInstall(diskpath, workdir, osname, cancellable) {
                                    '-serial', 'file:' + consoleOutput.get_path(),
                                    '-chardev', 'socket,id=charmonitor,path=qemu.monitor,server,nowait',
                                    '-mon', 'chardev=charmonitor,id=monitor,mode=control',
-                                   '-device', 'virtio-serial',
-                                   '-chardev', 'file,id=journaljson,path=' + journalOutput.get_path(),
-                                   '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson',
 				   '-kernel', tmpKernelPath.get_path(),
 				   '-initrd', tmpInitrdPath.get_path(),
 				   '-append', kernelArgv.join(' ')
