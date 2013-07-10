@@ -814,13 +814,27 @@ const TaskBuild = new Lang.Class({
     _runTriggersInRoot: function(rootdir, cancellable) {
 	let triggersScriptPath = this.libdir.resolve_relative_path('gnome-ostree-run-triggers');
 	let triggersPath = this.libdir.resolve_relative_path('triggers');
+	
+	// FIXME copy the triggers into the root temporarily; it'd be
+	// better to add --mount-rbind to linux-user-chroot so we pick
+	// up all the host mount points, and thus know we can find
+	// data from outside the root.
+	let tmpTriggersInRootPath = rootdir.get_child('tmp-triggers');
+	GSystem.file_ensure_directory(tmpTriggersInRootPath, false, cancellable);
+	let tmpTriggersScriptPath = tmpTriggersInRootPath.get_child(triggersScriptPath.get_basename());
+	let tmpTriggersPath = tmpTriggersInRootPath.get_child(triggersPath.get_basename());
+
+	triggersScriptPath.copy(tmpTriggersScriptPath, Gio.FileCopyFlags.OVERWRITE, cancellable,
+				null);
+	GSystem.shutil_cp_a(triggersPath, tmpTriggersPath, cancellable);
+
 	let childArgs = BuildUtil.getBaseUserChrootArgs();
         childArgs.push.apply(childArgs, [
 	    '--mount-bind', '/', '/sysroot',
             '--mount-proc', '/proc', 
             '--mount-bind', '/dev', '/dev',
-            rootdir.get_path(), '/sysroot' + triggersScriptPath.get_path(),
-	    '/sysroot' + triggersPath.get_path()]);
+            rootdir.get_path(), rootdir.get_relative_path(tmpTriggersScriptPath),
+	    rootdir.get_relative_path(tmpTriggersPath)]);
 	let envCopy = {};
 	Lang.copyProperties(BuildUtil.BUILD_ENV, envCopy);
         envCopy['PWD'] = '/';
@@ -836,6 +850,8 @@ const TaskBuild = new Lang.Class({
 	    print("Trigger execution in root " + rootdir.get_path() + " failed");
 	    throw e;
 	}
+
+	GSystem.shutil_rm_rf(tmpTriggersInRootPath, cancellable);
     },
 
     _postComposeTransform: function(composeRootdir, cancellable) {
