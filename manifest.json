@@ -884,7 +884,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 11,
+    "build-epoch": {"version": 12,
 		    "all": false,
-		    "component-names": ["harfbuzz", "webkitgtk"]}
+		    "component-names": ["cogl", "clutter", "mutter", "gnome-shell"]}
 }
