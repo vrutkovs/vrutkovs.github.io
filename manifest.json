@@ -539,6 +539,7 @@
 		 "config-opts": ["--disable-gtk-theme"]},
 
 		{"src": "gnome:cogl",
+                 "config-opts": ["--enable-installed-tests"],
 		 "branch": "cogl-1.16"},
 
 		{"src": "gnome:clutter",
