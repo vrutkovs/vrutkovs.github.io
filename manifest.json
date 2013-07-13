@@ -615,7 +615,8 @@
 
 		{"src": "gnome:gnome-menus"},
 
-		{"src": "gnome:glib-networking"},
+		{"src": "gnome:glib-networking",
+		 "tag": "4b7f24e028860227c87e3ed5cb53b47428ff6cbc"},
 
 		{"src": "gnome:libsoup",
 		 "config-args": ["--disable-tls-check"]},
