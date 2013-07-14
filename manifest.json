@@ -426,6 +426,7 @@
 		{"src": "fd:libqmi"},
 
 		{"src": "fd-MM:ModemManager.git",
+		 "tag": "ac588e9d0e6b4dd59d1e929545bf39247cb8f72c",
 		 "patches": ["MM-builddir-include.patch"],
 		 "config-opts": ["--with-udev-base-dir=/usr/lib/udev",
 		                 "--disable-more-warnings"]},
