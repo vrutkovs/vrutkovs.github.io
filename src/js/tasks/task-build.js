@@ -1122,8 +1122,7 @@ const TaskBuild = new Lang.Class({
         let sstateDir = oldBuilddir.get_child('sstate-cache');
         let downloads = oldBuilddir.get_child('downloads');
 
-        let cmd = ['linux-user-chroot', '--unshare-pid', '/',
-		   this.libdir.get_path() + '/ostree-build-yocto',
+        let cmd = [this.libdir.get_path() + '/ostree-build-yocto',
 		   checkoutdir.get_path(), builddir.get_path(), architecture,
 		   this.repo.get_path()];
         // We specifically want to kill off any environment variables jhbuild
