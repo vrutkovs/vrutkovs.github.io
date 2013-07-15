@@ -123,6 +123,7 @@ const Autobuilder = new Lang.Class({
     },
 
     queueResolve: function(srcUrls) {
+	print("Queuing force resolve for " + JSON.stringify(srcUrls));
         this._resolveSrcUrls.push.apply(srcUrls);
         this._runResolve();
     },
