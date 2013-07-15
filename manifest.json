@@ -845,9 +845,6 @@
 
 		{"src": "gnome:caribou"},
 
-		{"src": "git:git://git.fedorahosted.org/grubby.git",
-		 "patches": ["grubby-buildapi.patch"]},
-
 		{"src": "gnome:gnome-shell",
 		 "config-opts": ["--enable-compile-warnings=maximum",
                                  "--disable-man"]},
