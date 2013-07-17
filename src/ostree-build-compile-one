@@ -129,6 +129,12 @@ def main(args):
 
     configargs.extend(metadata.get('config-opts', []))
 
+    requires = metadata.get('requires', {})
+    pkgconfig_requires = requires.get('pkgconfig', [])
+    if pkgconfig_requires:
+        for req in pkgconfig_requires:
+            run_sync(['pkg-config', '--exists', req])
+
     if metadata.get('rm-configure', False):
         configure_path = 'configure'
         if os.path.exists(configure_path):

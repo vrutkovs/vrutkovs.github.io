@@ -42,10 +42,8 @@
 		 "component": "devel",
 		 "noarch": true},
 
-		{"src": "git:git://github.com/atgreen/libffi.git",
-		 "tag": "v3.0.10"},
-
 		{"src": "gnome:glib",
+                 "requires": {"pkgconfig": ["libffi >= 3.0.10"]},
                  "config-opts": ["--disable-modular-tests",
 				 "--enable-installed-tests"]},
 
