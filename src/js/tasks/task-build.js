@@ -870,7 +870,7 @@ const TaskBuild = new Lang.Class({
     _commitComposedTreeAsync: function(targetName, composeRootdir, relatedTmpPath, cancellable, callback) {
         let treename = this.osname + '/' + targetName;
 	let args = ['ostree', '--repo=' + this.repo.get_path(),
-		    'commit', '-b', treename, '-s', 'Compose',
+		    'commit', '--link-checkout-speedup', '-b', treename, '-s', 'Compose',
 		    '--owner-uid=0', '--owner-gid=0', '--no-xattrs',
 		    '--skip-if-unchanged'];
 	if (relatedTmpPath !== null)
