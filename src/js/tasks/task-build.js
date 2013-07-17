@@ -947,10 +947,22 @@ const TaskBuild = new Lang.Class({
 	let kernelPath = null;
 	while ((info = e.next_file(cancellable)) != null) {
 	    let name = info.get_name();
-	    if (name.indexOf('vmlinuz-') != 0)
-		continue;
-	    kernelPath = e.get_child(info);
-	    break;
+	    let child = e.get_child(info);
+            if (name == 'bzImage' && info.get_file_type() == Gio.FileType.SYMBOLIC_LINK) {
+                GSystem.file_unlink(child, cancellable);
+                continue;
+            }
+            // Canonicalize kernel name
+	    if (name.indexOf('bzImage-') == 0) {
+                let newname = name.replace('bzImage-', 'vmlinuz-');
+                let targetChild = e.get_container().get_child(newname);
+                GSystem.file_rename(child, targetChild, cancellable);
+		kernelPath = targetChild;
+                break;               
+            } else if (name.indexOf('vmlinuz-') == 0) {
+                kernelPath = child;
+		break;
+            }
 	}
 	e.close(cancellable);
 	if (kernelPath === null)
