@@ -7,7 +7,7 @@
   "base": {
             "name": "yocto",
 	    "src": "cgwalters:poky",
-            "branch": "gnomeos-3.8-danny"
+            "branch": "gnomeostree-3.10-dylan"
           },
 
   "config-opts": ["--disable-static", "--disable-silent-rules"],
@@ -885,7 +885,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 13,
-		    "all": false,
-		    "component-names": ["clutter-gtk", "clutter-gst"]}
+    "build-epoch": {"version": 14,
+		    "all": true,
+		    "component-names": []}
 }
