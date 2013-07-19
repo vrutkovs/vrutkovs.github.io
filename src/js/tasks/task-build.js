@@ -1011,7 +1011,7 @@ const TaskBuild = new Lang.Class({
 	    let etcDir = composeRootdir.resolve_relative_path('etc');
 	    let usrEtcDir = composeRootdir.resolve_relative_path('usr/etc');
 	    GSystem.file_rename(usrEtcDir, etcDir, cancellable);
-	    let args = ['linux-user-chroot',
+	    let args = [this._linuxUserChrootPath,
 			'--mount-proc', '/proc',
 			'--mount-bind', '/dev', '/dev',
 			'--mount-bind', '/', '/sysroot',
@@ -1174,6 +1174,11 @@ const TaskBuild = new Lang.Class({
     },
 
     execute: function(cancellable) {
+
+	this._linuxUserChrootPath = BuildUtil.findUserChrootPath();
+	if (!this._linuxUserChrootPath)
+	    throw new Error("You must have linux-user-chroot installed");
+
         this.forceBuildComponents = {};
 	for (let i = 0; i < this.parameters.forceComponents.length; i++)
 	    this.forceBuildComponents[this.parameters.forceComponents[i]] = true;
