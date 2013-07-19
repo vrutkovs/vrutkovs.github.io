@@ -1011,7 +1011,7 @@ const TaskBuild = new Lang.Class({
 	    let etcDir = composeRootdir.resolve_relative_path('etc');
 	    let usrEtcDir = composeRootdir.resolve_relative_path('usr/etc');
 	    GSystem.file_rename(usrEtcDir, etcDir, cancellable);
-	    let args = [this._linuxUserChrootPath,
+	    let args = [this._linuxUserChrootPath.get_path(),
 			'--mount-proc', '/proc',
 			'--mount-bind', '/dev', '/dev',
 			'--mount-bind', '/', '/sysroot',
