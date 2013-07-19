@@ -883,7 +883,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 15,
+    "build-epoch": {"version": 16,
 		    "all": false,
-		    "component-names": ["glib", "gobject-introspection", "gjs", "p11-kit"]}
+		    "component-names": ["glib", "gobject-introspection", "gjs", "p11-kit", "pygobject", "dconf"]}
 }
