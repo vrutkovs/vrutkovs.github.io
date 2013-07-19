@@ -48,7 +48,6 @@
 				 "--enable-installed-tests"]},
 
 		{"src": "gnome:gnome-common",
-		 "tag": "cfaa608653c47b20ea92706da573d1b19df47227",
 		 "component": "devel"},
 
 		{"src": "savannah:gperf.git",
