@@ -757,33 +757,13 @@ const TaskBuild = new Lang.Class({
         let runtimeName = this.osname +'/bases/' + base['runtime'];
         let develName = this.osname + '/bases/' + base['devel'];
 
-        let relatedRefs = {};
         let baseRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
 								  'rev-parse', baseName], cancellable);
 
         let runtimeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
 								     'rev-parse', runtimeName], cancellable);
-        relatedRefs[runtimeName] = runtimeRevision;
         let develRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
 								   'rev-parse', develName], cancellable);
-        relatedRefs[develName] = develRevision;
-
-	for (let name in componentBuildRevs) {
-	    let rev = componentBuildRevs[name];
-            let buildRef = this.osname + '/components/' + name;
-            relatedRefs[buildRef] = rev;
-	}
-
-	let [relatedTmpPath, stream] = Gio.File.new_tmp("ostbuild-compose-XXXXXX.txt");
-	let dataOut = Gio.DataOutputStream.new(stream.get_output_stream());
-	for (let name in relatedRefs) {
-	    let rev = relatedRefs[name];
-	    dataOut.put_string(name, cancellable);
-	    dataOut.put_string(' ', cancellable);
-	    dataOut.put_string(rev, cancellable);
-	    dataOut.put_string('\n', cancellable);
-	}
-	dataOut.close(cancellable);
 
         let composeContents = [[baseRevision, '/']];
         for (let i = 0; i < target['contents'].length; i++) {
@@ -806,7 +786,7 @@ const TaskBuild = new Lang.Class({
 					       let composeRootdir = result;
 					       
 					       this._postComposeTransform(composeRootdir, cancellable);
-					       callback([composeRootdir, relatedTmpPath], null);
+					       callback(composeRootdir, null);
 					   }
 				       }));
     },
@@ -867,20 +847,16 @@ const TaskBuild = new Lang.Class({
 				       Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
     },
     
-    _commitComposedTreeAsync: function(targetName, composeRootdir, relatedTmpPath, cancellable, callback) {
+    _commitComposedTreeAsync: function(targetName, composeRootdir, cancellable, callback) {
         let treename = this.osname + '/' + targetName;
 	let args = ['ostree', '--repo=' + this.repo.get_path(),
 		    'commit', '--link-checkout-speedup', '-b', treename, '-s', 'Compose',
 		    '--owner-uid=0', '--owner-gid=0', '--no-xattrs',
 		    '--skip-if-unchanged'];
-	if (relatedTmpPath !== null)
-	    args.push('--related-objects-file=' + relatedTmpPath.get_path());
 
 	let membuf = Gio.MemoryOutputStream.new_resizable();
 
 	let asyncSet = new AsyncUtil.AsyncSet(Lang.bind(this, function(results, err) {
-	    if (relatedTmpPath !== null)
-		GSystem.file_unlink(relatedTmpPath, cancellable);
             GSystem.shutil_rm_rf(composeRootdir, cancellable);
 	    if (err) {
 		callback(null, err);
@@ -1435,11 +1411,11 @@ const TaskBuild = new Lang.Class({
 					       composeTreeTaskLoop.quit();
 					       return;
 					   }
-					   let [composeRootdir, relatedTmpPath] = result;
+					   let composeRootdir = result;
 					   let kernelInitramfsData = this._prepareKernelAndInitramfs(architecture, composeRootdir, initramfsDepends, cancellable);
 					   archInitramfsImages[architecture] = kernelInitramfsData;
 					   this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
-					   this._commitComposedTreeAsync(develTargetName, composeRootdir, relatedTmpPath, cancellable,
+					   this._commitComposedTreeAsync(develTargetName, composeRootdir, cancellable,
 									 Lang.bind(this, function(result, err) {
 									     if (err) {
 										 if (composeTreeTaskError === null)
@@ -1483,11 +1459,11 @@ const TaskBuild = new Lang.Class({
 						   return;
 					       }
 					       composeTreeTaskCount--;
-					       let [composeRootdir, relatedTmpPath] = result;
+					       let composeRootdir = result;
 					       let kernelInitramfsData = archInitramfsImages[architecture];
 					       this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
 					       composeTreeTaskCount++;
-					       this._commitComposedTreeAsync(runtimeTargetName, composeRootdir, relatedTmpPath, cancellable,
+					       this._commitComposedTreeAsync(runtimeTargetName, composeRootdir, cancellable,
 									     Lang.bind(this, function(result, err) {
 										 if (err) {
 										     if (composeTreeTaskError === null)
@@ -1564,7 +1540,7 @@ const TaskBuild = new Lang.Class({
 						   return;
 					       }
 					       let composeRootdir = result;
-					       this._commitComposedTreeAsync(rootName, composeRootdir, null, cancellable,
+					       this._commitComposedTreeAsync(rootName, composeRootdir, cancellable,
 									     Lang.bind(this, function(result, err) {
 										 if (err) {
 										     if (composeTreeTaskError === null)
