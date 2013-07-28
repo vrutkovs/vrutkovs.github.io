@@ -892,6 +892,10 @@
 		 "component": "devel"},
 
 		{"src": "gnome:jhbuild",
+		 "component": "devel"}
+
+		{"src": "git:git://git.fishsoup.net/git-bz",
+		 "config-opts": ["--disable-documentation"],
 		 "component": "devel"},
 
 		{"src": "gnome:nautilus"},
