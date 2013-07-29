@@ -461,7 +461,7 @@
 				 "--disable-gtk3"]},
 
 		{"src": "git:git://github.com/mm2/Little-CMS.git",
-		 "tag": "lcms2.4"},
+		 "tag": "lcms2.5"},
 
                 {"src": "git:git://gitorious.org/gusb/gusb.git"},
 		
