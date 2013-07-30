@@ -881,7 +881,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 19,
+    "build-epoch": {"version": 20,
 		    "all": false,
-		    "component-names": ["clutter", "mutter", "gnome-shell", "clutter-gst", "clutter-gtk"]}
+		    "component-names": ["gnome-initial-setup"]}
 }
