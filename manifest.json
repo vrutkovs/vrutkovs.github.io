@@ -278,7 +278,6 @@
 		 "tag": "v1.5.7"},
 
 		{"src": "fd:cairo",
-		 "tag": "274863be08f6c8df6d411df9db725d34f7fbabea",
 		 "config-opts": ["--disable-interpreter"]},
 
 		{"src": "fd:xorg/util/makedepend",
