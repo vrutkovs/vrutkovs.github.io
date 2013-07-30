@@ -881,7 +881,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 18,
+    "build-epoch": {"version": 19,
 		    "all": false,
-		    "component-names": ["colord-gtk", "gnome-settings-daemon", "gtk3"]}
+		    "component-names": ["clutter", "mutter", "gnome-shell", "clutter-gst", "clutter-gtk"]}
 }
