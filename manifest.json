@@ -649,9 +649,12 @@
 				 "--disable-fatal-warnings"]},
 
 		{"src": "tarball:http://www.maxmind.com/download/geoip/api/c/GeoIP-1.4.8.tar.gz",
+		 "rm-configure": true,
 		 "name": "geoip",
+		 "config-opts": ["--enable-static"],
 		 "checksum": "cf0f6b2bac1153e34d6ef55ee3851479b347d2b5c191fda8ff6a51fab5291ff4",
-		 "patches": ["geoip-1.4.8-add-pkg-config.patch"]},
+		 "patches": ["geoip-1.4.8-add-pkg-config.patch",
+			     "geoip-bootstrap-use-autoreconf.patch"]},
 
 		{"src": "gnome:geocode-glib"},
 
