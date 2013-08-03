@@ -668,6 +668,7 @@
 		 "checksum": "b7cd4d23add75591bbc57f90cfaf334b763af3bf770637dba31dd3c20a5950d8",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
+				 "--disable-geolocation",
 				 "--with-gstreamer=1.0"]},
 
 		{"src": "gnome:libgee",
