@@ -648,8 +648,14 @@
 				 "--disable-examples",
 				 "--disable-fatal-warnings"]},
 
-		{"src": "fd:geoclue",
-		 "patches": ["geoclue-autogen-Honor-NOCONFIGURE-1.patch"]},
+		{"src": "tarball:http://www.maxmind.com/download/geoip/api/c/GeoIP-1.4.8.tar.gz",
+		 "name": "geoip",
+		 "checksum": "cf0f6b2bac1153e34d6ef55ee3851479b347d2b5c191fda8ff6a51fab5291ff4",
+		 "patches": ["geoip-1.4.8-add-pkg-config.patch"]},
+
+		{"src": "gnome:geocode-glib"},
+
+		{"src": "fd:geoclue"},
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
