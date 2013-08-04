@@ -1,0 +1,25 @@
+From 27ea12497bf5a577652252d9512e65fe4979933f Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Sun, 4 Aug 2013 07:37:02 -0400
+Subject: [PATCH] configure: Update for geoclue-2.0.pc rename
+
+---
+ configure.ac |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 6010795..6e826f5 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -75,7 +75,7 @@ GOBJECT_INTROSPECTION_CHECK([0.6.2])
+ AC_CONFIG_FILES([
+   Makefile
+   src/Makefile
+-  src/geoclue-1.0.pc
++  src/geoclue-2.0.pc
+   po/Makefile.in
+   data/Makefile
+   demo/Makefile
+-- 
+1.7.1
+
