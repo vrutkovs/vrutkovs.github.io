@@ -501,7 +501,7 @@
 		 "branch": "gtk-engines-2-22"},
 
 		{"src": "gnome:gtk+",
-		 "config-opts": ["--enable-installed-tests", "--disable-wayland-backend"],
+		 "config-opts": ["--enable-installed-tests", "--disable-wayland-backend", "--enable-x11-backend"],
 		 "name": "gtk3"},
 
 	        {"src": "fd:plymouth",
