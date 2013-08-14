@@ -427,7 +427,6 @@
 		 "name": "libmbim"},
 
 		{"src": "fd-MM:ModemManager.git",
-		 "tag": "34f6a2b63e9053f2beabb2a5af221221d5a0f791",
 		 "config-opts": ["--with-udev-base-dir=/usr/lib/udev",
 		                 "--disable-more-warnings"]},
 
