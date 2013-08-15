@@ -42,6 +42,7 @@ triggersdir = $(pkglibdir)/triggers
 triggers_SCRIPTS = \
 	src/triggers/0001ldconfig.trigger \
 	src/triggers/0005depmod.trigger \
+	src/triggers/0008systemd-units.trigger \
 	src/triggers/0010mime-database.trigger \
 	src/triggers/0020dconf.trigger \
 	src/triggers/0030glib.trigger \
