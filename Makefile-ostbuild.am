@@ -48,6 +48,7 @@ triggers_SCRIPTS = \
 	src/triggers/0040gdk-pixbuf.trigger \
 	src/triggers/0060immodules.trigger \
 	src/triggers/0070pango.trigger \
+	src/triggers/0071udev-hwdb.trigger \
 	src/triggers/0080gtk+.trigger \
 	src/triggers/0090desktop-database.trigger \
 	src/triggers/0100fontconfig-cache.trigger \
