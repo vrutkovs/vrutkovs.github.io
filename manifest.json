@@ -757,6 +757,13 @@
 
 		{"src": "gnome:libgdata"},
 
+                {"src": "gnome:grilo",
+		 "config-opts": ["--disable-vala"]},
+
+		{"src": "gnome:libzapojit"},
+
+		{"src": "gnome:gnome-online-miners"},
+
 		{"src": "cgwalters:libical-tarballs-as-git"},
 
 		{"src": "gnome:evolution-data-server",
