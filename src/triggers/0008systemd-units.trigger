@@ -1,5 +1,5 @@
-#!/bin/bash
-# Post-installation hook for systemd unit files; -*- mode: sh -*-
+#!/usr/bin/env python
+# Post-installation hook for systemd unit files; -*- mode: python; indent-tabs-mode: nil -*-
 #
 # Written by Colin Walters <walters@verbum.org>
 #
@@ -18,22 +18,44 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-set -e
+import os
+import sys
+import glob
+import subprocess
 
-if test -x "$(which systemctl 2>/dev/null)"; then
+# These should *really* not be enabled by default; it's an open
+# question whether they should have [Install] sections at all.
+# The Fedora systemd.spec does:
+#        systemctl preset \
+#                getty@tty1.service \
+#                remote-fs.target \
+#                systemd-readahead-replay.service \
+#                systemd-readahead-collect.service >/dev/null 2>&1 || :
+# But it's fairly lame to have a hardcoded list of units to enable;
+# let's instead blacklist broken ones.
+systemd_units_to_skip=['debug-shell.service',
+                       'console-getty.service',
+                       'console-shell.service']
+
+if os.path.exists('/usr/bin/systemctl'):
     # FIXME - need to make user presets work too
-    for unittype in system; do 
-	path=/usr/lib/systemd/${unittype}
-	if test -d ${path}; then
-	    for unitname in ${path}/*.service; do
-		if test '!' -L ${unitname} &&
-		    ! echo ${unitname} | grep -q '@\.service$' &&
-		    grep -q '^\[Install\]' ${unitname}; then
-		    bn=$(basename ${unitname})
-		    echo systemctl --${unittype} preset ${bn}
-		    systemctl --${unittype} preset ${bn}
-		fi
-	    done
-	fi
-    done
-fi
+    for unittype in ['system']:
+        path = '/usr/lib/systemd/' + unittype
+        if not os.path.isdir(path):
+            continue
+        for unitname in glob.glob(path + '/*.service'):
+            bn = os.path.basename(unitname)
+            if bn in systemd_units_to_skip:
+                continue
+            if os.path.islink(unitname) or unitname.endswith('@.service'):
+                continue
+            hasinstall = False
+            for line in open(unitname, 'r').readlines():
+                if line.startswith('[Install]'):
+                    hasinstall = True
+                    break
+            if not hasinstall:
+                continue
+            args = ['systemctl', '--' + unittype, 'preset', bn]
+            print subprocess.list2cmdline(args)
+            subprocess.check_call(args)
