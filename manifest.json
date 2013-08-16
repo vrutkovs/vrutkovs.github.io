@@ -659,8 +659,7 @@
 
 		{"src": "gnome:geocode-glib"},
 
-		{"src": "fd:geoclue",
-		 "patches": ["geoclue-pc-file.patch"]},
+		{"src": "fd:geoclue"},
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
