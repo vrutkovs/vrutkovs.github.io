@@ -868,6 +868,9 @@
 		 "config-opts": ["--disable-man-pages"],
 		 "component": "devel"},
 
+		{"src": "gnome:jhbuild",
+		 "component": "devel"},
+
 		{"src": "gnome:nautilus"},
 
 		{"src": "gnome:gedit",
