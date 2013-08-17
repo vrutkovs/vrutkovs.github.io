@@ -289,6 +289,9 @@
 		{"src": "fd-mesa:drm",
 		 "config-opts": ["--enable-nouveau-experimental-api"]},
 
+		{"src": "fd-wayland:wayland",
+		 "config-opts": ["--disable-documentation"]},
+
 		{"src": "fd-mesa:mesa",
             	 "tag": "mesa-9.0.1", 
 		 "patches": ["mesa-llvmpipe-dlopen.patch",
@@ -305,7 +308,7 @@
 		     "--enable-gles1", 
 		     "--enable-gles2", 
 		     "--disable-gallium-egl", 
-		     "--with-egl-platforms=x11,drm",
+		     "--with-egl-platforms=wayland,x11,drm",
 		     "--enable-shared-glapi",
 		     "--enable-gbm",
 		     "--enable-xa",
@@ -341,8 +344,10 @@
 
                 {"src": "git:git://github.com/xkbcommon/libxkbcommon"},
 
-		{"src": "fd-wayland:wayland",
-		 "config-opts": ["--disable-documentation"]},
+		{"src": "fd:xorg/xserver",
+		 "name": "xwayland",
+		 "branch": "xwayland-1.12",
+		 "patches": ["xwayland-autogen.patch"]},
 
                 {"src": "git:git://git.xiph.org/celt.git"},
 
@@ -545,10 +550,14 @@
 		 "config-opts": ["--disable-gtk-theme"]},
 
 		{"src": "gnome:cogl",
+		 "config-opts": ["--enable-wayland-egl-platform",
+				 "--enable-wayland-egl-server"],
 		 "branch": "cogl-1.16"},
 
 		{"src": "gnome:clutter",
-		 "config-opts": ["--enable-installed-tests"],
+		 "config-opts": ["--enable-installed-tests",
+				 "--enable-wayland-backend",
+				 "--enable-wayland-compositor"],
 		 "branch": "clutter-1.16"},
 
 		{"src": "gnome:libnotify"},
@@ -731,7 +740,8 @@
 		{"src": "gnome:mutter",
 		 "name": "mutter-wayland",
 		 "branch": "wayland",
-		 "config-opts": ["--enable-compile-warnings=maximum"]},
+		 "config-opts": ["--enable-compile-warnings=maximum",
+				 "--enable-wayland"]},
 
 		{"src": "gnome:gjs",
 		 "config-opts": ["--enable-installed-tests"]},
