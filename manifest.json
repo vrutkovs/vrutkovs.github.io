@@ -728,6 +728,11 @@
 		{"src": "gnome:mutter",
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
 
+		{"src": "gnome:mutter",
+		 "name": "mutter-wayland",
+		 "branch": "wayland",
+		 "config-opts": ["--enable-compile-warnings=maximum"]},
+
 		{"src": "gnome:gjs",
 		 "config-opts": ["--enable-installed-tests"]},
 
