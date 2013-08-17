@@ -24,6 +24,7 @@
                 "fd-fprint": "git:git://anongit.freedesktop.org/git/libfprint/",
                 "fd-p11": "git:git://anongit.freedesktop.org/git/p11-glue/",
                 "fd-gstreamer": "git:git://anongit.freedesktop.org/gstreamer/",
+                "fd-wayland": "git:git://anongit.freedesktop.org/wayland/",
                 "fd-telepathy": "git:git://anongit.freedesktop.org/telepathy/",
                 "0pointer": "git:git://git.0pointer.de/",
                 "ibus": "git:git://github.com/ibus/",
@@ -338,6 +339,11 @@
 		{"src": "fd:xorg/driver/xf86-video-modesetting",
 		 "patches": ["xorg-autogen-merged.patch"]},
 
+                {"src": "git:git://github.com/xkbcommon/libxkbcommon"},
+
+		{"src": "fd-wayland:wayland",
+		 "config-opts": ["--disable-documentation"]},
+
                 {"src": "git:git://git.xiph.org/celt.git"},
 
                 {"src": "tarball:http://downloads.us.xiph.org/releases/celt/celt-0.5.1.3.tar.gz",
@@ -501,7 +507,7 @@
 		 "branch": "gtk-engines-2-22"},
 
 		{"src": "gnome:gtk+",
-		 "config-opts": ["--enable-installed-tests", "--disable-wayland-backend", "--enable-x11-backend"],
+		 "config-opts": ["--enable-installed-tests", "--enable-wayland-backend", "--enable-x11-backend"],
 		 "name": "gtk3"},
 
 	        {"src": "fd:plymouth",
