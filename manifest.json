@@ -293,10 +293,7 @@
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "fd-mesa:mesa",
-            	 "tag": "mesa-9.0.1", 
-		 "patches": ["mesa-llvmpipe-dlopen.patch",
-		 	    "mesa-8.0-llvmpipe-shmget.patch",
-			    "mesa-8.0.1-fix-16bpp.patch"],
+            	 "branch": "9.2", 
 		 "config-opts": [
             	     "--enable-pic", 
             	     "--disable-asm", 
