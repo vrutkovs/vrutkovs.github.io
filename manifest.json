@@ -536,7 +536,6 @@
 		{"src": "gnome:libcroco"},
 
 		{"src": "gnome:librsvg",
-		 "tag": "56d0018d911eb5783f22125d9893fce075778c64",
 		 "config-opts": ["--disable-gtk-theme"]},
 
 		{"src": "gnome:cogl",
