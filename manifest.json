@@ -344,11 +344,6 @@
 
                 {"src": "git:git://github.com/xkbcommon/libxkbcommon"},
 
-		{"src": "fd:xorg/xserver",
-		 "name": "xwayland",
-		 "branch": "xwayland-1.12",
-		 "patches": ["xwayland-autogen.patch"]},
-
                 {"src": "git:git://git.xiph.org/celt.git"},
 
                 {"src": "tarball:http://downloads.us.xiph.org/releases/celt/celt-0.5.1.3.tar.gz",
