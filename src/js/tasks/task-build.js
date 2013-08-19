@@ -657,6 +657,7 @@ const TaskBuild = new Lang.Class({
 	try {
 	    proc.wait_sync_check(cancellable);
 	} catch (e) {
+	    this._writeStatus('failed: ' + basename, cancellable);
 	    print("Build of " + basename + " failed");
 	    throw e;
 	}
@@ -1149,6 +1150,13 @@ const TaskBuild = new Lang.Class({
 	throw new Error("Failed to find target " + name);
     },
 
+    _writeStatus: function(text, cancellable) {
+	let statusTxtPath = Gio.File.new_for_path('status.txt');
+	statusTxtPath.replace_contents(text + '\n', null, false,
+				       Gio.FileCreateFlags.REPLACE_DESTINATION,
+				       cancellable);
+    },
+
     execute: function(cancellable) {
 
 	this._linuxUserChrootPath = BuildUtil.findUserChrootPath();
@@ -1562,9 +1570,7 @@ const TaskBuild = new Lang.Class({
 	if (composeTreeTaskError)
 	    throw new Error(composeTreeTaskError);
 
-	let statusTxtPath = Gio.File.new_for_path('status.txt');
-	statusTxtPath.replace_contents('built: ' + this._rebuiltComponents.join(' ') + '\n', null, false,
-				       Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+	this._writeStatus('built: ' + this._rebuiltComponents.join(' '), cancellable);
 
 	let [path, modified] = builddb.store(buildData, cancellable);
 	print("Build complete: " + path.get_path());
