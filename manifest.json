@@ -898,7 +898,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 21,
+    "build-epoch": {"version": 22,
 		    "all": false,
-		    "component-names": ["gnome-shell"]}
+		    "component-names": ["libX11"]}
 }
