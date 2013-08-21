@@ -905,5 +905,5 @@
     
     "build-epoch": {"version": 22,
 		    "all": false,
-		    "component-names": [""]}
+		    "component-names": []}
 }
