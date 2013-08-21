@@ -907,5 +907,5 @@
     
     "build-epoch": {"version": 22,
 		    "all": false,
-		    "component-names": ["libX11"]}
+		    "component-names": [""]}
 }
