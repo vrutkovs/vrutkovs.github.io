@@ -755,6 +755,8 @@
 
 		{"src": "gnome:libzapojit"},
 
+                {"src": "gnome:libgfbgraph"},
+
 		{"src": "gnome:gnome-online-miners"},
 
 		{"src": "cgwalters:libical-tarballs-as-git"},
