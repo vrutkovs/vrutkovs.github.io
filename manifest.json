@@ -215,8 +215,7 @@
 
 		{"src": "fd:xcb/libxcb"},
 
-		{"src": "fd:xorg/lib/libX11",
-		 "patches": ["libx11-0001-xkb-Fix-inconsistencies-in-the-XKB-security-changes.patch"]},
+		{"src": "fd:xorg/lib/libX11"},
 
 		{"src": "fd:xorg/lib/libXrender"},
 
