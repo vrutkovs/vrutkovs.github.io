@@ -77,8 +77,6 @@
                 {"src": "git:git://git.kernel.org/pub/scm/utils/kernel/kmod/kmod.git",
 		 "config-opts": ["--disable-manpages"]},
 
-		{"src": "fedora:hwdata.git"},
-
                 {"src": "gnome:gobject-introspection",
 		 "config-opts": ["--disable-tests"]},
 
