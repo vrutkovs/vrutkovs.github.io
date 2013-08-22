@@ -784,6 +784,8 @@
 		{"src": "gnome:cantarell-fonts",
 		 "config-opts": ["--disable-source-rebuild"]},
 
+		{"src": "gnome:gnome-backgrounds"},
+
 		{"src": "fd:accountsservice",
 		 "config-opts": ["--enable-admin-group=sudo",
 				 "--disable-vala"]},
