@@ -698,6 +698,10 @@
       
 		{"src": "gnome:librest"},
 
+		{"src": "fd-telepathy:telepathy-glib",
+		 "config-opts": ["--enable-vala-bindings",
+                                 "--disable-fatal-warnings"]},
+
 		{"src": "gnome:gnome-online-accounts",
 		 "config-opts": ["--disable-documentation"]},
 
@@ -734,10 +738,6 @@
 				 "--enable-vala",
 				 "--disable-ui",
 				 "--disable-setup"]},
-
-		{"src": "fd-telepathy:telepathy-glib",
-		 "config-opts": ["--enable-vala-bindings",
-                                 "--disable-fatal-warnings"]},
 
 		{"src": "gnome:libgweather"},
 
