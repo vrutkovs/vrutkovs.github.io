@@ -602,8 +602,6 @@
 
 		{"src": "gnome:gnome-themes-standard"},
 
-		{"src": "gnome:gnome-backgrounds"},
-
 		{"src": "gnome:gnome-icon-theme"},
 
 		{"src": "gnome:gnome-icon-theme-symbolic"},
