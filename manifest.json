@@ -58,7 +58,6 @@
 		{"src": "fd-dbus:dbus",
 		 "name": "dbus-bootstrap",
 		 "bootstrap": true,
-		 "tag": "d6432126514fd496d57f03311b3d471c627d8b4a",
 		 "config-opts": ["--with-dbus-user=dbus",
 		                 "--enable-inotify",
 				 "--disable-xml-docs",
@@ -260,7 +259,6 @@
 		{"src": "fd:xorg/lib/libFS"},
 
 		{"src": "fd-dbus:dbus",
-		 "tag": "d6432126514fd496d57f03311b3d471c627d8b4a",
 		 "config-opts": ["--with-dbus-user=dbus",
 		                 "--enable-inotify",
 				 "--enable-verbose-mode",
