@@ -902,7 +902,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 23,
+    "build-epoch": {"version": 24,
 		    "all": false,
-		    "component-names": ["gnome-session", "gnome-clocks", "mutter", "nautilus", "epiphany"]}
+		    "component-names": ["gnome-settings-daemon"]}
 }
