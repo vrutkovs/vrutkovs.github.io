@@ -666,7 +666,7 @@
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--disable-geolocation",
-				 "--with-gstreamer=1.0"]},
+				 "--disable-maintainer-mode"]},
 
 		{"src": "gnome:libgee",
 		 "name": "libgee-0.6",
