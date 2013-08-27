@@ -462,7 +462,7 @@
 		{"src": "git:git://github.com/hughsie/colord.git",
 		 "config-opts": ["--disable-print-profiles",
 				 "--disable-bash-completion",
-				 "--enable-installed-tests"]},
+				 "--disable-installed-tests"]},
 
 		{"src": "gnome:gconf",
 		 "config-opts": ["--disable-orbit",
