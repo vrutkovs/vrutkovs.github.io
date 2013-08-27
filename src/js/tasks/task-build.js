@@ -1227,7 +1227,7 @@ const TaskBuild = new Lang.Class({
 
         GSystem.file_ensure_directory(this.repo, true, cancellable);
         if (!this.repo.get_child('objects').query_exists(cancellable)) {
-            ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(), 'init', '--archive'],
+            ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(), 'init', '--mode=archive-z2'],
 			     cancellable);
 	}
 
