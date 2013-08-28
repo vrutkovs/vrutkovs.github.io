@@ -660,13 +660,13 @@
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
-		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.1.90.tar.xz",
+		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.1.3.tar.xz",
 		 "name": "webkitgtk",
-		 "checksum": "82cda61e58c0970d31a14557e43b6b8a5001eee76592cd0a625867ab32f3a99d",
+		 "checksum": "b7cd4d23add75591bbc57f90cfaf334b763af3bf770637dba31dd3c20a5950d8",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--disable-geolocation",
-				 "--disable-maintainer-mode"]},
+				 "--with-gstreamer=1.0"]},
 
 		{"src": "gnome:libgee",
 		 "name": "libgee-0.6",
@@ -892,7 +892,8 @@
 
 		{"src": "gnome:gnome-software"},
 
-		{"src": "gnome:epiphany"},
+		{"src": "gnome:epiphany",
+		 "tag": "87c3c84bc9803944a75bbd20391b82b677df52f5"},
 
 		{"src": "gnome:gnome-calculator"},
 
