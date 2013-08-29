@@ -748,6 +748,11 @@
 
 		{"src": "gnome:libgweather"},
 
+		{"src": "gnome:clutter-gst",
+                 "branch": "clutter-gst-2.0"},
+
+		{"src": "gnome:clutter-gtk"},
+
 		{"src": "gnome:libpeas"},
 
 		{"src": "cgwalters:liboauth-tarballs-as-git",
@@ -763,6 +768,8 @@
 		{"src": "gnome:libzapojit"},
 
                 {"src": "gnome:libgfbgraph"},
+
+                {"src": "gnome:libchamplain"},
 
 		{"src": "gnome:gnome-online-miners"},
 
@@ -825,11 +832,6 @@
 				 "--disable-man"]},
 
 		{"src": "gnome:libgtop"},
-
-		{"src": "gnome:clutter-gst",
-                 "branch": "clutter-gst-2.0"},
-
-		{"src": "gnome:clutter-gtk"},
 
                 {"src": "tarball:https://fedorahosted.org/releases/l/i/libpwquality/libpwquality-1.2.2.tar.bz2",
 		 "name": "libpwquality",
@@ -899,6 +901,8 @@
 		{"src": "gnome:gnome-calculator"},
 
 		{"src": "gnome:gnome-weather"},
+
+		{"src": "gnome:gnome-maps"},
 
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"}
