@@ -704,6 +704,7 @@
                                  "--disable-fatal-warnings"]},
 
 		{"src": "gnome:gnome-online-accounts",
+		 "tag": "0ba58bc914dcc5c5f04103bb034809c6da3b9914",
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "gnome:gnome-bluetooth",
