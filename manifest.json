@@ -660,13 +660,13 @@
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
-		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.1.3.tar.xz",
+		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.1.90.1.tar.xz",
 		 "name": "webkitgtk",
-		 "checksum": "b7cd4d23add75591bbc57f90cfaf334b763af3bf770637dba31dd3c20a5950d8",
+		 "checksum": "ec234ca711f7d7644814ec60afdf61a8109980f3f989d87048e13399de1aa122",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--disable-geolocation",
-				 "--with-gstreamer=1.0"]},
+				 "--disable-maintainer-mode"]},
 
 		{"src": "gnome:libgee",
 		 "name": "libgee-0.6",
@@ -703,7 +703,6 @@
                                  "--disable-fatal-warnings"]},
 
 		{"src": "gnome:gnome-online-accounts",
-		 "tag": "0ba58bc914dcc5c5f04103bb034809c6da3b9914",
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "gnome:gnome-bluetooth",
@@ -895,8 +894,7 @@
 
 		{"src": "gnome:gnome-software"},
 
-		{"src": "gnome:epiphany",
-		 "tag": "87c3c84bc9803944a75bbd20391b82b677df52f5"},
+		{"src": "gnome:epiphany"},
 
 		{"src": "gnome:gnome-calculator"},
 
