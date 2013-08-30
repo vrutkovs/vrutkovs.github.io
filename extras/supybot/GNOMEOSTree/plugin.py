@@ -66,7 +66,7 @@ class GNOMEOSTree(callbacks.Plugin):
         for taskname in self._announce_periodic_tasks:
             self._query_new_task(taskname, status=status, announce_periodic=True)
 
-    def _update_task_state(self, taskname):
+    def _update_task_state(self, taskname, status=False):
         current_task_path = os.path.join(self._workdir, 'tasks/%s/current' % (taskname, ))
         meta_path = os.path.join(current_task_path, 'meta.json')
         if not os.path.exists(meta_path):
@@ -95,7 +95,7 @@ class GNOMEOSTree(callbacks.Plugin):
         return (last_state, last_version, success_changed)
 
     def _query_new_task(self, taskname, status=False, announce_success=False, announce_periodic=False):
-        querystate = self._update_task_state(taskname)
+        querystate = self._update_task_state(taskname, status=status)
         if querystate is None:
             return
         (last_state, last_version, success_changed) = querystate
