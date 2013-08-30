@@ -732,7 +732,8 @@
 		 "name": "mutter-wayland",
 		 "branch": "wayland",
 		 "config-opts": ["--enable-compile-warnings=maximum",
-				 "--enable-wayland"]},
+				 "--enable-wayland"],
+		 "setuid": ["/runtime/usr/bin/mutter-launch"]},
 
 		{"src": "gnome:gjs",
 		 "config-opts": ["--enable-installed-tests"]},
