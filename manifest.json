@@ -535,13 +535,16 @@
 
 		{"src": "gnome:cogl",
 		 "config-opts": ["--enable-wayland-egl-platform",
-				 "--enable-wayland-egl-server"],
+				 "--enable-wayland-egl-server",
+				 "--enable-kms-egl-platform"],
 		 "branch": "cogl-1.16"},
 
 		{"src": "gnome:clutter",
 		 "config-opts": ["--enable-installed-tests",
 				 "--enable-wayland-backend",
-				 "--enable-wayland-compositor"],
+				 "--enable-wayland-compositor",
+				 "--enable-egl-backend",
+				 "--enable-evdev-input"],
 		 "branch": "clutter-1.16"},
 
 		{"src": "gnome:libnotify"},
