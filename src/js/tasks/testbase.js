@@ -400,17 +400,14 @@ const TestBase = new Lang.Class({
 
         let buildData = this._buildData;
         if (buildJson != null && this.CompletedTag !== null) {
-            let refData = '';
             let snapshot = buildData['snapshot'];
             for (let targetName in buildData['targets']) {
                 let targetRev = buildData['targets'][targetName];
                 let lastSlash = targetName.lastIndexOf('/');
-                let smoketestedRef = snapshot['osname'] + '/' + this.CompletedTag + targetName.substr(lastSlash);
-                refData += smoketestedRef + ' ' + targetRev + '\n';
+                let testedRefName = snapshot['osname'] + '/' + this.CompletedTag + targetName.substr(lastSlash);
+                this.ostreeRepo.write_ref(null, testedRefName, targetRev);
+                print("Wrote ref: %s => %s".format(testedRefName, targetRev));
             }
-            ProcUtil.runProcWithInputSyncGetLines(['ostree', '--repo=' + this.repo.get_path(),
-                                                   'write-refs'], cancellable, refData);
-            print("Wrote refs: " + refData);
         } else {
             print("No build json found, not tagging");
         }

@@ -22,6 +22,7 @@ const Lang = imports.lang;
 const Signals = imports.signals;
 
 const GSystem = imports.gi.GSystem;
+const OSTree = imports.gi.OSTree;
 const Params = imports.params;
 const JsonUtil = imports.jsonutil;
 const JsonDB = imports.jsondb;
@@ -331,6 +332,7 @@ const Task = new Lang.Class({
 
 	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
 	this.repo = this.workdir.get_child('repo');
+        this.ostreeRepo = new OSTree.Repo({ path: this.repo });
     },
 
     _getResultDb: function(taskname) {

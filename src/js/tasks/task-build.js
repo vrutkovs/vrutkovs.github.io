@@ -54,11 +54,10 @@ const TaskBuild = new Lang.Class({
     DefaultParameters: {forceComponents: []},
 
     _resolveRefs: function(refs) {
-        if (refs.length == 0)
-            return [];
-        let args = ['ostree', '--repo=' + this.repo.get_path(), 'rev-parse']
-        args.push.apply(args, refs);
-        return ProcUtil.runSyncGetOutputLines(args, null);
+        return refs.map(Lang.bind(this, function(ref) {
+            let [success, resolved] = this.ostreeRepo.resolve_rev(ref, false);
+            return resolved;
+        }));
     },
 
     _cleanStaleBuildroots: function(buildrootCachedir, keepRoot, cancellable) {
@@ -175,8 +174,7 @@ const TaskBuild = new Lang.Class({
 
         print("Computing buildroot contents");
 
-        let archBuildrootRev = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(), 'rev-parse',
-								      archBuildrootName], cancellable);
+        let [success, archBuildrootRev] = this.ostreeRepo.resolve_rev(archBuildrootName, false);
 
         let rootContents = [[archBuildrootName, '/']];
         for (let i = 0; i < buildDependencies.length; i++) {
@@ -296,10 +294,10 @@ const TaskBuild = new Lang.Class({
     _saveComponentBuild: function(buildRef, expandedComponent, cancellable) {
 	let cachedata = {};
 	Lang.copyProperties(expandedComponent, cachedata);
-        cachedata['ostree'] = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
-								     'rev-parse', buildRef], cancellable);
+        let [success, ref] = this.ostreeRepo.resolve_rev(buildRef, false);
+        cachedata['ostree'] = ref;
 	this._writeComponentCache(buildRef, cachedata, cancellable);
-        return cachedata['ostree'];
+        return ref;
     },
 
     _installAndUnlinkRecurse: function(buildResultDir, srcFile, srcInfo, finalResultDir, cancellable) {
@@ -758,13 +756,9 @@ const TaskBuild = new Lang.Class({
         let runtimeName = this.osname +'/bases/' + base['runtime'];
         let develName = this.osname + '/bases/' + base['devel'];
 
-        let baseRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
-								  'rev-parse', baseName], cancellable);
-
-        let runtimeRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
-								     'rev-parse', runtimeName], cancellable);
-        let develRevision = ProcUtil.runSyncGetOutputUTF8Stripped(['ostree', '--repo=' + this.repo.get_path(),
-								   'rev-parse', develName], cancellable);
+        let [, baseRevision] = this.ostreeRepo.resolve_rev(baseName, false);
+        let [, runtimeRevision] = this.ostreeRepo.resolve_rev(runtimeName, false);
+        let [, develRevision] = this.ostreeRepo.resolve_rev(develName, false);
 
         let composeContents = [[baseRevision, '/']];
         for (let i = 0; i < target['contents'].length; i++) {
