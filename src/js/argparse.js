@@ -108,9 +108,6 @@ const ArgumentParser = new Lang.Class({
     },
 
     parse: function(argv) {
-        if (!argv || argv.length == 0)
-            return {};
-
 	let result = {};
 	let rest = [];
 
