@@ -46,15 +46,13 @@ const Builtin = new Lang.Class({
 	    workdir = Gio.File.new_for_path('.');
 	else if (typeof(workdir) == 'string')
 	    workdir = Gio.File.new_for_path(workdir);
-	
+
 	BuildUtil.checkIsWorkDirectory(workdir);
-	
+
 	this.workdir = workdir;
 	this.mirrordir = workdir.get_child('src');
 	GSystem.file_ensure_directory(this.mirrordir, true, cancellable);
 	this.patchdir = this.workdir.get_child('patches');
-	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
-	this.repo = this.workdir.get_child('repo');
     },
 
     _initSnapshot: function(workdir, snapshotPath, cancellable) {
