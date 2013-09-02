@@ -897,8 +897,7 @@
 				 "--disable-spell"]},
 
 		{"src": "gnome:gnome-software",
-		 "tag": "c8704e740220e8882fbb3fbe2c52f0a54dc015f3",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=707226"},
+		 "config-opts": ["--enable-offline-appstream-data=no"]},
 
 		{"src": "gnome:epiphany"},
 
