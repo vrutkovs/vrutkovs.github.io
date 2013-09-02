@@ -27,4 +27,4 @@ export GIO_USE_VFS=local
 export OSTBUILD_DATADIR=@pkgdatadir@
 export OSTBUILD_LIBDIR=@pkglibdir@
 
-exec $OSTBUILD_GDB gjs -I "${jsdir}" "${jsdir}/main.js" "$@"
+exec $OSTBUILD_GDB gjs -I "${jsdir}" -c "imports.main.main();" "$@"

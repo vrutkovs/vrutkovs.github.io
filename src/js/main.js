@@ -50,45 +50,45 @@ function usage(ecode) {
     return ecode;
 }
 
-let ecode;
-if (ARGV.length < 1) {
-    ecode = usage(1);
-} else if (ARGV[0] == '-h' || ARGV[0] == '--help') {
-    ecode = usage(0);
-} else {
-    let name = ARGV[0];
-    let found = false;
-    for (let i = 0; i < BUILTINS.length; i++) {
-	if (BUILTINS[i] == name) {
-	    found = true;
-	    break;
-	}
-    }
-    if (!found) {
-	usage(1);
+function main() {
+    let ecode;
+    if (ARGV.length < 1) {
+        ecode = usage(1);
+    } else if (ARGV[0] == '-h' || ARGV[0] == '--help') {
+        ecode = usage(0);
     } else {
-	let argv = ARGV.concat();
-	argv.shift();
+        let name = ARGV[0];
+        let found = false;
+        for (let i = 0; i < BUILTINS.length; i++) {
+	    if (BUILTINS[i] == name) {
+	        found = true;
+	        break;
+	    }
+        }
+        if (!found) {
+	    usage(1);
+        } else {
+	    let argv = ARGV.concat();
+	    argv.shift();
 
-	let loop = GLib.MainLoop.new(null, true);
-	let cls = getClass(name);
-	let instance = new cls;
-	let cancellable = null;
-	GLib.idle_add(GLib.PRIORITY_DEFAULT,
-		      function() {
-			  ecode = 1;
-			  try {
-			      instance.main(argv, loop, cancellable);
-			      ecode = 0;
-			  } finally {
-			      loop.quit();
-			  }
-			  return false;
-		      });
-	loop.run();
+	    let loop = GLib.MainLoop.new(null, true);
+	    let cls = getClass(name);
+	    let instance = new cls;
+	    let cancellable = null;
+	    GLib.idle_add(GLib.PRIORITY_DEFAULT,
+		          function() {
+			      ecode = 1;
+			      try {
+			          instance.main(argv, loop, cancellable);
+			          ecode = 0;
+			      } finally {
+			          loop.quit();
+			      }
+			      return false;
+		          });
+	    loop.run();
+        }
     }
-}
-ecode;
 
-    
-    
+    return ecode;
+}
