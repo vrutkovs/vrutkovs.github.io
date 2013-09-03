@@ -897,7 +897,8 @@
 				 "--disable-spell"]},
 
 		{"src": "gnome:gnome-software",
-		 "config-opts": ["--enable-offline-appstream-data=no"]},
+		 "config-opts": ["--disable-man",
+                                 "--disable-offline-appstream-data"]},
 
 		{"src": "gnome:epiphany"},
 
