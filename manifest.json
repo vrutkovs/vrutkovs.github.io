@@ -820,6 +820,10 @@
 		 "config-opts": ["--disable-Werror"],
 		 "patches": ["telepathy-logger-autogen.patch"]},
 
+		{"src": "git:git://git.collabora.co.uk/git/libnice.git"},
+
+		{"src": "fd-telepathy:telepathy-gabble"},
+
 		{"src": "fd-telepathy:telepathy-mission-control",
 		 "config-opts": ["--disable-gtk-doc",
 		                 "--disable-Werror"]},
