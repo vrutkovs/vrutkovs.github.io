@@ -415,9 +415,7 @@
 				 "--enable-more-warnings=yes",
 				 "--enable-modify-system"]},
 
-		{"src": "fd:libqmi",
-		 "tag": "61380bd7ea3421118228d1823e7a3d87d91bda0e",
-		 "tag-reason": "help2man; patch sent upstream"},
+		{"src": "fd:libqmi"},
 
 		{"src": "fd:libmbim/libmbim",
 		 "name": "libmbim"},
