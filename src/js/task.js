@@ -333,6 +333,9 @@ const Task = new Lang.Class({
 	this.libdir = Gio.File.new_for_path(GLib.getenv('OSTBUILD_LIBDIR'));
 	this.repo = this.workdir.get_child('repo');
         this.ostreeRepo = new OSTree.Repo({ path: this.repo });
+        if (!repo.get_path().query_exists(null))
+            repo.create(OSTree.RepoMode.ARCHIVE_Z2, null);
+        repo.open(null);
     },
 
     _getResultDb: function(taskname) {

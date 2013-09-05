@@ -1217,14 +1217,6 @@ const TaskBuild = new Lang.Class({
 	}
 	print("building " + targetSourceVersion);
 
-	this.repo = this.workdir.get_child('repo');
-
-        GSystem.file_ensure_directory(this.repo, true, cancellable);
-        if (!this.repo.get_child('objects').query_exists(cancellable)) {
-            ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(), 'init', '--mode=archive-z2'],
-			     cancellable);
-	}
-
         this._componentBuildCachePath = this.cachedir.get_child('component-builds.json');
         if (this._componentBuildCachePath.query_exists(cancellable)) {
             this._componentBuildCache = JsonUtil.loadJson(this._componentBuildCachePath, cancellable);
