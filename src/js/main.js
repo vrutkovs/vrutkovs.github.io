@@ -76,8 +76,13 @@ if (ARGV.length < 1) {
 	let cancellable = null;
 	GLib.idle_add(GLib.PRIORITY_DEFAULT,
 		      function() {
-	                  ecode = instance.main(argv, loop, cancellable);
-                          loop.quit();
+			  ecode = 1;
+			  try {
+			      instance.main(argv, loop, cancellable);
+			      ecode = 0;
+			  } finally {
+			      loop.quit();
+			  }
 			  return false;
 		      });
 	loop.run();

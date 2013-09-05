@@ -71,17 +71,7 @@ const Builtin = new Lang.Class({
     },
 
     main: function(argv, loop, cancellable) {
-        let result;
-        try {
-	    let args = this.parser.parse(argv);
-            result = this.execute(args, loop, cancellable);
-        } catch(e) {
-            log(e.message);
-            return 1;
-        }
-
-        if (result === undefined)
-            return 0;
-        return result;
+	let args = this.parser.parse(argv);
+	this.execute(args, loop, cancellable);
     }
 });
