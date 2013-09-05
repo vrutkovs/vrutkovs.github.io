@@ -406,7 +406,7 @@ const TestBase = new Lang.Class({
                 let lastSlash = targetName.lastIndexOf('/');
                 let testedRefName = snapshot['osname'] + '/' + this.CompletedTag + targetName.substr(lastSlash);
                 this.ostreeRepo.write_ref(null, testedRefName, targetRev);
-                print("Wrote ref: %s => %s".format(testedRefName, targetRev));
+                print(Format.vprintf("Wrote ref: %s => %s", [testedRefName, targetRev]));
             }
         } else {
             print("No build json found, not tagging");
