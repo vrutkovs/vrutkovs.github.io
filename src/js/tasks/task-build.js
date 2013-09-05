@@ -1151,6 +1151,14 @@ const TaskBuild = new Lang.Class({
 				       cancellable);
     },
 
+    _cleanupGarbage: function(rootdir, cancellable) {
+	// Something is injecting this; probably from the triggers?
+	// Just nuke it.
+	let f = rootdir.get_child('.python-history');
+	if (f.query_exists(null))
+	    GSystem.file_unlink(f, cancellable);
+    },
+
     execute: function(cancellable) {
 
 	this._linuxUserChrootPath = BuildUtil.findUserChrootPath();
@@ -1457,6 +1465,7 @@ const TaskBuild = new Lang.Class({
 					       let kernelInitramfsData = archInitramfsImages[architecture];
 					       this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
 					       composeTreeTaskCount++;
+					       this._cleanupGarbage(composeRootdir, cancellable);
 					       this._commitComposedTreeAsync(runtimeTargetName, composeRootdir, cancellable,
 									     Lang.bind(this, function(result, err) {
 										 if (err) {
