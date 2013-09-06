@@ -82,7 +82,7 @@ class GNOMEOSTree(callbacks.Plugin):
         success = metadata['success']
 
         last_state = self._last_task_state.get(taskname)
-        last_version = last_state['version'] if last_state else None
+        last_version = last_state['taskVersion'] if last_state else None
         version_unchanged = taskver == last_version
         last_success = last_state['success'] if last_state else None
         if (not status and version_unchanged):
@@ -96,11 +96,8 @@ class GNOMEOSTree(callbacks.Plugin):
         else:
             status_msg = ''
 
-        new_state = {'version': taskver,
-                     'success': success,
-                     'elapsedMillis': metadata['elapsedMillis']}
-        self._last_task_state[taskname] = new_state
-        return (last_state, last_version, new_state, status_msg)
+        self._last_task_state[taskname] = metadata
+        return (last_state, last_version, metadata, status_msg)
 
     def _query_new_task(self, taskname, status=False, announce_success=False, announce_periodic=False):
         querystate = self._update_task_state(taskname, status=status)
@@ -109,14 +106,14 @@ class GNOMEOSTree(callbacks.Plugin):
         (last_state, last_version, new_state, status_msg) = querystate
         last_success = last_state['success']
         success = new_state['success']
-        taskver = new_state['version']
+        taskver = new_state['taskVersion']
         success_changed = last_success != success
         success_str = success and 'successful' or 'failed'
         millis = float(new_state['elapsedMillis'])
         msg = "gnostree:%s %s: %s in %.1f seconds. %s " \
               % (taskname, taskver, success_str, millis / 1000.0, status_msg)
 
-        msg += "%s/tasks/%s/output.txt" % (self._workurl, meta['path'])
+        msg += "%s/tasks/%s/output.txt" % (self._workurl, new_state['path'])
 
         if not success:
             msg = ircutils.mircColor(msg, fg='red')
