@@ -107,6 +107,7 @@ class GNOMEOSTree(callbacks.Plugin):
             return
         (last_state, last_version, new_state, status_msg) = querystate
         success = new_state['success']
+        last_success = last_state['success']
         taskver = new_state['version']
         success_changed = last_success != success
         success_str = success and 'successful' or 'failed'
