@@ -97,7 +97,8 @@ class GNOMEOSTree(callbacks.Plugin):
             status_msg = ''
 
         new_state = {'version': taskver,
-                     'success': success}
+                     'success': success,
+                     'elapsedMillis': metadata['elapsedMillis']}
         self._last_task_state[taskname] = new_state
         return (last_state, last_version, new_state, status_msg)
 
@@ -106,12 +107,12 @@ class GNOMEOSTree(callbacks.Plugin):
         if querystate is None:
             return
         (last_state, last_version, new_state, status_msg) = querystate
-        success = new_state['success']
         last_success = last_state['success']
+        success = new_state['success']
         taskver = new_state['version']
         success_changed = last_success != success
         success_str = success and 'successful' or 'failed'
-        millis = float(metadata['elapsedMillis'])
+        millis = float(new_state['elapsedMillis'])
         msg = "gnostree:%s %s: %s in %.1f seconds. %s " \
               % (taskname, taskver, success_str, millis / 1000.0, status_msg)
 
