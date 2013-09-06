@@ -89,28 +89,29 @@ class GNOMEOSTree(callbacks.Plugin):
         if (not status and version_unchanged):
             return None
 
-        new_state = {'version': taskver,
-                     'success': success}
-        self._last_task_state[taskname] = new_state
-        return (last_state, last_version, success_changed)
-
-    def _query_new_task(self, taskname, status=False, announce_success=False, announce_periodic=False):
-        querystate = self._update_task_state(taskname, status=status)
-        if querystate is None:
-            return
-        (last_state, last_version, success_changed) = querystate
-        success = self._last_task_state['success']
-        success_str = success and 'successful' or 'failed'
-        millis = float(metadata['elapsedMillis'])
-        msg += "gnostree:%s %s: %s in %.1f seconds. " % (taskname, taskver, success_str, millis / 1000.0)
-
         status_path = os.path.join(current_task_path, 'status.txt')
         if os.path.exists(status_path):
             f = open(status_path)
             status_msg = f.read().strip()
             f.close()
-            msg += status_msg + ' '
+        else:
+            status_msg = ''
 
+        new_state = {'version': taskver,
+                     'success': success}
+        self._last_task_state[taskname] = new_state
+        return (last_state, last_version, success_changed, status_msg)
+
+    def _query_new_task(self, taskname, status=False, announce_success=False, announce_periodic=False):
+        querystate = self._update_task_state(taskname, status=status)
+        if querystate is None:
+            return
+        (last_state, last_version, success_changed, status_msg) = querystate
+        success = self._last_task_state['success']
+        success_str = success and 'successful' or 'failed'
+        millis = float(metadata['elapsedMillis'])
+        msg = "gnostree:%s %s: %s in %.1f seconds. %s " \
+              % (taskname, taskver, success_str, millis / 1000.0, status_msg)
 
         msg += "%s/tasks/%s/output.txt" % (self._workurl, meta['path'])
 
