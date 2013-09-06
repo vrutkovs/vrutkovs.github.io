@@ -113,7 +113,7 @@ class GNOMEOSTree(callbacks.Plugin):
         msg = "gnostree:%s %s: %s in %.1f seconds. %s " \
               % (taskname, taskver, success_str, millis / 1000.0, status_msg)
 
-        msg += "%s/tasks/%s/output.txt" % (self._workurl, new_state['path'])
+        msg += "%s/%s/output.txt" % (self._workurl, new_state['path'])
 
         if not success:
             msg = ircutils.mircColor(msg, fg='red')
