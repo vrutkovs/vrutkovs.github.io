@@ -77,14 +77,12 @@ class GNOMEOSTree(callbacks.Plugin):
         f = open(meta_path)
         metadata = json.load(f)
         f.close()
-        
+
         taskver = metadata['taskVersion']
-        success = metadata['success']
 
         last_state = self._last_task_state.get(taskname)
         last_version = last_state['taskVersion'] if last_state else None
         version_unchanged = taskver == last_version
-        last_success = last_state['success'] if last_state else None
         if (not status and version_unchanged):
             return None
 
@@ -97,13 +95,13 @@ class GNOMEOSTree(callbacks.Plugin):
             status_msg = ''
 
         self._last_task_state[taskname] = metadata
-        return (last_state, last_version, metadata, status_msg)
+        return (last_state, metadata, status_msg)
 
     def _query_new_task(self, taskname, status=False, announce_success=False, announce_periodic=False):
         querystate = self._update_task_state(taskname, status=status)
         if querystate is None:
             return
-        (last_state, last_version, new_state, status_msg) = querystate
+        (last_state, new_state, status_msg) = querystate
         last_success = last_state['success']
         success = new_state['success']
         taskver = new_state['taskVersion']
