@@ -753,12 +753,7 @@ const TaskBuild = new Lang.Class({
     _checkoutOneTreeAsync: function(target, componentBuildRevs, cancellable, callback) {
         let base = target['base'];
         let baseName = this.osname + '/bases/' + base['name'];
-        let runtimeName = this.osname +'/bases/' + base['runtime'];
-        let develName = this.osname + '/bases/' + base['devel'];
-
         let [, baseRevision] = this.ostreeRepo.resolve_rev(baseName, false);
-        let [, runtimeRevision] = this.ostreeRepo.resolve_rev(runtimeName, false);
-        let [, develRevision] = this.ostreeRepo.resolve_rev(develName, false);
 
         let composeContents = [[baseRevision, '/']];
         for (let i = 0; i < target['contents'].length; i++) {
