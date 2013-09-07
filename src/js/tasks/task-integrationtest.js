@@ -32,6 +32,11 @@ const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
 const JSONUtil = imports.jsonutil;
 
+// From ot-gio-utils.h.
+// XXX: Introspect this.
+const OSTREE_GIO_FAST_QUERYINFO = ("standard::name,standard::type,standard::size,standard::is-symlink,standard::symlink-target," +
+                                   "unix::device,unix::inode,unix::mode,unix::uid,unix::gid,unix::rdev");
+
 const TaskIntegrationTest = new Lang.Class({
     Name: 'TaskIntegrationTest',
     Extends: TestBase.TestBase,
@@ -71,9 +76,15 @@ const TaskIntegrationTest = new Lang.Class({
         let installedTestsRev = this._buildData['installed-tests'][installedTestsName];
         if (!installedTestsRev)
             throw new Error("No installed tests rev for " + installedTestsName);
-        ProcUtil.runSync(['ostree', '--repo=' + this.repo.get_path(),
-                          'checkout', '--user-mode', '--union', installedTestsRev, deployDir.get_path()], cancellable,
-                         { logInitiation: true });
+
+        let [, root] = this.ostreeRepo.read_commit(installedTestsRev, cancellable);
+        let rootInfo = root.query_info(OSTREE_GIO_FAST_QUERYINFO,
+                                       Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+                                       cancellable);
+        this.ostreeRepo.checkout_tree(OSTree.RepoCheckoutMode.USER,
+                                      OSTree.RepoCheckoutOverwriteMode.UNION_FILES,
+                                      deployDir, root, rootInfo, cancellable);
+
         let xfailTests = this._buildData['snapshot']['installed-tests-xfail'] || [];
         for (let i = 0; i < xfailTests.length; i++) {
             let xfail = xfailTests[i];
