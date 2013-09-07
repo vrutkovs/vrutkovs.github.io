@@ -59,13 +59,6 @@ const TaskBuild = new Lang.Class({
 
     DefaultParameters: {forceComponents: []},
 
-    _resolveRefs: function(refs) {
-        return refs.map(Lang.bind(this, function(ref) {
-            let [success, resolved] = this.ostreeRepo.resolve_rev(ref, false);
-            return resolved;
-        }));
-    },
-
     _cleanStaleBuildroots: function(buildrootCachedir, keepRoot, cancellable) {
 	let direnum = buildrootCachedir.enumerate_children("standard::*,unix::mtime",
 							   Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
@@ -87,16 +80,10 @@ const TaskBuild = new Lang.Class({
         let buildrootCachedir = this.cachedir.resolve_relative_path('roots/' + buildname);
         GSystem.file_ensure_directory(buildrootCachedir, true, cancellable);
 
-	let refsToResolve = []
-	for (let i = 0; i < rootContents.length; i++) {
-	    refsToResolve.push(rootContents[i][0]);
-	}
-
-        let resolvedRefs = this._resolveRefs(refsToResolve);
-        let refToRev = {};
-	for (let i = 0; i < refsToResolve.length; i++) {
-	    refToRev[refsToResolve[i]] = resolvedRefs[i];
-	}
+        let trees = rootContents.map(Lang.bind(this, function([branch, subpath]) {
+            let [, root, commit] = this.ostreeRepo.read_commit(branch, cancellable);
+            return [root, commit, subpath];
+        }));
 
         let toChecksumData = '';
 
@@ -108,8 +95,8 @@ const TaskBuild = new Lang.Class({
 
 	toChecksumData += etcPasswd;
 	toChecksumData += etcGroup;
-        rootContents.forEach(function([branch, subpath]) {
-            toChecksumData += refToRev[branch];
+        trees.forEach(function([root, commit, subpath]) {
+            toChecksumData += commit;
         });
 
 	let newRootCacheid = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, new GLib.Bytes(toChecksumData));
@@ -129,8 +116,7 @@ const TaskBuild = new Lang.Class({
         let cachedRootTmp = cachedRoot.get_parent().get_child(cachedRoot.get_basename() + '.tmp');
 	GSystem.shutil_rm_rf(cachedRootTmp, cancellable);
 
-        rootContents.forEach(Lang.bind(this, function([branch, subpath]) {
-            let [, root] = this.ostreeRepo.read_commit(branch, cancellable);
+        trees.forEach(Lang.bind(this, function([root, commit, subpath]) {
             let subtree = root.resolve_relative_path(subpath);
             let subtreeInfo = subtree.query_info(OSTREE_GIO_FAST_QUERYINFO,
                                                  Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
