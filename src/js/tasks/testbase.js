@@ -401,7 +401,7 @@ const TestBase = new Lang.Class({
         let buildData = this._buildData;
         if (buildJson != null && this.CompletedTag !== null) {
             let snapshot = buildData['snapshot'];
-            this.ostreeRepo.prepare_transaction();
+            this.ostreeRepo.prepare_transaction(cancellable);
             for (let targetName in buildData['targets']) {
                 let targetRev = buildData['targets'][targetName];
                 let lastSlash = targetName.lastIndexOf('/');
@@ -409,7 +409,7 @@ const TestBase = new Lang.Class({
                 this.ostreeRepo.transaction_set_ref(null, testedRefName, targetRev);
                 print(Format.vprintf("Wrote ref: %s => %s", [testedRefName, targetRev]));
             }
-            this.ostreeRepo.commit_transaction();
+            this.ostreeRepo.commit_transaction(cancellable);
         } else {
             print("No build json found, not tagging");
         }
