@@ -539,7 +539,8 @@
 				 "--enable-kms-egl-platform"],
 		 "branch": "cogl-1.16"},
 
-                {"src": "fd:libevdev"},
+                {"src": "fd:libevdev",
+		 "patches": ["libevdev-autogen.patch"]},
 
 		{"src": "gnome:clutter",
 		 "config-opts": ["--enable-installed-tests",
