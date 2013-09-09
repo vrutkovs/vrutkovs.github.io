@@ -113,6 +113,11 @@
         statusNode.appendChild(document.createTextNode(text));
         if (meta['status'])
             spanNode.appendChild(document.createTextNode('  ' + meta['status']));
+
+        if (taskName == 'smoketest') {
+            var img = $("#smoketest-final-img").get(0);
+            img.setAttribute('src', WORKURL + meta['path'] + '/work-gnome-ostree-x86_64-runtime/screenshot-final.png');
+        }
     }
 
     function repowebIndexInit() {
