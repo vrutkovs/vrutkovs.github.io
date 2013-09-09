@@ -539,12 +539,6 @@
 				 "--enable-kms-egl-platform"],
 		 "branch": "cogl-1.16"},
 
-                {"src": "fd:libevdev",
-		 "config-opts": ["--disable-gcov"],
-		 "patches": ["libevdev-autogen.patch",
-			     "libevdev-configure.patch",
-			     "libevdev-link.patch"]},
-
 		{"src": "gnome:clutter",
 		 "config-opts": ["--enable-installed-tests",
 				 "--enable-wayland-backend",
@@ -828,7 +822,9 @@
 
 		{"src": "git:git://git.collabora.co.uk/git/libnice.git"},
 
-		{"src": "fd-telepathy:telepathy-gabble"},
+		{"src": "fd-telepathy:telepathy-gabble",
+		 "tag": "c189853916f271828ff82d406479934a7e9954fe",
+		 "tag-reason": "wocky submodule not pushed; mail sent to smcv"},
 
 		{"src": "fd-telepathy:telepathy-mission-control",
 		 "config-opts": ["--disable-gtk-doc",
