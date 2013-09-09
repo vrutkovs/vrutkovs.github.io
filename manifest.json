@@ -542,7 +542,8 @@
                 {"src": "fd:libevdev",
 		 "config-opts": ["--disable-gcov"],
 		 "patches": ["libevdev-autogen.patch",
-			     "libevdev-configure.patch"]},
+			     "libevdev-configure.patch",
+			     "libevdev-link.patch"]},
 
 		{"src": "gnome:clutter",
 		 "config-opts": ["--enable-installed-tests",
