@@ -540,6 +540,7 @@
 		 "branch": "cogl-1.16"},
 
                 {"src": "fd:libevdev",
+		 "config-opts": ["--disable-gcov"],
 		 "patches": ["libevdev-autogen.patch"]},
 
 		{"src": "gnome:clutter",
