@@ -519,14 +519,19 @@ const TaskBuild = new Lang.Class({
         return file;
     },
 
-    _commit: function(branch, subject, file, cancellable) {
+    _commit: function(branch, subject, file, cancellable, params) {
+	params = Params.parse(params, { withParent: true });
         let [, parentRev] = this.ostreeRepo.resolve_rev(branch, true);
-        let [, parent] = this.ostreeRepo.read_commit(parentRev, cancellable);
-
-        let changed = !file.equal(parent);
+	let changed;
+	if (parentRev) {
+            let [, parent] = this.ostreeRepo.read_commit(parentRev, cancellable);
+            changed = !file.equal(parent);
+	} else {
+	    changed = true;
+	}
 
         if (changed) {
-            let [, rev] = this.ostreeRepo.write_commit(parentRev, subject, "", null, file, cancellable);
+            let [, rev] = this.ostreeRepo.write_commit(params.withParent ? parentRev : null, subject, "", null, file, cancellable);
             this.ostreeRepo.transaction_set_ref(null, branch, rev);
             return rev;
         } else {
@@ -701,7 +706,7 @@ const TaskBuild = new Lang.Class({
 
         this.ostreeRepo.prepare_transaction(cancellable);
         let file = this._writeMtreeFromDirectory(finalBuildResultDir, setuidFiles, cancellable);
-        let rev = this._commit(buildRef, "Build", file, cancellable);
+        let rev = this._commit(buildRef, "Build", file, cancellable, { withParent: false });
         this.ostreeRepo.commit_transaction(cancellable);
 
         let ostreeRevision = this._saveComponentBuild(buildRef, rev, expandedComponent, cancellable);
