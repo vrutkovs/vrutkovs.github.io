@@ -655,7 +655,7 @@ const TaskBuild = new Lang.Class({
 	try {
 	    proc.wait_sync_check(cancellable);
 	} catch (e) {
-	    this._writeStatus('failed: ' + basename, cancellable);
+	    this._writeStatus('built: ' + this._rebuiltComponents.join(' ') + ' failed: ' + basename, cancellable);
 	    print("Build of " + basename + " failed");
 	    throw e;
 	}
