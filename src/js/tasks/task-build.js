@@ -1271,7 +1271,7 @@ const TaskBuild = new Lang.Class({
 	}
 
         let targetsList = [];
-	let componentTypes = ['runtime', 'runtime-debug', 'devel', 'devel-debug'];
+	let componentTypes = ['runtime', 'devel-debug'];
         for (let i = 0; i < componentTypes.length; i++) {
 	    let targetComponentType = componentTypes[i];
             for (let i = 0; i < architectures.length; i++) {
@@ -1293,7 +1293,7 @@ const TaskBuild = new Lang.Class({
                                   'devel': buildrootRef};
 
 		let targetComponents;
-                if (targetComponentType.indexOf('runtime-') == 0) {
+                if (targetComponentType == 'runtime') {
                     targetComponents = runtimeComponents;
                 } else {
                     targetComponents = develComponents;
@@ -1313,10 +1313,6 @@ const TaskBuild = new Lang.Class({
                     let componentRef = {'name': binaryName};
                     if (targetComponentType == 'runtime') {
                         componentRef['trees'] = ['/runtime'];
-                    } else if (targetComponentType == 'runtime-debug') {
-                        componentRef['trees'] = ['/runtime', '/debug'];
-                    } else if (targetComponentType == 'devel') {
-                        componentRef['trees'] = ['/runtime', '/devel', '/tests', '/doc']
 		    } else if (targetComponentType == 'devel-debug') {
                         componentRef['trees'] = ['/runtime', '/devel', '/tests', '/doc', '/debug'];
 		    }
@@ -1339,7 +1335,7 @@ const TaskBuild = new Lang.Class({
 	let archInitramfsImages = {};
         for (let i = 0; i < architectures.length; i++) {
 	    let architecture = architectures[i];
-	    let develTargetName = 'buildmaster/' + architecture + '-devel';
+	    let develTargetName = 'buildmaster/' + architecture + '-devel-debug';
 	    let develTarget = this._findTargetInList(develTargetName, targetsList);
 
 	    // Gather a list of components upon which the initramfs depends
@@ -1366,9 +1362,10 @@ const TaskBuild = new Lang.Class({
 
 	// Now loop over the other targets per architecture, reusing
 	// the initramfs cached from -devel generation.
-	let nonDevelTargets = ['runtime', 'runtime-debug', 'devel-debug'];
-	for (let i = 0; i < nonDevelTargets.length; i++) {
-	    let target = nonDevelTargets[i];
+	for (let i = 0; i < componentTypes.length; i++) {
+	    let target = componentTypes[i];
+	    if (target == 'devel-debug')
+		continue;
             for (let j = 0; j < architectures.length; j++) {
 		let architecture = architectures[j];
 		let runtimeTargetName = 'buildmaster/' + architecture + '-' + target;
