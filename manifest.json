@@ -869,6 +869,8 @@
 		{"src": "git:git://git.kernel.org/pub/scm/utils/dash/dash.git"},
 
                 {"src": "git:git://git.kernel.org/pub/scm/boot/dracut/dracut.git",
+		 "tag": "d97d130da9b579a9525586a82ddbf4bd87dd1c80",
+		 "tag-reason": "wants /sys mounted",
 		 "config-opts": ["--disable-documentation",
 		                 "--systemdsystemunitdir=/usr/lib/systemd/system"],
 		 "initramfs-depends": true},
