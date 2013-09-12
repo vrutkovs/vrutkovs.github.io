@@ -1,7 +1,7 @@
 {
   "00ostbuild-manifest-version": 0,
 
-  "osname": "gnome-ostree",
+  "osname": "gnome-continuous",
   "repo": "https://build.gnome.org/ostree/buildmaster/repo",
   "architectures": ["x86_64"],
   "base": {
