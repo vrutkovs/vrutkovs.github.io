@@ -116,7 +116,7 @@
 
         if (taskName == 'smoketest') {
             var img = $("#smoketest-final-img").get(0);
-            img.setAttribute('src', WORKURL + meta['path'] + '/work-gnome-ostree-x86_64-runtime/screenshot-final.png');
+            img.setAttribute('src', WORKURL + meta['path'] + '/work-gnome-continuous-x86_64-runtime/screenshot-final.png');
         }
     }
 
