@@ -254,6 +254,8 @@ const TestOneDisk = new Lang.Class({
         }
         this._cancellable = cancellable;
 
+        let osname = this._buildData['snapshot']['osname'];
+
         // HACK
         if (diskPath.get_basename().indexOf('x86_64') >= 0)
             this._diskArch = 'x86_64';
@@ -270,7 +272,7 @@ const TestOneDisk = new Lang.Class({
         try {
             LibQA.modifyBootloaderAppendKernelArgs(mntdir, ["console=ttyS0"], cancellable);
 
-            let [currentDir, currentEtcDir] = LibQA.getDeployDirs(mntdir, 'gnome-ostree');
+            let [currentDir, currentEtcDir] = LibQA.getDeployDirs(mntdir, osname);
             
             LibQA.injectExportJournal(currentDir, currentEtcDir, cancellable);
             LibQA.injectTestUserCreation(currentDir, currentEtcDir, 'testuser', {}, cancellable);
