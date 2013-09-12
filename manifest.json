@@ -320,7 +320,8 @@
 		                 "--with-xkb-base=/usr/share/X11/xkb"],
 		 "patches": ["xkeyboard-config-autogen.patch"]},
 
-		{"src": "fd:xorg/xserver"},
+		{"src": "fd:xorg/xserver",
+		 "branch": "xwayland"},
 
 		{"src": "fd:xcb/util"},
 
@@ -333,6 +334,9 @@
 		{"src": "fd:xorg/driver/xf86-video-cirrus"},
 
 		{"src": "fd:xorg/driver/xf86-video-modesetting"},
+
+		{"src": "fd:xorg/driver/xf86-video-wayland",
+		 "patches": ["xorg-autogen-merged.patch"]},
 
                 {"src": "git:git://github.com/xkbcommon/libxkbcommon"},
 
