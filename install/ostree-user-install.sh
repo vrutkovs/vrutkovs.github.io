@@ -36,14 +36,14 @@ make install
 
 cat > ${HOME}/.jhbuildrc << END
 modulesets_dir = '~/src/gnome-ostree/install'
-moduleset = 'ostree'
-modules = ['gnome-ostree']
+moduleset = 'gnome-continuous'
+modules = ['gnome-continuous']
 checkoutroot = '~/src'
 prefix = '~/build/jhbuild'
 use_local_modulesets = True
 END
 
-~/.local/bin/jhbuild build gnome-ostree </dev/null
+~/.local/bin/jhbuild build gnome-continuous </dev/null
 
 cd ~/src
 test -d poky || git clone --depth=1 -b gnomeos-3.6 git://github.com/cgwalters/poky poky
