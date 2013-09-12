@@ -8,11 +8,15 @@
   <name>gnome-ostree</name>
   <shortname>gnome-ostree</shortname>
 
-  <shortdesc xml:lang="en">GNOME OSTree build tool, manifest, and patches</shortdesc>
+  <shortdesc xml:lang="en">Continuous integration and deployment</shortdesc>
 
-  <description xml:lang="en">GNOME OSTree build tool, manifest and patches</description>
+  <description xml:lang="en">GNOME-Continuous is a continuous
+  deployment system for Linux kernel-based operating systems, designed
+  from the ground up for GNOME, maintained on a volunteer basis by
+  some GNOME contributors. It is not an official
+  product.</description>
 
-  <homepage rdf:resource="https://live.gnome.org/OSTree/GnomeOSTree" />
+  <homepage rdf:resource="https://live.gnome.org/GnomeContinuous" />
   <license rdf:resource="http://usefulinc.com/doap/licenses/lgpl" />
   <mailing-list rdf:resource="mailto:ostree-list@gnome.org" />
 
