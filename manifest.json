@@ -934,9 +934,7 @@
 
 		{"src": "gnome:polari"},
 
-		{"src": "gnome:gnome-maps",
-		 "tag": "b0608f3349a19e8a9f0411587ad284b41faf0ecf",
-		 "tag-reason": "bad translation commit"},
+		{"src": "gnome:gnome-maps"},
 
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"}
