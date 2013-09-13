@@ -51,7 +51,7 @@ class GNOMEOSTree(callbacks.Plugin):
         self._announce_failed_tasks = ['resolve']
         self._announce_periodic_tasks = ['smoketest', 'integrationtest']
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
-        self._workurl = "http://build.gnome.org/ostree/%s" % (tracked_build, )
+        self._workurl = "http://build.gnome.org/continuous/%s" % (tracked_build, )
 
     def _sendTo(self, channels, msg):
         for channel in channels:
@@ -108,7 +108,7 @@ class GNOMEOSTree(callbacks.Plugin):
         success_changed = last_success != success
         success_str = success and 'successful' or 'failed'
         millis = float(new_state['elapsedMillis'])
-        msg = "gnostree:%s %s: %s in %.1f seconds. %s " \
+        msg = "continuous:%s %s: %s in %.1f seconds. %s " \
               % (taskname, taskver, success_str, millis / 1000.0, status_msg)
 
         msg += "%s/%s/output.txt" % (self._workurl, new_state['path'])
