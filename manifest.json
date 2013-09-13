@@ -549,10 +549,7 @@
 		 "branch": "cogl-1.16"},
 
                 {"src": "fd:libevdev",
-		 "config-opts": ["--disable-gcov"],
-		 "patches": ["libevdev-autogen.patch",
-			     "libevdev-configure.patch",
-			     "libevdev-link.patch"]},
+		 "config-opts": ["--disable-gcov"]},
 
 		{"src": "gnome:clutter",
 		 "config-opts": ["--enable-installed-tests",
