@@ -838,6 +838,8 @@
 
 		{"src": "fd-telepathy:telepathy-gabble"},
 
+		{"src": "fd-telepathy:telepathy-idle"},
+
 		{"src": "fd-telepathy:telepathy-mission-control",
 		 "config-opts": ["--disable-gtk-doc",
 		                 "--disable-Werror"]},
@@ -929,6 +931,8 @@
 		{"src": "gnome:gnome-calculator"},
 
 		{"src": "gnome:gnome-weather"},
+
+		{"src": "gnome:polari"},
 
 		{"src": "gnome:gnome-maps",
 		 "tag": "b0608f3349a19e8a9f0411587ad284b41faf0ecf",
