@@ -415,8 +415,6 @@
                 {"src": "git:git://github.com/jpirko/libndp.git"},
 
 		{"src": "fd-NM:NetworkManager",
-		 "tag": "e4b92acdf79a8dcb76b5192916d157eaa4e3a163",
-		 "tag-reason": "compilation error, mail sent",
 		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
 				 "--with-crypto=nss",
