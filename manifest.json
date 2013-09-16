@@ -89,6 +89,8 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "tag": "1244d8d640a2644aa8dc8e588cd9c414b3d39163",
+		 "tag-reason": "next commit is broken, zbyszek informed",
 		 "config-opts": ["--disable-manpages",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
