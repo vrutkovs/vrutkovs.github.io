@@ -394,6 +394,15 @@
 			     "hostap-0001-build-Use-libnl-3.0-pkg-config-file.patch",
 			     "hostap-supplicant-Install-systemd-units-if-configured-to-do.patch"]},
 
+                {"src": "tarball:http://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz",
+                 "name": "openjpeg",
+                 "config-opts": ["--disable-doc"],
+                 "checksum": "6cfb3097a1c8e9550131b17663daf927f42707bc3f84196c1390642e87f3ab8d"},
+
+                {"src": "tarball:http://downloads.ghostscript.com/public/ghostscript-9.10.tar.gz",
+                 "name": "ghostscript",
+                 "checksum": "913fc974433238ffd4e0549ce11ba2a3360d1d159cf5c3b988d72a77acb74d04"},
+
 		{"src": "cgwalters:spidermonkey-tarballs-as-git",
 		 "name": "js17",
 		 "branch": "js-17",
