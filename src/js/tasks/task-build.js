@@ -707,6 +707,7 @@ const TaskBuild = new Lang.Class({
         this.ostreeRepo.prepare_transaction(cancellable);
         let file = this._writeMtreeFromDirectory(finalBuildResultDir, setuidFiles, cancellable);
         let rev = this._commit(buildRef, "Build", file, cancellable, { withParent: false });
+	imports.system.gc();  // We may be leaking file refs
         this.ostreeRepo.commit_transaction(cancellable);
 
         let ostreeRevision = this._saveComponentBuild(buildRef, rev, expandedComponent, cancellable);

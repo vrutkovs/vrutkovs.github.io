@@ -1,0 +1,22 @@
+From cd3aca6e71ab02357319949ccbbd03e327f0e95b Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Thu, 19 Sep 2013 09:03:39 -0400
+Subject: [PATCH] autogen.sh: New file to implement GNOME Build API
+
+See http://people.gnome.org/~walters/docs/build-api.txt
+---
+ autogen.sh |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+ create mode 100755 autogen.sh
+
+diff --git a/autogen.sh b/autogen.sh
+new file mode 100755
+index 0000000..9cb5b9f
+--- /dev/null
++++ b/autogen.sh
+@@ -0,0 +1,2 @@
++#!/bin/sh
++exec autoreconf --force --install --verbose
+-- 
+1.7.1
+
