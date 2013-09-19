@@ -35,7 +35,7 @@
 		"netfilter": "git:git://git.netfilter.org/",
 		"cgwalters": "git:git://github.com/cgwalters/"},
 
-  "patches": {"src": "gnome:gnome-ostree",
+  "patches": {"src": "gnome:gnome-continuous",
               "subdir": "patches"},
 
   "components": [
