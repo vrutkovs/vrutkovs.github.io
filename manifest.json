@@ -23,6 +23,7 @@
                 "fd-xdg": "git:git://anongit.freedesktop.org/git/xdg/",
                 "fd-fprint": "git:git://anongit.freedesktop.org/git/libfprint/",
                 "fd-p11": "git:git://anongit.freedesktop.org/git/p11-glue/",
+                "fd-poppler": "git:git://anongit.freedesktop.org/poppler/",
                 "fd-gstreamer": "git:git://anongit.freedesktop.org/gstreamer/",
                 "fd-wayland": "git:git://anongit.freedesktop.org/wayland/",
                 "fd-telepathy": "git:git://anongit.freedesktop.org/telepathy/",
@@ -406,6 +407,10 @@
                 {"src": "git:https://github.com/libarchive/libarchive.git",
 		 "tag": "v3.1.2",
 		 "patches": ["libarchive-autogen.patch"]},
+
+                {"src": "fd-poppler:poppler",
+                 "config-opts": ["--disable-poppler-cpp",
+                                 "--disable-utils"]},
 
 		{"src": "cgwalters:spidermonkey-tarballs-as-git",
 		 "name": "js17",
