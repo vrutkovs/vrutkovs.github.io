@@ -398,6 +398,7 @@
                  "checksum": "913fc974433238ffd4e0549ce11ba2a3360d1d159cf5c3b988d72a77acb74d04"},
 
                 {"src": "git:https://github.com/libarchive/libarchive.git",
+		 "config-opts": ["--without-lzo2"],
 		 "tag": "v3.1.2",
 		 "patches": ["libarchive-autogen.patch"]},
 
