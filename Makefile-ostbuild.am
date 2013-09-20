@@ -97,6 +97,7 @@ jsosttasks_DATA= \
 	src/js/tasks/task-builddisks.js \
 	src/js/tasks/task-smoketest.js \
 	src/js/tasks/task-integrationtest.js \
+	src/js/tasks/task-applicationstest.js \
 	src/js/tasks/task-zdisks.js \
 	src/js/tasks/testbase.js \
 	$(NULL)

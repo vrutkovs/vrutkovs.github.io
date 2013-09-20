@@ -26,6 +26,7 @@ const GSystem = imports.gi.GSystem;
 const Builtin = imports.builtin;
 const ArgParse = imports.argparse;
 const ProcUtil = imports.procutil;
+const Params = imports.params;
 const Task = imports.task;
 const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
@@ -33,6 +34,44 @@ const JSONUtil = imports.jsonutil;
 
 const TIMEOUT_SECONDS = 10 * 60;
 const COMPLETE_IDLE_WAIT_SECONDS = 10;
+
+const CommandSocketIface = <interface name="org.gnome.Continuous.Command">
+    <method name='AsyncMessage'>
+    <arg name="msgId" direction="in" type="s"/>
+    <arg name="value" direction="in" type="v"/>
+    </method>
+    <method name='Screenshot'>
+    <arg name="name" direction="in" type="s"/>
+    </method>
+    <signal name='ScreenshotComplete'>
+    <arg name="name" direction="out" type="s"/>
+    </signal>
+</interface>;
+
+// This proxy class exists to avoid tangling up the TestOneDisk class
+// with the Command DBus API.  It also keeps track of the SaveFile API
+// state.
+const CommandSocketProxy = new Lang.Class({
+    Name: 'CommandSocketProxy',
+
+    _init: function(connection,
+                    asyncMessageHandler,
+                    screenshotHandler) {
+        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(CommandSocketIface, this);
+        this._dbusImpl.export(connection, '/org/gnome/Continuous/Command');
+        this._asyncMessageHandler = asyncMessageHandler;
+        this._screenshotHandler = screenshotHandler;
+        this._savingFiles = {};
+    },
+
+    Screenshot: function(name) {
+        this._screenshotHandler(name);
+    },
+
+    AsyncMessage: function(msgId, value) {
+        this._asyncMessageHandler(msgId, value);
+    }
+});
 
 const TestOneDisk = new Lang.Class({
     Name: 'TestOneDisk',
@@ -49,7 +88,7 @@ const TestOneDisk = new Lang.Class({
             return;
         this._failed = true;
         this._failedMessage = message;
-        this._screenshot(true);
+        this._screenshot({ isFinal: true });
     },
     
     _onQemuExited: function(proc, result) {
@@ -122,6 +161,7 @@ const TestOneDisk = new Lang.Class({
             if (this._countPendingRequiredMessageIds == 0 && !this._foundAllMessageIds) {
                 print("Found all required message IDs");
                 this._foundAllMessageIds = true;
+                this._parentTask._onSuccess();
                 GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, COMPLETE_IDLE_WAIT_SECONDS,
                                          Lang.bind(this, this._onFinalWait));
             } else {
@@ -201,12 +241,12 @@ const TestOneDisk = new Lang.Class({
                                          Lang.bind(this, this._onQemuCommandComplete));
     },
 
-    _onScreenshotComplete: function(filename, isFinal) {
+    _onScreenshotComplete: function(filename, isFinal, name) {
         print("screenshot complete for " + filename);
         let filePath = this._subworkdir.get_child(filename);
         let modified = true;
 
-        if (!isFinal) {
+        if (!isFinal && name == null) {
 	          let contentsBytes = GSystem.file_map_readonly(filePath, this._cancellable);
 	          let csum = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256,
 						                                           contentsBytes);
@@ -238,28 +278,46 @@ const TestOneDisk = new Lang.Class({
             }
             GSystem.file_unlink(filePath, this._cancellable);
         }
-        this._requestingScreenshot = false;
 
-        if (isFinal)
+        if (name == null) {
+            this._requestingScreenshot = false;
+        } else {
+            this._commandProxy._dbusImpl.emit_signal('ScreenshotComplete',
+                                                     GLib.Variant.new('(s)', [name]));
+        }
+
+        if (isFinal) {
+            print("Final screenshot complete");
             this._loop.quit();
+        }
     },
 
-    _screenshot: function(isFinal) {
-        if (this._requestingScreenshot && !isFinal)
-            return;
-        this._requestingScreenshot = true;
+    _screenshot: function(params) {
+        params = Params.parse(params, { isFinal: false,
+                                        name: null });
+        if (params.name == null) {
+            if (this._requestingScreenshot)
+                return;
+            this._requestingScreenshot = true;
+        }
         let filename;
-        if (isFinal)
-            filename = "screenshot-final.ppm";
-        else
-            filename = "screenshot-" + this._screenshotSerial + ".ppm";
+        if (params.name == null) {
+            if (params.isFinal)
+                filename = "screenshot-final.ppm";
+            else
+                filename = "screenshot-" + this._screenshotSerial + ".ppm";
+        } else {
+            filename = "screenshot-" + params.name + ".ppm";
+        }
 
         print("requesting screenshot " + filename);
         this._qmpCommand({"execute": "screendump", "arguments": { "filename": filename }},
-                          Lang.bind(this, this._onScreenshotComplete, filename, isFinal));
+                          Lang.bind(this, this._onScreenshotComplete, filename, params.isFinal, params.name));
     },
 
     _idleScreenshot: function() {
+        if (this._foundAllMessageIds)
+            return false;
         print("idleScreenshot caps=" + this._qmpCapabilitiesReceived);
         if (this._qmpCapabilitiesReceived)
             this._screenshot(false);
@@ -269,7 +327,50 @@ const TestOneDisk = new Lang.Class({
     _onFinalWait: function() {
         print("Final wait complete");
 
-        this._screenshot(true);
+        this._screenshot({ isFinal: true });
+    },
+
+    _onCommandChannelScreenshot: function(name) {
+        this._screenshot({ name: name });
+    },
+
+    _onCommandSocketDBusReady: function(iostream, result) {
+        this._commandSocketDBus = Gio.DBusConnection.new_finish(result);
+        this._commandProxy = new CommandSocketProxy(this._commandSocketDBus,
+                                                    Lang.bind(this._parentTask, this._parentTask._onCommandChannelAsyncMessage),
+                                                    Lang.bind(this, this._onCommandChannelScreenshot));
+        print("Command DBus connection open");
+    },
+
+    _onCommandSocketConnected: function(client, result) {
+        this._commandSocketConn = client.connect_finish(result);
+        print("Connected to command socket");
+        Gio.DBusConnection.new(this._commandSocketConn, null, 0,
+                               null, this._cancellable,
+                               Lang.bind(this, this._onCommandSocketDBusReady));
+    },
+
+    _tryCommandConnection: function() {
+        if (this._commandSocketDBus || this._complete)
+            return false;
+        printerr("DEBUG: Querying command socket");
+        if (!this._commandSocketPath.query_exists(null)) {
+            print("commandSocketPath " + this._commandSocketPath.get_path() + " does not exist yet");
+            this._commandConnectionAttempts++;
+            if (this._commandConnectionAttempts > 5) {
+                this._fail("Command connection didn't appear at " + this._commandSocketPath.get_path());
+                this._loop.quit();
+                return false;
+            }
+            return true;
+        }
+        printerr("Connecting to command socket...");
+        let path = Gio.File.new_for_path('.').get_relative_path(this._commandSocketPath);
+        let address = Gio.UnixSocketAddress.new_with_type(path, Gio.UnixSocketAddressType.PATH);
+        let socketClient = new Gio.SocketClient();
+        socketClient.connect_async(address, this._cancellable,
+                                   Lang.bind(this, this._onCommandSocketConnected));
+        return false;
     },
 
     execute: function(subworkdir, buildData, repo, diskPath, cancellable) {
@@ -279,9 +380,12 @@ const TestOneDisk = new Lang.Class({
         this._subworkdir = subworkdir;
         this._loop = GLib.MainLoop.new(null, true);
         this._foundAllMessageIds = false;
+        this._complete = false;
         this._failed = false;
         this._journalStream = null;
         this._journalDataStream = null;
+        this._commandConnectionAttempts = 0;
+        this._commandSocketDBus = null;
         this._openedJournal = false;
         this._readingJournal = false;
         this._pendingRequiredMessageIds = {};
@@ -336,7 +440,9 @@ const TestOneDisk = new Lang.Class({
 
         let consoleOutput = subworkdir.get_child('console.out');
         let journalOutput = subworkdir.get_child('journal-json.txt');
+        this._commandSocketPath = subworkdir.get_child('command.sock');
 
+        let commandSocketRelpath = subworkdir.get_relative_path(this._commandSocketPath);
         qemuArgs.push.apply(qemuArgs, ['-drive', 'file=' + diskClone.get_path() + ',if=virtio',
                                        '-vnc', 'none',
                                        '-serial', 'file:' + consoleOutput.get_path(),
@@ -344,7 +450,9 @@ const TestOneDisk = new Lang.Class({
                                        '-mon', 'chardev=charmonitor,id=monitor,mode=control',
                                        '-device', 'virtio-serial',
                                        '-chardev', 'file,id=journaljson,path=' + journalOutput.get_path(),
-                                       '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson']);
+                                       '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson',
+                                       '-chardev', 'socket,id=commandchan,server,path=' + commandSocketRelpath,
+                                       '-device', 'virtserialport,chardev=commandchan,name=org.gnome.commandchan']);
         
         let qemuContext = new GSystem.SubprocessContext({ argv: qemuArgs });
         qemuContext.set_cwd(subworkdir.get_path());
@@ -360,6 +468,8 @@ const TestOneDisk = new Lang.Class({
         let journalMonitor = journalOutput.monitor_file(0, cancellable);
         journalMonitor.connect('changed', Lang.bind(this, this._onJournalChanged));
 
+        let commandConnectAttemptTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
+                                                                      Lang.bind(this, this._tryCommandConnection));
         let timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, TIMEOUT_SECONDS,
                                                  Lang.bind(this, this._onTimeout));
 
@@ -368,6 +478,8 @@ const TestOneDisk = new Lang.Class({
                                                  Lang.bind(this, this._idleScreenshot));
         
         this._loop.run();
+
+        this._complete = true;
 
         if (this._qemu)
             this._qemu.force_exit();
@@ -410,8 +522,16 @@ const TestBase = new Lang.Class({
         // Nothing, intended for subclasses
     },
 
+    // For subclasses
+    _onCommandChannelAsyncMessage: function(msgId, value) {
+        print("Received command async message " + msgId);
+    },
+
     _handleMessage: function(message, cancellable) {
         return false;
+    },
+
+    _onSuccess: function() {
     },
 
     _postQemu: function(cancellable) {

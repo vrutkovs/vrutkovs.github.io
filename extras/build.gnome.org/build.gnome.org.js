@@ -9,7 +9,7 @@
 
     var repoDataSignal = {};
     var taskData = {};
-    var taskNames = ['build', 'smoketest', 'integrationtest'];
+    var taskNames = ['build', 'smoketest', 'integrationtest', 'applicationstest'];
 
     function _loadTask(taskname) {
         var url = WORKURL + 'tasks/' + taskname + '/current/meta.json';

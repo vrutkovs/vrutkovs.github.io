@@ -1,0 +1,186 @@
+#!/usr/bin/env gjs
+// -*- indent-tabs-mode: nil; tab-width: 2; -*-
+// Copyright (C) 2013 Colin Walters <walters@verbum.org>
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the
+// Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+// Boston, MA 02111-1307, USA.
+
+const GLib = imports.gi.GLib;
+const GObject = imports.gi.GObject;
+const Gio = imports.gi.Gio;
+const Lang = imports.lang;
+
+const sessionBus = Gio.bus_get_sync(Gio.BusType.SESSION, null);
+
+const CLOSE_ALL_APPS = 'Shell.AppSystem.get_default().get_running().forEach(function (app) { app.request_quit(); });';
+const GET_APP_IDS = 'Shell.AppSystem.get_default().get_running().map(function (a) { return a.get_id(); });';
+
+const StartStopApps = new GObject.Class({
+    Name: 'StartStopApps',
+    
+    _init: function(props) {
+	this._commandConnection = null;
+    },
+
+    _onShellAppeared: function() {
+        print("Shell appeared!");
+	// FIXME...looks like shell grabs the name but doesn't have
+	// objects exported yet
+	GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 3, Lang.bind(this, this._startTesting));
+    },
+
+    _startTesting: function() {
+	this._shell = Gio.DBusProxy.new_sync(sessionBus, 0, null,
+					     "org.gnome.Shell", "/org/gnome/Shell",
+					     "org.gnome.Shell", null);
+	this._appList = Gio.AppInfo.get_all().filter(function (app) {
+	    if (app.get_nodisplay())
+		return false;
+	    // Ok, a gross hack; we should really be using gnome-menus
+	    // to look up all apps.  Or maybe fix Gio?
+	    if (app.has_key('Categories') &&
+		app.get_string('Categories').indexOf('X-GNOME-Settings-Panel') >= 0)
+		return false;
+	    return true;
+	});
+	print("" + this._appList.length + " apps to test");
+	this._testingApp = null;
+	
+	this._testNextApp();
+    },
+
+    _testNextApp: function() {
+	if (this._appList.length == 0) {
+	    print("No applications remaining to test");
+	    this._running = false;
+	    return;
+	}
+
+	this._testingApp = this._appList.shift();
+	this._awaitingScreenshot = false;
+	let appid = this._testingApp.get_id();
+	print("testing appid=" + appid);
+
+	this._shellEval(CLOSE_ALL_APPS, this._cancellable);
+
+	this._sendAsyncMessage('TestingAppStart', GLib.Variant.new("s", appid));
+    	this._testingApp.launch([], this._cancellable);
+	this._appCheckRunningIterations = 0;
+	this._appCheckRunningTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
+								  Lang.bind(this, this._checkAppRunningTimeout));
+    },
+
+    _onScreenshotComplete: function(name) {
+	print("Got ScreenshotComplete " + name);
+	let appid = this._testingApp.get_id();
+	this._sendAsyncMessage('TestingAppComplete', GLib.Variant.new("s", appid));
+	this._testNextApp();
+    },
+
+    _checkAppRunningTimeout: function() {
+	let appid = this._testingApp.get_id();
+	if (this._appCheckRunningIterations > 10) {
+	    print("Timed out waiting for app " + appid);
+	    this._sendAsyncMessage('TestingAppTimedOut', GLib.Variant.new("s", appid));
+	    this._testNextApp();
+	    return false;
+	}
+
+	let runningApps = this._shellEval(GET_APP_IDS, this._cancellable);
+	for (let i = 0; i < runningApps.length; i++) {
+	    if (runningApps[i] != appid) {
+		print("WARNING: Unexpected application running: " + runningApps[i]);
+		continue;
+	    }
+	    this._requestScreenshot(appid);
+	    this._awaitingScreenshot = true;
+	    return false;
+	}
+
+	return true;
+    },
+
+    _onShellVanished: function() {
+        print("Shell vanished");
+    },
+
+    _shellEval: function(code, cancellable) {
+	let res = this._shell.call_sync("Eval", GLib.Variant.new("(s)", [code]), 0, -1,
+					cancellable).deep_unpack();
+	let [success, result] = res;
+	if (!success)
+	    throw new Error("Failed to eval " + code.substr(0, 20));
+	return result ? JSON.parse(result) : null;
+    },
+
+    _ensureCommandConnection: function() {
+	if (this._commandConnection)
+	    return;
+	let commandSocketFile = Gio.File.new_for_path('/dev/virtio-ports/org.gnome.commandchan');
+	let commandSocketIOStream = commandSocketFile.open_readwrite(null);
+	this._commandConnection = Gio.DBusConnection.new_sync(commandSocketIOStream, null, 0, null, null);
+	this._commandConnection.signal_subscribe(null, 'org.gnome.Continuous.Command',
+						 'ScreenshotComplete', '/org/gnome/Continuous/Command',
+						 null, 0, Lang.bind(this, this._onScreenshotComplete));
+    },
+    
+    _requestScreenshot: function(name) {
+	this._ensureCommandConnection();
+	this._commandConnection.call_sync(null, '/org/gnome/Continuous/Command',
+					  'org.gnome.Continuous.Command', 'Screenshot',
+					  new GLib.Variant("(s)", [name, {}]),
+					  null, 0, -1, null);
+    },
+
+    _sendAsyncMessage: function(msgId, content) {
+	this._ensureCommandConnection();
+	let msg = Gio.DBusMessage.new_method_call('org.gnome.Continuous.Command',
+						  '/org/gnome/Continuous/Command',
+						  'org.gnome.Continuous.Command',
+						  'AsyncMessage');
+	msg.set_flags(Gio.DBusMessageFlags.NO_REPLY_EXPECTED);
+	if (content == null)
+	    content = GLib.Variant.new("s", "");
+	msg.set_body(GLib.Variant.new("(sv)", [msgId, content]));
+	this._commandConnection.send_message(msg, 0);
+    },
+
+    run: function(cancellable) {
+        print("Awaiting org.gnome.Shell...");
+	this._running = true;
+	this._cancellable = cancellable;
+        sessionBus.watch_name('org.gnome.Shell', 0,
+                              Lang.bind(this, this._onShellAppeared),
+                              Lang.bind(this, this._onShellVanished));
+	let context = GLib.MainContext.default();
+	while (this._running)
+	    context.iteration(true);
+    }
+});
+
+function main() {
+    let cancellable = null;
+
+    let startstopapps = new StartStopApps();
+    startstopapps.run(cancellable);
+    let [success, stdout, stderr, estatus] =
+        GLib.spawn_sync(null,
+                        ['gnome-continuous-journal-log-hack',
+                         '6912513dead443cea8ddb6b716185fa5=startstopapps complete'],
+                        null, GLib.SpawnFlags.SEARCH_PATH, null);  
+}
+
+printerr("Running gnome-continuous-startstopapps");
+main();
