@@ -405,6 +405,9 @@
                  "config-opts": ["--disable-poppler-cpp",
                                  "--disable-utils"]},
 
+		{"src": "git:git://github.com/mm2/Little-CMS.git",
+		 "tag": "lcms2.5"},
+
 		{"src": "gnome:libgxps"},
 
 		{"src": "cgwalters:spidermonkey-tarballs-as-git",
@@ -474,9 +477,6 @@
 				 "--disable-python",
 				 "--disable-gtk",
 				 "--disable-gtk3"]},
-
-		{"src": "git:git://github.com/mm2/Little-CMS.git",
-		 "tag": "lcms2.5"},
 
                 {"src": "git:git://gitorious.org/gusb/gusb.git"},
 		
