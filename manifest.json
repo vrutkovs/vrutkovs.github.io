@@ -405,6 +405,8 @@
                  "config-opts": ["--disable-poppler-cpp",
                                  "--disable-utils"]},
 
+		{"src": "gnome:libgxps"},
+
 		{"src": "cgwalters:spidermonkey-tarballs-as-git",
 		 "name": "js17",
 		 "branch": "js-17",
