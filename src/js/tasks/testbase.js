@@ -146,38 +146,65 @@ const TestOneDisk = new Lang.Class({
                                                     Lang.bind(this, this._onJournalReadLine));
         }
     },
+
+    _onQemuCapabiltiesRead: function(datain, result) {
+        print("QMP server greeting received");
+        let [response, len] = datain.read_line_finish_utf8(result);
+        this._qmpGreetingReceived = true;
+        this._qmpCommand({ "execute": "qmp_capabilities" },
+                          Lang.bind(this, function() {
+                              print("qmp_capabilities complete");
+                              this._qmpCapabilitiesReceived = true;
+                          }));
+    }, 
     
     _ensureQemuConnection: function() {
-        if (!this._qemuSocketConn) {
-            let path = Gio.File.new_for_path('.').get_relative_path(this._subworkdir.get_child("qemu.monitor"));
-            let address = Gio.UnixSocketAddress.new_with_type(path, Gio.UnixSocketAddressType.PATH);
-            let socketClient = new Gio.SocketClient();
-            this._qemuSocketConn = socketClient.connect(address, this._cancellable);
-            this._qemuOut = Gio.DataOutputStream.new(this._qemuSocketConn.get_output_stream());
-            this._qemuIn = Gio.DataInputStream.new(this._qemuSocketConn.get_input_stream());
-            let [response, len] = this._qemuIn.read_line_utf8(this._cancellable);
-            this._qemuCommand({ "execute": "qmp_capabilities" });
+        if (this._qmpSocketConn)
+            return false;
+        let monitorPath = this._subworkdir.get_child("qemu.monitor");
+        if (!monitorPath.query_exists (null)) {
+            this._qmpConnectionAttempts++;
+            if (this._qmpConnectionAttempts > 10)
+                throw new Error("Failed to connect to qemu monitor after " + this._qmpConnectionAttempts + " attempts");
+            return true;
         }
+        let path = Gio.File.new_for_path('.').get_relative_path(monitorPath);
+        let address = Gio.UnixSocketAddress.new_with_type(path, Gio.UnixSocketAddressType.PATH);
+        let socketClient = new Gio.SocketClient();
+        this._qmpSocketConn = socketClient.connect(address, this._cancellable);
+        this._qmpOut = Gio.DataOutputStream.new(this._qmpSocketConn.get_output_stream());
+        this._qmpIn = Gio.DataInputStream.new(this._qmpSocketConn.get_input_stream());
+        this._qmpIn.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
+                                     Lang.bind(this, this._onQemuCapabiltiesRead));
+        return false;
     },
 
-    _qemuCommand: function(cmd) {
+    _onQemuCommandComplete: function(datain, result) {
+        let [response, len] = datain.read_line_finish_utf8(result);
+        let onComplete = this._qmpCommandOutstanding.shift();
+        if (this._qmpCommandOutstanding.length == 1)
+            this._qmpIn.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
+                                         Lang.bind(this, this._onQemuCommandComplete));
+        onComplete();
+    },
+
+    _qmpCommand: function(cmd, onComplete) {
         this._ensureQemuConnection();
         let cmdStr = JSON.stringify(cmd);
-        this._qemuOut.put_string(cmdStr, this._cancellable);
-        let [response, len] = this._qemuIn.read_line_utf8(this._cancellable);
+        if (!this._qmpGreetingReceived)
+            throw new Error("Attempting QMP command without having received greeting");
+        this._qmpOut.put_string(cmdStr, this._cancellable);
+        this._qmpCommandOutstanding.push(onComplete);
+        print("scheduling command " + cmdStr + "; outstanding=" + this._qmpCommandOutstanding.length);
+        if (this._qmpCommandOutstanding.length == 1)
+            this._qmpIn.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
+                                         Lang.bind(this, this._onQemuCommandComplete));
     },
 
-    _screenshot: function(isFinal) {
-        let filename;
-        let modified = true;
-        if (isFinal)
-            filename = "screenshot-final.ppm";
-        else
-            filename = "screenshot-" + this._screenshotSerial + ".ppm";
-
-        this._qemuCommand({"execute": "screendump", "arguments": { "filename": filename }});
-
+    _onScreenshotComplete: function(filename, isFinal) {
+        print("screenshot complete for " + filename);
         let filePath = this._subworkdir.get_child(filename);
+        let modified = true;
 
         if (!isFinal) {
 	          let contentsBytes = GSystem.file_map_readonly(filePath, this._cancellable);
@@ -211,10 +238,28 @@ const TestOneDisk = new Lang.Class({
             }
             GSystem.file_unlink(filePath, this._cancellable);
         }
+        this._requestingScreenshot = false;
+    },
+
+    _screenshot: function(isFinal) {
+        if (this._requestingScreenshot)
+            return;
+        this._requestingScreenshot = true;
+        let filename;
+        if (isFinal)
+            filename = "screenshot-final.ppm";
+        else
+            filename = "screenshot-" + this._screenshotSerial + ".ppm";
+
+        print("requesting screenshot " + filename);
+        this._qmpCommand({"execute": "screendump", "arguments": { "filename": filename }},
+                          Lang.bind(this, this._onScreenshotComplete, filename, isFinal));
     },
 
     _idleScreenshot: function() {
-        this._screenshot(false);
+        print("idleScreenshot caps=" + this._qmpCapabilitiesReceived);
+        if (this._qmpCapabilitiesReceived)
+            this._screenshot(false);
         return true;
     },
 
@@ -239,11 +284,16 @@ const TestOneDisk = new Lang.Class({
         this._openedJournal = false;
         this._readingJournal = false;
         this._pendingRequiredMessageIds = {};
+        this._requestingScreenshot = false;
         this._failMessageIds = {};
         this._countPendingRequiredMessageIds = 0;
         this._screenshotSerial = 0;
         this._lastScreenshotChecksum = null;
-        this._qemuSocket = null;
+        this._qmpGreetingReceived = false;
+        this._qmpSocket = null;
+        this._qmpCommandOutstanding = [];
+        this._qmpConnectionAttempts = 0;
+        this._qmpCapabilitiesReceived = false;
         print("Will wait for message IDs: " + JSON.stringify(this._testRequiredMessageIds));
         for (let i = 0; i < this._testRequiredMessageIds.length; i++) {
             this._pendingRequiredMessageIds[this._testRequiredMessageIds[i]] = true;
@@ -301,6 +351,8 @@ const TestOneDisk = new Lang.Class({
         this._qemu = qemu;
         print("starting qemu : " + qemuArgs.join(' '));
         qemu.init(cancellable);
+
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, Lang.bind(this, this._ensureQemuConnection));
 
         qemu.wait(cancellable, Lang.bind(this, this._onQemuExited));
 
