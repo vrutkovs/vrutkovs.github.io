@@ -239,6 +239,9 @@ const TestOneDisk = new Lang.Class({
             GSystem.file_unlink(filePath, this._cancellable);
         }
         this._requestingScreenshot = false;
+
+        if (isFinal)
+            this._loop.quit();
     },
 
     _screenshot: function(isFinal) {
@@ -267,8 +270,6 @@ const TestOneDisk = new Lang.Class({
         print("Final wait complete");
 
         this._screenshot(true);
-
-        this._loop.quit();
     },
 
     execute: function(subworkdir, buildData, repo, diskPath, cancellable) {
