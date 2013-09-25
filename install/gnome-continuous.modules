@@ -29,7 +29,7 @@
     </dependencies>
   </autotools>
   <autotools id="spidermonkey" autogenargs="--enable-threadsafe --with-system-nspr">
-    <branch repo="cgwalters" module="spidermonkey-tarballs-as-git"/>
+    <branch repo="cgwalters" module="spidermonkey-tarballs-as-git" revision="js-17"/>
     <dependencies>
       <dep package="glib"/>
     </dependencies>
