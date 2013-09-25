@@ -245,7 +245,7 @@ const TestOneDisk = new Lang.Class({
     },
 
     _screenshot: function(isFinal) {
-        if (this._requestingScreenshot)
+        if (this._requestingScreenshot && !isFinal)
             return;
         this._requestingScreenshot = true;
         let filename;
