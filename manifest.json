@@ -687,7 +687,9 @@
 
 		{"src": "gnome:geocode-glib"},
 
-		{"src": "fd:geoclue"},
+		{"src": "fd:geoclue",
+		 "tag": "ffb355032a98c040d1f7f4d91d2bfccfc2adb269",
+		 "tag-reason": "build failure, patch sent upstream"},
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
