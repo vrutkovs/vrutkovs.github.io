@@ -40,7 +40,7 @@ const TaskZDisks = new Lang.Class({
 
     _postDiskCreation: function(diskPath, cancellable) {
         let parent = diskPath.get_parent();
-        let outPath = parent.get_child(diskPath.get_basename() + '.gz');
+        let outPath = parent.get_child(diskPath.get_basename() + '-' + this._buildVersion + '.gz');
         let outStream = outPath.create(Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
         let compressor = Gio.ZlibCompressor.new(Gio.ZlibCompressorFormat.GZIP, 7);
         let outConverter = Gio.ConverterOutputStream.new(outStream, compressor);

@@ -63,6 +63,7 @@ const TaskBuildDisks = new Lang.Class({
 
         let latestPath = builddb.getLatestPath();
         let buildVersion = builddb.parseVersionStr(latestPath.get_basename());
+        this._buildVersion = buildVersion;
         let buildData = builddb.loadFromPath(latestPath, cancellable);
 
         let targetImageDir = baseImageDir.get_child(buildVersion);
