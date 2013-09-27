@@ -123,7 +123,7 @@ const TaskBuildDisks = new Lang.Class({
                 print("Bootloader installation complete");
             }
 
-            this._postDiskCreation(diskPath, cancellable);
+            this._postDiskCreation(squashedName, diskPath, cancellable);
             print("post-disk creation complete");
 	      }
 
@@ -148,7 +148,7 @@ const TaskBuildDisks = new Lang.Class({
         baseImageVersionedDir.cleanOldVersions(IMAGE_RETAIN_COUNT, cancellable);
     },
 
-    _postDiskCreation: function(diskPath, cancellable) {
+    _postDiskCreation: function(squashedName, diskPath, cancellable) {
         // Nothing, this is used by zdisks
     }
 });

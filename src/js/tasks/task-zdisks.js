@@ -38,9 +38,9 @@ const TaskZDisks = new Lang.Class({
     _inheritPreviousDisk: false,
     _onlyTreeSuffixes: ['-runtime', '-devel-debug'],
 
-    _postDiskCreation: function(diskPath, cancellable) {
+    _postDiskCreation: function(squashedName, diskPath, cancellable) {
         let parent = diskPath.get_parent();
-        let outPath = parent.get_child(diskPath.get_basename() + '-' + this._buildVersion + '.gz');
+        let outPath = parent.get_child(squashedName + '-' + this._buildVersion + '.qcow2.gz');
         let outStream = outPath.create(Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
         let compressor = Gio.ZlibCompressor.new(Gio.ZlibCompressorFormat.GZIP, 7);
         let outConverter = Gio.ConverterOutputStream.new(outStream, compressor);
