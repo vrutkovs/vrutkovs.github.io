@@ -28,6 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
+import itertools
 import os
 import json
 
@@ -57,34 +58,24 @@ class GNOMEOSTree(callbacks.Plugin):
         for channel in channels:
             self._irc.queueMsg(ircmsgs.privmsg(channel, msg))
 
-    def _query_new_tasks(self, status=False):
+    def _query_new_tasks(self):
         self._periodic_announce_ticks += 1
         for taskname in self._always_announce_tasks:
-            self._query_new_task(taskname, status=status, announce_success=True)
+            self._query_new_task(taskname, announce_success=True)
         for taskname in self._announce_failed_tasks:
-            self._query_new_task(taskname, status=status)
+            self._query_new_task(taskname)
         for taskname in self._announce_periodic_tasks:
-            self._query_new_task(taskname, status=status, announce_periodic=True)
+            self._query_new_task(taskname, announce_periodic=True)
 
-    def _update_task_state(self, taskname, status=False):
+    def _get_task_state(self, taskname):
         current_task_path = os.path.join(self._workdir, 'tasks/%s/current' % (taskname, ))
         meta_path = os.path.join(current_task_path, 'meta.json')
         if not os.path.exists(meta_path):
-            if status:
-                self._sendTo(self._flood_channels, "No current %s completed" % (taskname, ))
-            return
+            return None, ""
 
         f = open(meta_path)
         metadata = json.load(f)
         f.close()
-
-        taskver = metadata['taskVersion']
-
-        last_state = self._last_task_state.get(taskname)
-        last_version = last_state['taskVersion'] if last_state else None
-        version_unchanged = taskver == last_version
-        if (not status and version_unchanged):
-            return None
 
         status_path = os.path.join(current_task_path, 'status.txt')
         if os.path.exists(status_path):
@@ -94,29 +85,54 @@ class GNOMEOSTree(callbacks.Plugin):
         else:
             status_msg = ''
 
-        self._last_task_state[taskname] = metadata
-        return (last_state, metadata, status_msg)
+        return metadata, status_msg
 
-    def _query_new_task(self, taskname, status=False, announce_success=False, announce_periodic=False):
-        querystate = self._update_task_state(taskname, status=status)
-        if querystate is None:
-            return
-        (last_state, new_state, status_msg) = querystate
-        last_success = last_state['success']
-        success = new_state['success']
-        taskver = new_state['taskVersion']
-        success_changed = last_success != success
+    def _update_task_state(self, taskname):
+        metadata, status_msg = self._get_task_state(taskname)
+        if metadata is None:
+            return None
+
+        self._last_task_state[taskname] = metadata
+
+        taskver = metadata['taskVersion']
+
+        last_state = self._last_task_state.get(taskname)
+        last_version = last_state['taskVersion'] if last_state else None
+        version_unchanged = taskver == last_version
+        if version_unchanged:
+            return None
+        else:
+            return last_state, metadata, status_msg
+
+    def _status_line_for_task(self, taskname):
+        metadata, status_msg = self._get_task_state(taskname)
+        taskver = metadata['taskVersion']
+        millis = float(metadata['elapsedMillis'])
+        success = metadata['success']
         success_str = success and 'successful' or 'failed'
-        millis = float(new_state['elapsedMillis'])
+
         msg = "continuous:%s %s: %s in %.1f seconds. %s " \
               % (taskname, taskver, success_str, millis / 1000.0, status_msg)
 
-        msg += "%s/%s/output.txt" % (self._workurl, new_state['path'])
+        msg += "%s/%s/output.txt" % (self._workurl, metadata['path'])
 
         if not success:
             msg = ircutils.mircColor(msg, fg='red')
         else:
             msg = ircutils.mircColor(msg, fg='green')
+
+        return msg
+
+    def _query_new_task(self, taskname, announce_success=False, announce_periodic=False):
+        querystate = self._update_task_state(taskname)
+        if querystate is None:
+            return
+        (last_state, new_state, status_msg) = querystate
+        last_success = last_state['success']
+        success = new_state['success']
+        success_changed = last_success != success
+
+        msg = self._status_line_for_task(taskname)
 
         if announce_success:
             self._sendTo(self._flood_channels, msg)
@@ -124,7 +140,15 @@ class GNOMEOSTree(callbacks.Plugin):
             (announce_periodic and self._periodic_announce_ticks == self._periodic_announce_seconds)):
             self._sendTo(self._status_channels, msg)
 
+    def _buildstatus_for_task(self, taskname):
+        metadata, status_msg = self._get_task_state(taskname)
+        if metadata is None:
+            return "No current %s completed" % (taskname, )
+        else:
+            return self._status_line_for_task(taskname)
+
     def buildstatus(self, irc, msg, args):
-        self._query_new_tasks(status=True)
+        for taskname in itertools.chain(self._always_announce_tasks, self._announce_failed_tasks, self._announce_periodic_tasks):
+            irc.reply(self._buildstatus_for_task(taskname))
 
 Class = GNOMEOSTree
