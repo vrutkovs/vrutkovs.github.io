@@ -83,7 +83,6 @@ class BuildGnomeOrg(irc.IRCClient):
 
     def _query_new_tasks(self):
         self._periodic_announce_ticks += 1
-        log.msg("Querying new tasks periodically")
 
         for taskname in self._always_announce_tasks:
             self._query_new_task(taskname, announce_success=True)
@@ -117,13 +116,14 @@ class BuildGnomeOrg(irc.IRCClient):
         if metadata is None:
             return None
 
-        self._last_task_state[taskname] = metadata
-
         taskver = metadata['taskVersion']
 
         last_state = self._last_task_state.get(taskname)
         last_version = last_state['taskVersion'] if last_state else None
         version_unchanged = taskver == last_version
+
+        self._last_task_state[taskname] = metadata
+
         if version_unchanged:
             return None
         else:
@@ -150,7 +150,6 @@ class BuildGnomeOrg(irc.IRCClient):
 
     def _query_new_task(self, taskname, announce_success=False, announce_periodic=False):
         querystate = self._update_task_state(taskname)
-        log.msg("Querying task %s, got %r" % (taskname, querystate))
         if querystate is None:
             return
 
