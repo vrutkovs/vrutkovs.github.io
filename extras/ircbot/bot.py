@@ -157,7 +157,7 @@ class BuildGnomeOrg(irc.IRCClient):
         if last_state is not None:
             last_success = last_state['success']
         else:
-            last_state = True
+            last_success = True
         success = new_state['success']
         success_changed = last_success != success
 
