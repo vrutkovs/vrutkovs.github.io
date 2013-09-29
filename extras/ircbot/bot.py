@@ -39,6 +39,7 @@ import json
 from twisted.internet import protocol, task
 from twisted.words.protocols import irc
 from twisted.application import internet, service
+from twisted.python import log
 
 def mirc_color(code, S):
     return "\x03%d%s\x03" % (code, S)
@@ -82,6 +83,8 @@ class BuildGnomeOrg(irc.IRCClient):
 
     def _query_new_tasks(self):
         self._periodic_announce_ticks += 1
+        log.msg("Querying new tasks periodically")
+
         for taskname in self._always_announce_tasks:
             self._query_new_task(taskname, announce_success=True)
         for taskname in self._announce_failed_tasks:
@@ -147,8 +150,10 @@ class BuildGnomeOrg(irc.IRCClient):
 
     def _query_new_task(self, taskname, announce_success=False, announce_periodic=False):
         querystate = self._update_task_state(taskname)
+        log.msg("Querying task %s, got %r" % (taskname, querystate))
         if querystate is None:
             return
+
         (last_state, new_state, status_msg) = querystate
         last_success = last_state['success']
         success = new_state['success']
