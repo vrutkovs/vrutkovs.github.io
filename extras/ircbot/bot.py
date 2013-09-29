@@ -1,6 +1,7 @@
 ###
 # Copyright (c) 2003-2004, Jeremiah Fincher
 # Copyright (c) 2012 Colin Walters <walters@verbum.org>
+# Copyright (c) 2013 Jasper St. Pierre <jstpierre@mecheye.net>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,20 +29,29 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
+HOST = "irc.gnome.org"
+PORT = 6667
+
 import itertools
 import os
 import json
 
-import supybot.ircmsgs as ircmsgs
-import supybot.ircutils as ircutils
-import supybot.schedule as schedule
-import supybot.callbacks as callbacks
+from twisted.internet import protocol, task
+from twisted.words.protocols import irc
+from twisted.application import internet, service
 
-class GNOMEOSTree(callbacks.Plugin):
-    def __init__(self, irc):
-        super(GNOMEOSTree, self).__init__(irc)
-        schedule.addPeriodicEvent(self._query_new_tasks, 1, now=False)
-        self._irc = irc
+def mirc_color(code, S):
+    return "\x03%d%s\x03" % (code, S)
+
+GREEN = 3
+RED = 4
+
+class BuildGnomeOrg(irc.IRCClient):
+    nickname = 'buildgnomeorg'
+    username = nickname
+    realname = nickname
+
+    def __init__(self):
         self._flood_channels = ['#testable']
         self._status_channels = ['#gnome-hackers']
         self._last_task_state = {}
@@ -53,10 +63,22 @@ class GNOMEOSTree(callbacks.Plugin):
         self._announce_periodic_tasks = ['smoketest', 'integrationtest']
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
         self._workurl = "http://build.gnome.org/continuous/%s" % (tracked_build, )
+        self._loop = task.LoopingCall(self._query_new_tasks)
+
+    def signedOn(self):
+        for chan in self._flood_channels:
+            self.join(chan)
+        for chan in self._status_channels:
+            self.join(chan)
+
+        self._loop.start(1)
+
+    def _msg_unicode(self, channel, msg):
+        self.msg(channel, msg.encode('utf8'))
 
     def _sendTo(self, channels, msg):
         for channel in channels:
-            self._irc.queueMsg(ircmsgs.privmsg(channel, msg))
+            self._msg_unicode(channel, msg)
 
     def _query_new_tasks(self):
         self._periodic_announce_ticks += 1
@@ -111,15 +133,15 @@ class GNOMEOSTree(callbacks.Plugin):
         success = metadata['success']
         success_str = success and 'successful' or 'failed'
 
-        msg = "continuous:%s %s: %s in %.1f seconds. %s " \
+        msg = u"continuous:%s %s: %s in %.1f seconds. %s " \
               % (taskname, taskver, success_str, millis / 1000.0, status_msg)
 
         msg += "%s/%s/output.txt" % (self._workurl, metadata['path'])
 
         if not success:
-            msg = ircutils.mircColor(msg, fg='red')
+            msg = mirc_color(RED, msg)
         else:
-            msg = ircutils.mircColor(msg, fg='green')
+            msg = mirc_color(GREEN, msg)
 
         return msg
 
@@ -147,8 +169,16 @@ class GNOMEOSTree(callbacks.Plugin):
         else:
             return self._status_line_for_task(taskname)
 
-    def buildstatus(self, irc, msg, args):
-        for taskname in itertools.chain(self._always_announce_tasks, self._announce_failed_tasks, self._announce_periodic_tasks):
-            irc.reply(self._buildstatus_for_task(taskname))
+    def privmsg(self, user, channel, message):
+        message = message.strip()
+        if message == '@buildstatus':
+            for taskname in itertools.chain(self._always_announce_tasks, self._announce_failed_tasks, self._announce_periodic_tasks):
+                status = self._buildstatus_for_task(taskname)
+                self._msg_unicode(channel, status)
 
-Class = GNOMEOSTree
+class BuildGnomeOrgFactory(protocol.ReconnectingClientFactory):
+    protocol = BuildGnomeOrg
+
+application = service.Application('continuous')
+ircService = internet.TCPClient(HOST, PORT, BuildGnomeOrgFactory())
+ircService.setServiceParent(application)
