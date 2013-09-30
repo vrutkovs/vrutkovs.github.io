@@ -29,7 +29,6 @@ const Task = imports.task;
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
 const LibQA = imports.libqa;
-const VersionedDir = imports.versioneddir;
 const JsonUtil = imports.jsonutil;
 const JSUtil = imports.jsutil;
 const GuestFish = imports.guestfish;
@@ -48,39 +47,18 @@ const TaskBuildDisks = new Lang.Class({
     // Legacy
     _VERSION_RE: /^(\d+)\.(\d+)$/,
 
-    _imageSubdir: 'images',
     _inheritPreviousDisk: true,
     _onlyTreeSuffixes: ['-runtime'],
 
     execute: function(cancellable) {
-	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
-        let baseImageVersionedDir = new VersionedDir.VersionedDir(baseImageDir, this._VERSION_RE);
-        GSystem.file_ensure_directory(baseImageDir, true, cancellable);
-	      let currentImageLink = baseImageDir.get_child('current');
-	      let previousImageLink = baseImageDir.get_child('previous');
+        let buildData = JsonUtil.loadJson(this.builddir.get_child('build.json'), cancellable);
 
-	      let builddb = this._getResultDb('build');
-
-        let latestPath = builddb.getLatestPath();
-        let buildVersion = builddb.parseVersionStr(latestPath.get_basename());
-        this._buildVersion = buildVersion;
-        let buildData = builddb.loadFromPath(latestPath, cancellable);
-
-        let targetImageDir = baseImageDir.get_child(buildVersion);
-
-        if (targetImageDir.query_exists(null)) {
-            print("Already created " + targetImageDir.get_path());
-            return;
-        }
-
+        let prevImageDir = this.builddir.get_child('last-build/images');
+        let targetImageDir = this.builddir.get_child('images');
         let workImageDir = Gio.File.new_for_path('images');
         GSystem.file_ensure_directory(workImageDir, true, cancellable);
 
-        let destPath = workImageDir.get_child('build-' + buildVersion + '.json');
-        GSystem.file_linkcopy(latestPath, destPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
-
         let targets = buildData['targets'];
-
         let osname = buildData['snapshot']['osname'];
         let originRepoUrl = buildData['snapshot']['repo'];
 
@@ -98,7 +76,7 @@ const TaskBuildDisks = new Lang.Class({
 	          let squashedName = osname + '-' + targetName.substr(targetName.lastIndexOf('/') + 1);
 	          let diskName = squashedName + '.qcow2';
             let diskPath = workImageDir.get_child(diskName);
-            let prevPath = currentImageLink.get_child(diskName);
+            let prevPath = prevImageDir.get_child(diskName);
             GSystem.shutil_rm_rf(diskPath, cancellable);
             let doCloneDisk = this._inheritPreviousDisk && prevPath.query_exists(null);
             if (doCloneDisk) {
@@ -128,24 +106,6 @@ const TaskBuildDisks = new Lang.Class({
 	      }
 
         GSystem.file_rename(workImageDir, targetImageDir, cancellable);
-
-        let currentInfo = null;
-        try {
-            currentInfo = currentImageLink.query_info('standard::symlink-target', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
-        } catch (e) {
-            if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND))
-                throw e;
-        }
-        if (currentInfo != null) {
-            let newPreviousTmppath = baseImageDir.get_child('previous-new.tmp');
-            let currentLinkTarget = currentInfo.get_symlink_target();
-            GSystem.shutil_rm_rf(newPreviousTmppath, cancellable);
-            newPreviousTmppath.make_symbolic_link(currentLinkTarget, cancellable);
-            GSystem.file_rename(newPreviousTmppath, previousImageLink, cancellable);
-        }
-        BuildUtil.atomicSymlinkSwap(baseImageDir.get_child('current'), targetImageDir, cancellable);
-
-        baseImageVersionedDir.cleanOldVersions(IMAGE_RETAIN_COUNT, cancellable);
     },
 
     _postDiskCreation: function(squashedName, diskPath, cancellable) {

@@ -18,6 +18,7 @@
 
 const Lang = imports.lang;
 
+const JsonUtil = imports.jsonutil;
 const Params = imports.params;
 
 function _componentDict(snapshot) {
@@ -63,6 +64,11 @@ function snapshotDiff(a, b) {
 	}
     }
     return [added, modified, removed];
+}
+
+function fromFile(path, cancellable) {
+    let data = JsonUtil.loadJson(path, cancellable);
+    return new Snapshot(data, path);
 }
 
 const Snapshot = new Lang.Class({

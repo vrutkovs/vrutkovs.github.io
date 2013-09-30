@@ -25,10 +25,8 @@ const GSystem = imports.gi.GSystem;
 const OSTree = imports.gi.OSTree;
 const Params = imports.params;
 const JsonUtil = imports.jsonutil;
-const JsonDB = imports.jsondb;
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
-const VersionedDir = imports.versioneddir;
 
 const DefaultTaskDef = {
     TaskName: '',
@@ -134,6 +132,10 @@ const TaskMaster = new Lang.Class({
 	this._skipTasks = {};
 	for (let i = 0; i < params.skip.length; i++)
 	    this._skipTasks[params.skip[i]] = true;
+
+        this.tasksPath = this.path.get_child('tasks');
+	GSystem.file_ensure_directory(this.tasksPath, true, null);
+
 	this.maxConcurrent = GLib.get_num_processors();
 	this._onEmpty = params.onEmpty;
 	this.cancellable = null;
@@ -150,12 +152,28 @@ const TaskMaster = new Lang.Class({
 	this._scheduledTaskTimeouts = {};
     },
 
+    _getTaskBuildPath: function(taskName) {
+        let buildPath = this.tasksPath.resolve_relative_path(taskName);
+        return GSystem.file_realpath(buildPath);
+    },
+
+    _setTaskBuildPath: function(taskName, buildPath) {
+        let taskLink = this.tasksPath.get_child(taskName);
+        BuildUtil.atomicSymlinkSwap(taskLink, buildPath, this.cancellable);
+        return buildPath;
+    },
+
     _pushTaskDataImmediate: function(taskData) {
 	this._pendingTasksList.push(taskData);
 	this._queueRecalculate();
     },
 
-    pushTask: function(name, parameters) {
+    startBuild: function(buildPath, taskName, parameters) {
+        this._setTaskBuildPath(taskName, buildPath);
+        this._pushTask(taskName, parameters);
+    },
+
+    _pushTask: function(name, parameters) {
 	let taskDef = this._taskset.getTaskDef(name);
         let taskData = new TaskData(taskDef, parameters);
 	if (!this._isTaskPending(name)) {
@@ -279,19 +297,24 @@ const TaskMaster = new Lang.Class({
 	if (idx == -1)
 	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskData.name);
 	this._executing.splice(idx, 1);
+
 	this.emit('task-complete', runner, success, error);
 	if (success && this._processAfter) {
-	    if (runner.changed) {
-		let taskName = runner.taskData.name;
-		let taskDef = runner.taskData.taskDef;
-		let after = this._taskset.getTasksAfter(taskName);
-		for (let i = 0; i < after.length; i++) {
+	    let taskName = runner.taskData.name;
+	    if (success && runner.changed) {
+	        let taskDef = runner.taskData.taskDef;
+                let buildPath = this._getTaskBuildPath(taskName);
+	        let after = this._taskset.getTasksAfter(taskName);
+	        for (let i = 0; i < after.length; i++) {
 		    let afterTaskName = after[i];
-		    if (!this._skipTasks[afterTaskName])
+		    if (!this._skipTasks[afterTaskName]) {
+                        this._setTaskBuildPath(afterTaskName, buildPath);
 			this.pushTask(afterTaskName, {});
-		}
+                    }
+	        }
 	    }
-	}
+        }
+
 	this._queueRecalculate();
     },
 
@@ -322,6 +345,7 @@ const Task = new Lang.Class({
 
 	this.workdir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_WORKDIR'));
 	BuildUtil.checkIsWorkDirectory(this.workdir);
+        this.builddir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_BUILDDIR'));
 
 	this.resultdir = this.workdir.get_child('results');
 	GSystem.file_ensure_directory(this.resultdir, true, null);
@@ -338,11 +362,6 @@ const Task = new Lang.Class({
         this.ostreeRepo.open(null);
     },
 
-    _getResultDb: function(taskname) {
-	let path = this.resultdir.resolve_relative_path(taskname);
-	return new JsonDB.JsonDB(path);
-    },
-
     execute: function(cancellable) {
 	throw new Error("Not implemented");
     },
@@ -351,38 +370,14 @@ const Task = new Lang.Class({
 const TaskRunner = new Lang.Class({
     Name: 'TaskRunner',
 
-    _VERSION_RE: /^(\d+\d\d\d\d)\.(\d+)$/,
-
     _init: function(taskmaster, taskData, onComplete) {
 	this.taskmaster = taskmaster;
 	this.taskData = taskData;
 	this.onComplete = onComplete;
         this.name = taskData.name;
 
-	this.workdir = taskmaster.path.get_parent();
+	this.workdir = taskmaster.path;
 	BuildUtil.checkIsWorkDirectory(this.workdir);
-    },
-
-    _loadAllVersions: function(cancellable) {
-	let allVersions = [];
-
-	let successVersions = this._successDir.loadVersions(cancellable);
-	for (let i = 0; i < successVersions.length; i++) {
-	    allVersions.push([true, successVersions[i]]);
-	}
-
-	let failedVersions = this._failedDir.loadVersions(cancellable);
-	for (let i = 0; i < failedVersions.length; i++) {
-	    allVersions.push([false, failedVersions[i]]);
-	}
-
-	allVersions.sort(function (a, b) {
-	    let [successA, versionA] = a;
-	    let [successB, versionB] = b;
-	    return BuildUtil.compareVersions(versionA, versionB);
-	});
-
-	return allVersions;
     },
 
     executeInSubprocess: function(cancellable) {
@@ -390,46 +385,21 @@ const TaskRunner = new Lang.Class({
 
 	this._startTimeMillis = GLib.get_monotonic_time() / 1000;
 
-	this.dir = this.taskmaster.path.resolve_relative_path(this.name);
-	GSystem.file_ensure_directory(this.dir, true, cancellable);
-	
-	this._topDir = new VersionedDir.VersionedDir(this.dir, this._VERSION_RE);
-	this._successDir = new VersionedDir.VersionedDir(this.dir.get_child('successful'),
-							 this._VERSION_RE);
-	this._failedDir = new VersionedDir.VersionedDir(this.dir.get_child('failed'),
-							this._VERSION_RE);
+        // To prevent tasks from stomping on each other's toes, we put the task
+        // cwd in its own task dir. If a task has any results it wants to pass
+        // on between builds, it needs to write to _OSTBUILD_BUILDDIR.
+        let buildPath = this.taskmaster.tasksPath.resolve_relative_path(this.name);
+        buildPath = GSystem.file_realpath(buildPath);
 
-	let allVersions = this._loadAllVersions(cancellable);
-
-	let currentTime = GLib.DateTime.new_now_utc();
-
-	let currentYmd = Format.vprintf('%d%02d%02d', [currentTime.get_year(),
-						       currentTime.get_month(),
-						       currentTime.get_day_of_month()]);
-	let version = null;
-	if (allVersions.length > 0) {
-	    let [lastSuccess, lastVersion] = allVersions[allVersions.length-1];
-	    let match = this._VERSION_RE.exec(lastVersion);
-	    if (!match) throw new Error();
-	    let lastYmd = match[1];
-	    let lastSerial = match[2];
-	    if (lastYmd == currentYmd) {
-		version = currentYmd + '.' + (parseInt(lastSerial) + 1);
-	    }
-	}
-	if (version === null) {
-	    version = currentYmd + '.0';
-	}
-
-	this._version = version;
-	this._taskCwd = this.dir.get_child(version);
-	GSystem.shutil_rm_rf(this._taskCwd, cancellable);
-	GSystem.file_ensure_directory(this._taskCwd, true, cancellable);
+        this._buildName = buildPath.get_basename();
+        this._taskCwd = buildPath.get_child(this.name);
+        GSystem.file_ensure_directory(this._taskCwd, false, cancellable);
 
 	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.taskData.parameters)];
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
 	context.set_cwd(this._taskCwd.get_path());
 	let childEnv = GLib.get_environ();
+        childEnv.push('_OSTBUILD_BUILDDIR=' + buildPath.get_path());
 	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
 	context.set_environment(childEnv);
 	if (this.taskData.taskDef.PreserveStdout) {
@@ -447,20 +417,6 @@ const TaskRunner = new Lang.Class({
 	this._proc.wait(cancellable, Lang.bind(this, this._onChildExited));
     },
 
-    _updateIndex: function(cancellable) {
-	let allVersions = this._loadAllVersions(cancellable);
-
-	let fileList = [];
-	for (let i = 0; i < allVersions.length; i++) {
-	    let [successful, version] = allVersions[i];
-	    let fname = (successful ? 'successful/' : 'failed/') + version;
-	    fileList.push(fname);
-	}
-
-	let index = { files: fileList };
-	JsonUtil.writeJsonFileAtomic(this.dir.get_child('index.json'), index, cancellable);
-    },
-    
     _onChildExited: function(proc, result) {
 	let cancellable = this._cancellable;
 	let [success, errmsg] = ProcUtil.asyncWaitCheckFinish(proc, result);
@@ -473,24 +429,16 @@ const TaskRunner = new Lang.Class({
             this.changed = data['modified'];
         }
 
-	if (!success) {
-	    target = this._failedDir.path.get_child(this._version);
-	    GSystem.file_rename(this._taskCwd, target, null);
-	    this._taskCwd = target;
-	    this._failedDir.cleanOldVersions(this.taskData.taskDef.RetainFailed, null);
-	    this.onComplete(success, errmsg);
-	} else {
-	    target = this._successDir.path.get_child(this._version);
-	    GSystem.file_rename(this._taskCwd, target, null);
-	    this._taskCwd = target;
-	    this._successDir.cleanOldVersions(this.taskData.taskDef.RetainSuccess, null);
-	    this.onComplete(success, null);
-	}
+	this.onComplete(success, errmsg);
+
+        if (!this.changed)
+            return;
 
 	let elapsedMillis = GLib.get_monotonic_time() / 1000 - this._startTimeMillis;
 	let targetPath = this.workdir.get_relative_path(this._taskCwd);
+
 	let meta = { taskMetaVersion: 0,
-		     taskVersion: this._version,
+                     buildName: this._buildName,
 		     success: success,
 		     errmsg: errmsg,
 		     elapsedMillis: elapsedMillis,
@@ -502,12 +450,5 @@ const TaskRunner = new Lang.Class({
 	}
 
 	JsonUtil.writeJsonFileAtomic(this._taskCwd.get_child('meta.json'), meta, cancellable);
-
-	// Also remove any old interrupted versions
-	this._topDir.cleanOldVersions(0, null);
-
-	this._updateIndex(cancellable);
-
-	BuildUtil.atomicSymlinkSwap(this.dir.get_child('current'), target, cancellable);
     }
 });
