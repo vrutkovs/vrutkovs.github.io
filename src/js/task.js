@@ -125,11 +125,15 @@ const TaskData = new Lang.Class({
 const TaskMaster = new Lang.Class({
     Name: 'TaskMaster',
 
-    _init: function(path, params) {
+    _init: function(workdir, params) {
         params = Params.parse(params, { onEmpty: null, 
 				        processAfter: true,
 				        skip: [] });
-	this.path = path;
+
+        this.workdir = workdir;
+        this.tasksPath = workdir.get_child('tasks');
+	GSystem.file_ensure_directory(this.tasksPath, true, null);
+
 	this._processAfter = params.processAfter;
 	this._skipTasks = {};
 	for (let i = 0; i < params.skip.length; i++)
@@ -359,7 +363,7 @@ const TaskRunner = new Lang.Class({
 	this.onComplete = onComplete;
         this.name = taskData.name;
 
-	this.workdir = taskmaster.path.get_parent();
+	this.workdir = taskmaster.workdir;
 	BuildUtil.checkIsWorkDirectory(this.workdir);
     },
 
@@ -390,7 +394,7 @@ const TaskRunner = new Lang.Class({
 
 	this._startTimeMillis = GLib.get_monotonic_time() / 1000;
 
-	this.dir = this.taskmaster.path.resolve_relative_path(this.name);
+	this.dir = this.taskmaster.tasksPath.resolve_relative_path(this.name);
 	GSystem.file_ensure_directory(this.dir, true, cancellable);
 	
 	this._topDir = new VersionedDir.VersionedDir(this.dir, this._VERSION_RE);

@@ -61,7 +61,7 @@ const Autobuilder = new Lang.Class({
 	this._impl = Gio.DBusExportedObject.wrapJSObject(AutoBuilderIface, this);
 	this._impl.export(Gio.DBus.session, '/org/gnome/OSTreeBuild/AutoBuilder');
 
-	this._taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
+	this._taskmaster = new Task.TaskMaster(this.workdir,
 						  { onEmpty: Lang.bind(this, this._onTasksComplete) });
 	this._taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	this._taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));

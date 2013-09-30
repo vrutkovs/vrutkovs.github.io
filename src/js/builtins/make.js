@@ -47,7 +47,7 @@ const Make = new Lang.Class({
 	this._cancellable = cancellable;
 	this._tasksComplete = false;
 	this._oneOnly = args.only;
-	let taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
+	let taskmaster = new Task.TaskMaster(this.workdir,
 					     { onEmpty: Lang.bind(this, this._onTasksComplete),
 					       processAfter: !args.only,
 					       skip: args.skip });
