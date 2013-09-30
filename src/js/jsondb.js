@@ -130,7 +130,7 @@ const JsonDB = new Lang.Class({
 						       currentTime.get_month(),
 						       currentTime.get_day_of_month()]);
 
-	let buf = JSON.stringify(obj, null, "  ");
+	let buf = JsonUtil.serializeJson(obj);
 	let csum = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, buf, -1);
         
         if (latest && csum == latest[2]) {

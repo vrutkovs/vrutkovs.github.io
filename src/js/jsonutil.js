@@ -22,13 +22,17 @@ const Gio = imports.gi.Gio;
  * Read/write JSON to/from GFile paths, very inefficiently.
  */
 
+function serializeJson(data) {
+    return JSON.stringify(data, null, "  ");
+}
+
 function writeJsonToStream(stream, data, cancellable) {
-    let buf = JSON.stringify(data, null, "  ");
+    let buf = serializeJson(data);
     stream.write_bytes(new GLib.Bytes(buf), cancellable);
 }
 
 function writeJsonToStreamAsync(stream, data, cancellable, onComplete) {
-    let buf = JSON.stringify(data, null, "  ");
+    let buf = serializeJson(data);
     stream.write_bytes_async(new GLib.Bytes(buf), GLib.PRIORITY_DEFAULT,
 			     cancellable, function(stream, result) {
 				 let err = null;
