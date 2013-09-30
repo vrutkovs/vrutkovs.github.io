@@ -57,11 +57,8 @@ class BuildGnomeOrg(irc.IRCClient):
         self._status_channels = ['#gnome-hackers']
         self._last_task_state = {}
         tracked_build = 'buildmaster'
-        self._periodic_announce_seconds = 3*60*60
-        self._periodic_announce_ticks = 0
-        self._always_announce_tasks = ['build']
-        self._announce_failed_tasks = ['resolve']
-        self._announce_periodic_tasks = ['smoketest', 'integrationtest', 'applicationstest']
+        self._flood_tasks = ['build']
+        self._announce_changed_tasks = ['resolve', 'smoketest', 'integrationtest', 'applicationstest']
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
         self._workurl = "http://build.gnome.org/continuous/%s" % (tracked_build, )
         self._loop = task.LoopingCall(self._query_new_tasks)
@@ -82,14 +79,10 @@ class BuildGnomeOrg(irc.IRCClient):
             self._msg_unicode(channel, msg)
 
     def _query_new_tasks(self):
-        self._periodic_announce_ticks += 1
-
-        for taskname in self._always_announce_tasks:
-            self._query_new_task(taskname, announce_success=True)
-        for taskname in self._announce_failed_tasks:
-            self._query_new_task(taskname)
-        for taskname in self._announce_periodic_tasks:
-            self._query_new_task(taskname, announce_periodic=True)
+        for taskname in self._flood_tasks:
+            self._query_new_task(taskname, announce_always=True)
+        for taskname in self._announce_changed_tasks:
+            self._query_new_task(taskname, announce_always=False)
 
     def _get_task_state(self, taskname):
         current_task_path = os.path.join(self._workdir, 'tasks/%s/current' % (taskname, ))
@@ -148,7 +141,7 @@ class BuildGnomeOrg(irc.IRCClient):
 
         return msg
 
-    def _query_new_task(self, taskname, announce_success=False, announce_periodic=False):
+    def _query_new_task(self, taskname, announce_always=False):
         querystate = self._update_task_state(taskname)
         if querystate is None:
             return
@@ -163,10 +156,9 @@ class BuildGnomeOrg(irc.IRCClient):
 
         msg = self._status_line_for_task(taskname)
 
-        if announce_success:
+        if success_changed:
             self._sendTo(self._flood_channels, msg)
-        if ((not announce_periodic and success_changed) or
-            (announce_periodic and self._periodic_announce_ticks == self._periodic_announce_seconds)):
+        if announce_always or success_changed:
             self._sendTo(self._status_channels, msg)
 
     def _buildstatus_for_task(self, taskname):
@@ -179,7 +171,7 @@ class BuildGnomeOrg(irc.IRCClient):
     def privmsg(self, user, channel, message):
         message = message.strip()
         if message == '@buildstatus':
-            for taskname in itertools.chain(self._always_announce_tasks, self._announce_failed_tasks, self._announce_periodic_tasks):
+            for taskname in itertools.chain(self._flood_tasks, self._announce_changed_tasks):
                 status = self._buildstatus_for_task(taskname)
                 self._msg_unicode(channel, status)
 
