@@ -64,6 +64,7 @@ jsostbuild_DATA= \
 	src/js/builtin.js \
 	src/js/fileutil.js \
 	src/js/task.js \
+	src/js/jsondb.js \
 	src/js/jsonutil.js \
 	src/js/jsutil.js \
 	src/js/main.js \

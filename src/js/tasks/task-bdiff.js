@@ -83,21 +83,32 @@ const TaskBdiff = new Lang.Class({
     },
 
     execute: function(cancellable) {
-	let latestSnapshotPath = this.builddir.get_child('snapshot.json');
-        let previousSnapshotPath = this.builddir.get_child('last-build/snapshot.json');
-        if (!previousSnapshotPath.query_exists(cancellable))
-            return;
+	let builddb = this._getResultDb('build');
+        let latestPath = builddb.getLatestPath();
+	if (!latestPath)
+	    throw new Error("No builds!")
+        let latestBuildVersion = builddb.parseVersionStr(latestPath.get_basename());
 
-	let latestBuildSnapshot = Snapshot.fromFile(latestSnapshotPath, cancellable);
-	let previousBuildSnapshot = Snapshot.fromFile(previousSnapshotData, cancellable);
+        let previousPath = builddb.getPreviousPath(latestPath);
+	if (!previousPath)
+	    throw new Error("No build previous to " + latestBuildVersion)
+
+        let latestBuildData = builddb.loadFromPath(latestPath, cancellable);
+	let latestBuildSnapshot = new Snapshot.Snapshot(latestBuildData['snapshot'], null);
+        let previousBuildData = builddb.loadFromPath(previousPath, cancellable);
+	let previousBuildSnapshot = new Snapshot.Snapshot(previousBuildData['snapshot'], null);
 
 	let added = [];
 	let modified = [];
 	let removed = [];
 
-	let result = { added: added,
-		       modified: modified,
-		       removed: removed };
+	let result = {fromBuildVersion: builddb.parseVersionStr(previousPath.get_basename()),
+		      toBuildVersion: builddb.parseVersionStr(latestPath.get_basename()),
+		      fromSrcVersion: builddb.parseVersionStr(previousBuildData['snapshotName']),
+		      toSrcVersion: builddb.parseVersionStr(latestBuildData['snapshotName']),
+		      added: added,
+		      modified: modified,
+		      removed: removed};
 
 	let modifiedNames = [];
 
@@ -135,6 +146,7 @@ const TaskBdiff = new Lang.Class({
 			    diffstat: diffstat });
 	}
 
-	JsonUtil.writeJsonFileAtomic(this.builddir.get_child('bdiff.json'), result, cancellable);
+	let bdiffdb = this._getResultDb('bdiff'); 
+	bdiffdb.store(result, cancellable);
     }
 });

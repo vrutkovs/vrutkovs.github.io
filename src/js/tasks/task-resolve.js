@@ -18,6 +18,7 @@
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 
+const JsonDB = imports.jsondb;
 const Task = imports.task;
 const ProcUtil = imports.procutil;
 const JsonUtil = imports.jsonutil;
@@ -37,22 +38,12 @@ const TaskResolve = new Lang.Class({
 			fetchComponents: [],
 		        timeoutSec: 10},
 
-    _writeSnapshotToBuild: function(cancellable) {
-        let data = this._snapshot.data;
-        let buf = JsonUtil.serializeJson(data);
-
-        let oldSnapshot = this.builddir.get_child('last-build/snapshot.json');
-        if (oldSnapshot.query_exists(cancellable)) {
-            let oldBytes = GSystem.file_map_readonly(snapshotPath, cancellable);
-            let oldCsum = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, oldBytes);
-            let newCsum = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, buf, -1);
-            if (oldCsum == newCsum)
-                return false;
-        }
-
-        let snapshot = this.builddir.get_child('snapshot.json');
-        JsonUtil.writeJsonFileAtomic(snapshot, data, cancellable);
-        return true;
+    _getDb: function() {
+	if (this._db == null) {
+	    let snapshotdir = this.workdir.get_child('snapshots');
+	    this._db = new JsonDB.JsonDB(snapshotdir);
+	}
+	return this._db;
     },
 
     execute: function(cancellable) {
@@ -86,11 +77,11 @@ const TaskResolve = new Lang.Class({
             component['revision'] = revision;
 	}
 
-        let modified = this._writeSnapshotToBuild(cancellable);
+        let [path, modified] = this._getDb().store(this._snapshot.data, cancellable);
         if (modified) {
-            print("New source snapshot");
+            print("New source snapshot: " + path.get_path());
         } else {
-            print("Source snapshot unchanged");
+            print("Source snapshot unchanged: " + path.get_path());
 	}
 
         let modifiedPath = Gio.File.new_for_path('modified.json');

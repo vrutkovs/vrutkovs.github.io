@@ -37,7 +37,6 @@ const Make = new Lang.Class({
 	this.parser.addArgument(['-x', '--skip'], { action: 'append',
 						    help: "Don't process tasks after this" });
 	this.parser.addArgument('taskname');
-        this.parser.addArgument('buildPath');
 	this.parser.addArgument('parameters', { nargs: '*' });
     },
 
@@ -48,7 +47,7 @@ const Make = new Lang.Class({
 	this._cancellable = cancellable;
 	this._tasksComplete = false;
 	this._oneOnly = args.only;
-	let taskmaster = new Task.TaskMaster(this.workdir,
+	let taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
 					     { onEmpty: Lang.bind(this, this._onTasksComplete),
 					       processAfter: !args.only,
 					       skip: args.skip });
@@ -56,8 +55,7 @@ const Make = new Lang.Class({
 	taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
 	let params = this._parseParameters(args.parameters);
-        let buildPath = Gio.File.new_for_path(args.buildPath);
-	taskmaster.startBuild(buildPath, args.taskname, params);
+	taskmaster.pushTask(args.taskname, params);
 	loop.run();
 	if (!this._failed)
 	    print("Success!")

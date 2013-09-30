@@ -19,12 +19,9 @@ const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 
-const GSystem = imports.gi.GSystem;
-
 const Builtin = imports.builtin;
 const Task = imports.task;
 const ProcUtil = imports.procutil;
-const VersionedDir = imports.versioneddir;
 
 var AutoBuilderIface = <interface name="org.gnome.OSTreeBuild.AutoBuilder">
 <method name="queueResolve">
@@ -38,9 +35,7 @@ const Autobuilder = new Lang.Class({
     Extends: Builtin.Builtin,
 
     DESCRIPTION: "Automatically fetch git repositories and build",
-
-    _VERSION_RE: /^(\d+\d\d\d\d)\.(\d+)$/,
-
+    
     _init: function() {
 	this.parent();
 
@@ -56,8 +51,6 @@ const Autobuilder = new Lang.Class({
     execute: function(args, loop, cancellable) {
 	this._initWorkdir(null, cancellable);
 
-        this._buildsDir = new VersionedDir.VersionedDir(this.workdir.get_child('builds'), this._VERSION_RE);
-
 	if (args.autoupdate_self)
 	    this._autoupdate_self = Gio.File.new_for_path(args.autoupdate_self);
 
@@ -68,7 +61,7 @@ const Autobuilder = new Lang.Class({
 	this._impl = Gio.DBusExportedObject.wrapJSObject(AutoBuilderIface, this);
 	this._impl.export(Gio.DBus.session, '/org/gnome/OSTreeBuild/AutoBuilder');
 
-	this._taskmaster = new Task.TaskMaster(this.workdir,
+	this._taskmaster = new Task.TaskMaster(this.workdir.get_child('tasks'),
 						  { onEmpty: Lang.bind(this, this._onTasksComplete) });
 	this._taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	this._taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
@@ -95,9 +88,6 @@ const Autobuilder = new Lang.Class({
     },
 
     _onTaskCompleted: function(taskmaster, task, success, error) {
-        if (!task.changed)
-            GSystem.shutil_rm_rf(task.buildPath, cancellable);
-
 	if (task.name == 'resolve')
 	    this._runResolve();
 	if (success) {
@@ -144,46 +134,6 @@ const Autobuilder = new Lang.Class({
 	return true;
     },
 
-    _getLastVersion: function(cancellable) {
-        let allVersions = this._buildsDir.loadVersions(cancellable);
-        if (allVersions.length > 0)
-            return allVersions[allVersions.length-1];
-        else
-            return null;
-    },
-
-    _getNextBuildDirectory: function(cancellable) {
-        let currentTime = GLib.DateTime.new_now_utc();
-        let currentYmd = Format.vprintf('%d%02d%02d', [currentTime.get_year(),
-                                                       currentTime.get_month(),
-                                                       currentTime.get_day_of_month()]);
-
-        let version = null;
-        let lastVersion = this._getLastVersion(cancellable);
-        if (lastVersion) {
-            let match = this._VERSION_RE.exec(lastVersion);
-            if (!match) throw new Error();
-            let lastYmd = match[1];
-            let lastSerial = match[2];
-            if (lastYmd == currentYmd) {
-                version = currentYmd + '.' + (parseInt(lastSerial) + 1);
-            }
-        }
-        if (version === null) {
-            version = currentYmd + '.0';
-        }
-
-        let buildPath = this._buildsDir.path.get_child(version);
-        GSystem.file_ensure_directory(buildPath, true, cancellable);
-
-        if (lastVersion) {
-            let lastBuildPath = this._buildsDir.path.get_child(lastVersion);
-            BuildUtil.atomicSymlinkSwap(buildPath.get_child('last-build'), lastBuildPath);
-        }
-
-        return buildPath;
-    },
-
     _runResolve: function() {
 	let cancellable = null;
 	
@@ -199,15 +149,14 @@ const Autobuilder = new Lang.Class({
 	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable,
 			     { cwd: this._autoupdate_self })
 
-        let buildPath = this._getNextBuildDirectory(cancellable);
 	if (this._initialResolveNeeded) {
 	    this._initialResolveNeeded = false;
-	    this._taskmaster.startBuild('resolve', buildPath, { });
+	    this._taskmaster.pushTask('resolve', { });
 	} else if (this._fullResolveNeeded) {
 	    this._fullResolveNeeded = false;
-	    this._taskmaster.startBuild('resolve', buildPath, { fetchAll: true });
+	    this._taskmaster.pushTask('resolve', { fetchAll: true });
 	} else {
-	    this._taskmaster.startBuild('resolve', buildPath, { fetchSrcUrls: this._resolveSrcUrls });
+	    this._taskmaster.pushTask('resolve', { fetchSrcUrls: this._resolveSrcUrls });
 	}
 	this._resolveSrcUrls = [];
 
