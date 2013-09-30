@@ -156,9 +156,9 @@ class BuildGnomeOrg(irc.IRCClient):
 
         msg = self._status_line_for_task(taskname)
 
-        if success_changed:
+        if announce_always:
             self._sendTo(self._flood_channels, msg)
-        if announce_always or success_changed:
+        if success_changed:
             self._sendTo(self._status_channels, msg)
 
     def _buildstatus_for_task(self, taskname):
