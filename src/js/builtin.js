@@ -24,7 +24,6 @@ const GSystem = imports.gi.GSystem;
 const Params = imports.params;
 const JsonUtil = imports.jsonutil;
 const ArgParse = imports.argparse;
-const JsonDB = imports.jsondb;
 const Snapshot = imports.snapshot;
 const BuildUtil = imports.buildutil;
 
@@ -57,16 +56,8 @@ const Builtin = new Lang.Class({
 
     _initSnapshot: function(workdir, snapshotPath, cancellable) {
 	this._initWorkdir(workdir, cancellable);
-	let snapshotDir = this.workdir.get_child('snapshots');
-	let path, data;
-	if (snapshotPath !== null) {
-	    path = Gio.File.new_for_path(snapshotPath);
-	    data = JsonUtil.loadJson(path, cancellable);
-	} else {
-	    let db = new JsonDB.JsonDB(snapshotDir);
-	    path = db.getLatestPath();
-	    data = db.loadFromPath(path, cancellable);
-	}
+	let path = Gio.File.new_for_path(snapshotPath);
+	let data = JsonUtil.loadJson(path, cancellable);
 	this._snapshot = new Snapshot.Snapshot(data, path);
     },
 
