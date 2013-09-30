@@ -56,22 +56,17 @@ const TaskBuildDisks = new Lang.Class({
 	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
         let baseImageVersionedDir = new VersionedDir.VersionedDir(baseImageDir, this._VERSION_RE);
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
+
 	      let currentImageLink = baseImageDir.get_child('current');
 	      let previousImageLink = baseImageDir.get_child('previous');
 
-	      let builddb = this._getResultDb('build');
-
-        let latestPath = builddb.getLatestPath();
-        let buildVersion = builddb.parseVersionStr(latestPath.get_basename());
-        this._buildVersion = buildVersion;
-        let buildData = builddb.loadFromPath(latestPath, cancellable);
-
-        let targetImageDir = baseImageDir.get_child(buildVersion);
-
+        let targetImageDir = baseImageDir.get_child(this._buildName);
         if (targetImageDir.query_exists(null)) {
             print("Already created " + targetImageDir.get_path());
             return;
         }
+
+        let buildData = JsonUtil.loadJson(this.builddir.get_child('build.json'), cancellable);
 
         let workImageDir = Gio.File.new_for_path('images');
         GSystem.file_ensure_directory(workImageDir, true, cancellable);

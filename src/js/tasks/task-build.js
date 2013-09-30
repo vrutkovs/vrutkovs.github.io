@@ -30,7 +30,6 @@ const AsyncUtil = imports.asyncutil;
 const ProcUtil = imports.procutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
-const JsonDB = imports.jsondb;
 const Snapshot = imports.snapshot;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
@@ -1128,14 +1127,11 @@ const TaskBuild = new Lang.Class({
 	    this.forceBuildComponents[this.parameters.forceComponents[i]] = true;
         this.cachedPatchdirRevision = null;
 
-	let snapshotDir = this.workdir.get_child('snapshots');
-	let srcdb = new JsonDB.JsonDB(snapshotDir);
-	let snapshotPath = srcdb.getLatestPath();
-	let workingSnapshotPath = Gio.File.new_for_path(snapshotPath.get_basename());
+	let snapshotPath = this.builddir.get_child('snapshot.json');
+	let workingSnapshotPath = Gio.File.new_for_path('snapshot.json');
 	GSystem.file_linkcopy(snapshotPath, workingSnapshotPath, Gio.FileCopyFlags.OVERWRITE,
 			      cancellable);
-	let data = srcdb.loadFromPath(workingSnapshotPath, cancellable);
-	this._snapshot = new Snapshot.Snapshot(data, workingSnapshotPath);
+	this._snapshot = Snapshot.fromFile(workingSnapshotPath, cancellable);
         let osname = this._snapshot.data['osname'];
 	this.osname = osname;
 
@@ -1144,10 +1140,6 @@ const TaskBuild = new Lang.Class({
 	this.patchdir = this.workdir.get_child('patches');
 
         let components = this._snapshot.data['components'];
-
-	let builddb = this._getResultDb('build');
-
-	let targetSourceVersion = builddb.parseVersionStr(this._snapshot.path.get_basename());
 
 	// Pick up overrides from $workdir/overrides/$name
         for (let i = 0; i < components.length; i++) {
@@ -1162,26 +1154,6 @@ const TaskBuild = new Lang.Class({
 		delete component['patches'];
 	    }
 	}
-
-	let haveLocalComponent = false;
-        for (let i = 0; i < components.length; i++) {
-	    let component = components[i];
-	    if (component['src'].indexOf('local:') == 0)
-		haveLocalComponent = true;
-	}
-
-	let latestBuildPath = builddb.getLatestPath();
-	if (latestBuildPath != null) {
-	    let lastBuiltSourceData = builddb.loadFromPath(latestBuildPath, cancellable);
-	    let lastBuiltSourceVersion = builddb.parseVersionStr(lastBuiltSourceData['snapshotName']);
-	    if (!haveLocalComponent && lastBuiltSourceVersion == targetSourceVersion) {
-		print("Already built source snapshot " + lastBuiltSourceVersion);
-		return;
-	    } else {
-		print("Last successful build was " + lastBuiltSourceVersion);
-	    }
-	}
-	print("building " + targetSourceVersion);
 
         this._componentBuildCachePath = this.cachedir.get_child('component-builds.json');
         if (this._componentBuildCachePath.query_exists(cancellable)) {
@@ -1438,7 +1410,6 @@ const TaskBuild = new Lang.Class({
 
 	this._writeStatus('built: ' + this._rebuiltComponents.join(' '), cancellable);
 
-	let [path, modified] = builddb.store(buildData, cancellable);
-	print("Build complete: " + path.get_path());
+	JsonUtil.writeJsonFileAtomic(this.builddir.get_child('build.json'), buildData, cancellable);
     }
 });

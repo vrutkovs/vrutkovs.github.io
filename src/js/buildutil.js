@@ -104,7 +104,7 @@ function atomicSymlinkSwap(linkPath, newTarget, cancellable) {
     let parent = linkPath.get_parent();
     let tmpLinkPath = parent.get_child('current-new.tmp');
     GSystem.shutil_rm_rf(tmpLinkPath, cancellable);
-    let relpath = parent.get_relative_path(newTarget);
+    let relpath = GSystem.file_get_relpath(parent, newTarget);
     tmpLinkPath.make_symbolic_link(relpath, cancellable);
     GSystem.file_rename(tmpLinkPath, linkPath, cancellable);
 }

@@ -55,7 +55,9 @@ const Make = new Lang.Class({
 	taskmaster.connect('task-executing', Lang.bind(this, this._onTaskExecuting));
 	taskmaster.connect('task-complete', Lang.bind(this, this._onTaskCompleted));
 	let params = this._parseParameters(args.parameters);
-	taskmaster.pushTask(args.taskname, params);
+        let buildPath = Gio.File.new_for_path('local');
+        GSystem.file_ensure_directory(buildPath, false, cancellable);
+	taskmaster.pushTask(buildPath, args.taskname, params);
 	loop.run();
 	if (!this._failed)
 	    print("Success!")
