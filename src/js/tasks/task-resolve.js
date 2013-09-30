@@ -48,8 +48,7 @@ const TaskResolve = new Lang.Class({
 
     execute: function(cancellable) {
         let manifestPath = this.workdir.get_child('manifest.json');
-	let data = JsonUtil.loadJson(manifestPath, cancellable);
-        this._snapshot = new Snapshot.Snapshot(data, manifestPath, { prepareResolve: true });
+        this._snapshot = Snapshot.fromFile(manifestPath, cancellable, { prepareResolve: true });
 
         let componentsToFetch = this.parameters.fetchComponents.slice();
         let srcUrls = this.parameters.fetchSrcUrls;

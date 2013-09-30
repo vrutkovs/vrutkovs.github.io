@@ -50,8 +50,7 @@ const GitMirror = new Lang.Class({
 
         if (args.manifest != null) {
 	    let manifestPath = Gio.File.new_for_path(args.manifest)
-            let manifestData = JsonUtil.loadJson(manifestPath, cancellable);
-	    this._snapshot = new Snapshot.Snapshot(manifestData, manifestPath, { prepareResolve: true });
+            this._snapshot = Snapshot.fromFile(manifestPath, cancellable, { prepareResolve: true });
         } else {
 	    this._initSnapshot(null, args.snapshot, cancellable);
 	}

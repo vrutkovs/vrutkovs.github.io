@@ -57,8 +57,7 @@ const Builtin = new Lang.Class({
     _initSnapshot: function(workdir, snapshotPath, cancellable) {
 	this._initWorkdir(workdir, cancellable);
 	let path = Gio.File.new_for_path(snapshotPath);
-	let data = JsonUtil.loadJson(path, cancellable);
-	this._snapshot = new Snapshot.Snapshot(data, path);
+	this._snapshot = Snapshot.fromFile(path, cancellable);
     },
 
     main: function(argv, loop, cancellable) {
