@@ -283,17 +283,18 @@ const TaskMaster = new Lang.Class({
 	if (idx == -1)
 	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskData.name);
 	this._executing.splice(idx, 1);
+        if (!runner.changed)
+            return;
+
 	this.emit('task-complete', runner, success, error);
 	if (success && this._processAfter) {
-	    if (runner.changed) {
-		let taskName = runner.taskData.name;
-		let taskDef = runner.taskData.taskDef;
-		let after = this._taskset.getTasksAfter(taskName);
-		for (let i = 0; i < after.length; i++) {
-		    let afterTaskName = after[i];
-		    if (!this._skipTasks[afterTaskName])
-			this.pushTask(afterTaskName, {});
-		}
+	    let taskName = runner.taskData.name;
+	    let taskDef = runner.taskData.taskDef;
+	    let after = this._taskset.getTasksAfter(taskName);
+	    for (let i = 0; i < after.length; i++) {
+		let afterTaskName = after[i];
+		if (!this._skipTasks[afterTaskName])
+		    this.pushTask(afterTaskName, {});
 	    }
 	}
 	this._queueRecalculate();
@@ -477,18 +478,21 @@ const TaskRunner = new Lang.Class({
             this.changed = data['modified'];
         }
 
+	this.onComplete(success, errmsg);
+
+        if (!this.changed)
+            return;
+
 	if (!success) {
 	    target = this._failedDir.path.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
 	    this._failedDir.cleanOldVersions(this.taskData.taskDef.RetainFailed, null);
-	    this.onComplete(success, errmsg);
 	} else {
 	    target = this._successDir.path.get_child(this._version);
 	    GSystem.file_rename(this._taskCwd, target, null);
 	    this._taskCwd = target;
 	    this._successDir.cleanOldVersions(this.taskData.taskDef.RetainSuccess, null);
-	    this.onComplete(success, null);
 	}
 
 	let elapsedMillis = GLib.get_monotonic_time() / 1000 - this._startTimeMillis;
