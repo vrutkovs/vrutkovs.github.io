@@ -61,7 +61,7 @@ class BuildGnomeOrg(irc.IRCClient):
         self._periodic_announce_ticks = 0
         self._always_announce_tasks = ['build']
         self._announce_failed_tasks = ['resolve']
-        self._announce_periodic_tasks = ['smoketest', 'integrationtest']
+        self._announce_periodic_tasks = ['smoketest', 'integrationtest', 'applicationstest']
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
         self._workurl = "http://build.gnome.org/continuous/%s" % (tracked_build, )
         self._loop = task.LoopingCall(self._query_new_tasks)
