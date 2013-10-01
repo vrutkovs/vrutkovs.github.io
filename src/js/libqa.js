@@ -18,6 +18,7 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
+const OSTree = imports.gi.OSTree;
 
 const GSystem = imports.gi.GSystem;
 const Params = imports.params;
@@ -147,10 +148,22 @@ function copyDisk(srcpath, destpath, cancellable) {
 		      destpath.get_path()], cancellable);
 }
 
+function getSysrootAndCurrentDeployment(mntdir, osname) {
+    let sysroot = OSTree.Sysroot.new(mntdir);
+    sysroot.load(null);
+    let deployments = sysroot.get_deployments().filter(function (deployment) {
+	return deployment.get_osname() == osname;
+    });
+    if (deployments.length == 0)
+	throw new Error("No deployments for " + osname + " in " + mntdir.get_path());
+    let current = deployments[0];
+    return [sysroot, current];
+}
+
 function getDeployDirs(mntdir, osname) {
-    let basedir = mntdir.resolve_relative_path('ostree/deploy/' + osname);
-    return [basedir.get_child('current'),
-	    basedir.get_child('current/etc')];
+    let [sysroot, current] = getSysrootAndCurrentDeployment(mntdir, osname);
+    let deployDir = sysroot.get_deployment_directory(current);
+    return [deployDir, deployDir.get_child('etc')];
 }
 
 function modifyBootloaderAppendKernelArgs(mntdir, kernelArgs, cancellable) {
@@ -247,7 +260,8 @@ function _findFirstFileMatching(dir, prefix, cancellable) {
 } 
 
 function _findCurrentKernel(mntdir, osname, cancellable) {
-    let deployBootdir = mntdir.resolve_relative_path('ostree/deploy/' + osname + '/current/boot');
+    let [sysroot, current] = getSysrootAndCurrentDeployment(mntdir, osname);
+    let deployBootdir = sysroot.get_deployment_directory(current).resolve_relative_path('boot');
     return [_findFirstFileMatching(deployBootdir, 'vmlinuz-', cancellable),
 	    _findFirstFileMatching(deployBootdir, 'initramfs-', cancellable)];
 };
