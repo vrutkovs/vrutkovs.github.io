@@ -147,6 +147,7 @@ class BuildGnomeOrg(irc.IRCClient):
             return
 
         (last_state, new_state, status_msg) = querystate
+        print "New version of %s: %r" % (taskname, querystate)
         if last_state is not None:
             last_success = last_state['success']
         else:
@@ -156,7 +157,7 @@ class BuildGnomeOrg(irc.IRCClient):
 
         msg = self._status_line_for_task(taskname)
 
-        if announce_always:
+        if announce_always or success_changed:
             self._sendTo(self._flood_channels, msg)
         if success_changed:
             self._sendTo(self._status_channels, msg)
