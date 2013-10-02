@@ -235,7 +235,6 @@ const TestOneDisk = new Lang.Class({
             throw new Error("Attempting QMP command without having received greeting");
         this._qmpOut.put_string(cmdStr, this._cancellable);
         this._qmpCommandOutstanding.push(onComplete);
-        print("scheduling command " + cmdStr + "; outstanding=" + this._qmpCommandOutstanding.length);
         if (this._qmpCommandOutstanding.length == 1)
             this._qmpIn.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
                                          Lang.bind(this, this._onQemuCommandComplete));
@@ -310,7 +309,6 @@ const TestOneDisk = new Lang.Class({
             filename = "screenshot-" + params.name + ".ppm";
         }
 
-        print("requesting screenshot " + filename);
         this._qmpCommand({"execute": "screendump", "arguments": { "filename": filename }},
                           Lang.bind(this, this._onScreenshotComplete, filename, params.isFinal, params.name));
     },
@@ -318,7 +316,6 @@ const TestOneDisk = new Lang.Class({
     _idleScreenshot: function() {
         if (this._foundAllMessageIds)
             return false;
-        print("idleScreenshot caps=" + this._qmpCapabilitiesReceived);
         if (this._qmpCapabilitiesReceived)
             this._screenshot(false);
         return true;
