@@ -302,7 +302,7 @@
 		     "--enable-egl", 
 		     "--enable-gles1", 
 		     "--enable-gles2", 
-		     "--enable-gallium-egl", 
+		     "--disable-gallium-egl", 
 		     "--with-egl-platforms=wayland,x11,drm",
 		     "--enable-shared-glapi",
 		     "--enable-gbm",
