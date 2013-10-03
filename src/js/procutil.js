@@ -15,6 +15,7 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
+const Format = imports.format;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 

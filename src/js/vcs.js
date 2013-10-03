@@ -16,6 +16,7 @@
 // Boston, MA 02111-1307, USA.
 
 const Params = imports.params;
+const Format = imports.format;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GSystem = imports.gi.GSystem;
