@@ -279,6 +279,11 @@
 		{"src": "fd:cairo",
 		 "config-opts": ["--disable-interpreter"]},
 
+                {"src": "fd:libevdev",
+		 "tag": "b539cfd8085e13acce35b11b9ad5550ac5644505",
+		 "tag-reason": "-fstack-protector unsupported, configure check wrong",
+		 "config-opts": ["--disable-gcov"]},
+
 		{"src": "fd:xorg/util/makedepend",
 		 "component": "devel"},
 
@@ -561,11 +566,6 @@
 				 "--enable-kms-egl-platform",
 				 "--enable-xlib-egl-platform"],
 		 "branch": "cogl-1.16"},
-
-                {"src": "fd:libevdev",
-		 "tag": "b539cfd8085e13acce35b11b9ad5550ac5644505",
-		 "tag-reason": "-fstack-protector unsupported, configure check wrong",
-		 "config-opts": ["--disable-gcov"]},
 
 		{"src": "gnome:clutter",
 		 "config-opts": ["--enable-installed-tests",
