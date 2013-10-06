@@ -960,7 +960,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 24,
+    "build-epoch": {"version": 25,
 		    "all": false,
-		    "component-names": ["gnome-settings-daemon"]}
+		    "component-names": ["libevdev", "xf86-input-evdev"]}
 }
