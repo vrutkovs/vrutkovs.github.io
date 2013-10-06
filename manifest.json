@@ -280,8 +280,6 @@
 		 "config-opts": ["--disable-interpreter"]},
 
                 {"src": "fd:libevdev",
-		 "tag": "b539cfd8085e13acce35b11b9ad5550ac5644505",
-		 "tag-reason": "-fstack-protector unsupported, configure check wrong",
 		 "config-opts": ["--disable-gcov"]},
 
 		{"src": "fd:xorg/util/makedepend",
