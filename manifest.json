@@ -87,8 +87,6 @@
 		                 "--disable-vapigen"]},
 
 		{"src": "gnome:vala",
-		 "tag": "5f7c87354bab55477739405ecdc41e69a8de45f8",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=709587",
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
