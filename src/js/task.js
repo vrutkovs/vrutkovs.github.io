@@ -300,19 +300,19 @@ const TaskMaster = new Lang.Class({
         if (!runner.changed)
             return;
 
-	this.emit('task-complete', runner, success, error);
 	if (success) {
 	    let taskName = runner.taskData.name;
 	    let taskDef = runner.taskData.taskDef;
-            let buildPath = this._getTaskBuildPath(taskName);
 	    let after = this._taskset.getTasksAfter(taskName);
 	    for (let i = 0; i < after.length; i++) {
 		let afterTaskName = after[i];
+                let buildPath = this._getTaskBuildPath(taskName);
                 this._setTaskBuildPath(afterTaskName, buildPath);
 		if (!this._skipTasks[afterTaskName] && this._processAfter)
 		    this._pushTask(afterTaskName, {});
 	    }
 	}
+	this.emit('task-complete', runner, success, error);
 	this._queueRecalculate();
     },
 
