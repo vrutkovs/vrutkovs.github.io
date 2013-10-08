@@ -310,7 +310,7 @@ const TaskMaster = new Lang.Class({
 		let afterTaskName = after[i];
                 this._setTaskBuildPath(afterTaskName, buildPath);
 		if (!this._skipTasks[afterTaskName] && this._processAfter)
-		    this.pushTask(afterTaskName, {});
+		    this._pushTask(afterTaskName, {});
 	    }
 	}
 	this._queueRecalculate();
