@@ -89,7 +89,7 @@ const TaskBdiff = new Lang.Class({
             return;
 
 	let latestBuildSnapshot = Snapshot.fromFile(latestSnapshotPath, cancellable);
-	let previousBuildSnapshot = Snapshot.fromFile(previousSnapshotData, cancellable);
+	let previousBuildSnapshot = Snapshot.fromFile(previousSnapshotPath, cancellable);
 
 	let added = [];
 	let modified = [];
