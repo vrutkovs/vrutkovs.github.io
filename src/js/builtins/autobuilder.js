@@ -23,6 +23,7 @@ const GSystem = imports.gi.GSystem;
 
 const Builtin = imports.builtin;
 const Task = imports.task;
+const BuildUtil = imports.buildutil;
 const ProcUtil = imports.procutil;
 const VersionedDir = imports.versioneddir;
 
@@ -178,7 +179,7 @@ const Autobuilder = new Lang.Class({
 
         if (lastVersion) {
             let lastBuildPath = this._buildsDir.path.get_child(lastVersion);
-            BuildUtil.atomicSymlinkSwap(buildPath.get_child('last-build'), lastBuildPath);
+            BuildUtil.atomicSymlinkSwap(buildPath.get_child('last-build'), lastBuildPath, null);
         }
 
         return buildPath;
