@@ -17,6 +17,7 @@
 
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
+const GSystem = imports.gi.GSystem;
 
 const Task = imports.task;
 const ProcUtil = imports.procutil;
@@ -43,7 +44,7 @@ const TaskResolve = new Lang.Class({
 
         let oldSnapshot = this.builddir.get_child('last-build/snapshot.json');
         if (oldSnapshot.query_exists(cancellable)) {
-            let oldBytes = GSystem.file_map_readonly(snapshotPath, cancellable);
+            let oldBytes = GSystem.file_map_readonly(oldSnapshot, cancellable);
             let oldCsum = GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, oldBytes);
             let newCsum = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, buf, -1);
             if (oldCsum == newCsum)
