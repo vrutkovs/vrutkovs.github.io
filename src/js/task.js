@@ -152,11 +152,6 @@ const TaskMaster = new Lang.Class({
 	this._scheduledTaskTimeouts = {};
     },
 
-    _getTaskBuildPath: function(taskName) {
-        let buildPath = this.tasksPath.resolve_relative_path(taskName);
-        return GSystem.file_realpath(buildPath);
-    },
-
     _setTaskBuildPath: function(taskName, buildPath) {
         let taskLink = this.tasksPath.get_child(taskName);
         BuildUtil.atomicSymlinkSwap(taskLink, buildPath, this.cancellable);
@@ -307,8 +302,7 @@ const TaskMaster = new Lang.Class({
 	    let after = this._taskset.getTasksAfter(taskName);
 	    for (let i = 0; i < after.length; i++) {
 		let afterTaskName = after[i];
-                let buildPath = this._getTaskBuildPath(taskName);
-                this._setTaskBuildPath(afterTaskName, buildPath);
+                this._setTaskBuildPath(afterTaskName, runner.buildPath);
 		if (!this._skipTasks[afterTaskName] && this._processAfter)
 		    this._pushTask(afterTaskName, {});
 	    }
@@ -388,17 +382,17 @@ const TaskRunner = new Lang.Class({
         // cwd in its own task dir. If a task has any results it wants to pass
         // on between builds, it needs to write to _OSTBUILD_BUILDDIR.
         let buildPath = this.taskmaster.tasksPath.resolve_relative_path(this.name);
-        buildPath = GSystem.file_realpath(buildPath);
+        this.buildPath = GSystem.file_realpath(buildPath);
 
-        this.buildName = buildPath.get_basename();
-        this.taskCwd = buildPath.get_child(this.name);
+        this.buildName = this.buildPath.get_basename();
+        this.taskCwd = this.buildPath.get_child(this.name);
         GSystem.file_ensure_directory(this.taskCwd, false, cancellable);
 
 	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.taskData.parameters)];
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
 	context.set_cwd(this.taskCwd.get_path());
 	let childEnv = GLib.get_environ();
-        childEnv.push('_OSTBUILD_BUILDDIR=' + buildPath.get_path());
+        childEnv.push('_OSTBUILD_BUILDDIR=' + this.buildPath.get_path());
 	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
 	context.set_environment(childEnv);
 	if (this.taskData.taskDef.PreserveStdout) {
