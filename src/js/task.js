@@ -390,23 +390,23 @@ const TaskRunner = new Lang.Class({
         buildPath = GSystem.file_realpath(buildPath);
 
         this.buildName = buildPath.get_basename();
-        this._taskCwd = buildPath.get_child(this.name);
-        GSystem.file_ensure_directory(this._taskCwd, false, cancellable);
+        this.taskCwd = buildPath.get_child(this.name);
+        GSystem.file_ensure_directory(this.taskCwd, false, cancellable);
 
 	let baseArgv = ['ostbuild', 'run-task', this.name, JSON.stringify(this.taskData.parameters)];
 	let context = new GSystem.SubprocessContext({ argv: baseArgv });
-	context.set_cwd(this._taskCwd.get_path());
+	context.set_cwd(this.taskCwd.get_path());
 	let childEnv = GLib.get_environ();
         childEnv.push('_OSTBUILD_BUILDDIR=' + buildPath.get_path());
 	childEnv.push('_OSTBUILD_WORKDIR=' + this.workdir.get_path());
 	context.set_environment(childEnv);
 	if (this.taskData.taskDef.PreserveStdout) {
-	    let outPath = this._taskCwd.get_child('output.txt');
+	    let outPath = this.taskCwd.get_child('output.txt');
 	    context.set_stdout_file_path(outPath.get_path());
 	    context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	} else {
 	    context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.NULL);
-	    let errPath = this._taskCwd.get_child('errors.txt');
+	    let errPath = this.taskCwd.get_child('errors.txt');
 	    context.set_stderr_file_path(errPath.get_path());
 	}
 	this._proc = new GSystem.Subprocess({ context: context });
@@ -421,7 +421,7 @@ const TaskRunner = new Lang.Class({
 	let target;
 
         this.changed = true;
-        let modifiedPath = this._taskCwd.get_child('modified.json');
+        let modifiedPath = this.taskCwd.get_child('modified.json');
         if (modifiedPath.query_exists(null)) {
             let data = JsonUtil.loadJson(modifiedPath, null);
             this.changed = data['modified'];
@@ -433,7 +433,7 @@ const TaskRunner = new Lang.Class({
             return;
 
 	let elapsedMillis = GLib.get_monotonic_time() / 1000 - this._startTimeMillis;
-	let targetPath = this.workdir.get_relative_path(this._taskCwd);
+	let targetPath = this.workdir.get_relative_path(this.taskCwd);
 
 	let meta = { taskMetaVersion: 0,
                      buildName: this.buildName,
@@ -441,12 +441,12 @@ const TaskRunner = new Lang.Class({
 		     errmsg: errmsg,
 		     elapsedMillis: elapsedMillis,
 		     path: targetPath };
-	let statusTxtPath = this._taskCwd.get_child('status.txt');
+	let statusTxtPath = this.taskCwd.get_child('status.txt');
 	if (statusTxtPath.query_exists(null)) {
 	    let contents = GSystem.file_load_contents_utf8(statusTxtPath, cancellable);
 	    meta['status'] = contents.replace(/[ \n]+$/, '');
 	}
 
-	JsonUtil.writeJsonFileAtomic(this._taskCwd.get_child('meta.json'), meta, cancellable);
+	JsonUtil.writeJsonFileAtomic(this.taskCwd.get_child('meta.json'), meta, cancellable);
     }
 });

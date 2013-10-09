@@ -79,7 +79,7 @@ const Make = new Lang.Class({
 
     _onTaskExecuting: function(taskmaster, task) {
 	print("Task " + task.name + " executing on " + task.buildName);
-	let output = task._taskCwd.get_child('output.txt');
+	let output = task.taskCwd.get_child('output.txt');
 	if (this._oneOnly) {
 	    let context = new GSystem.SubprocessContext({ argv: ['tail', '-f', output.get_path() ] });
 	    this._tail = new GSystem.Subprocess({ context: context });
