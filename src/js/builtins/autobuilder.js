@@ -101,10 +101,10 @@ const Autobuilder = new Lang.Class({
 
 	if (task.name == 'resolve')
 	    this._runResolve();
+
 	if (success) {
 	    print("Task " + task.name + " complete: " + task._taskCwd.get_path());
 	} else {
-	    this._failed = true;
 	    print("Task " + task.name + " failed: " + task._taskCwd.get_path());
 	}
 	this._updateStatus();
