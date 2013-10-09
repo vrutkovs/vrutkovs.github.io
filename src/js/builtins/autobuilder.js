@@ -153,6 +153,13 @@ const Autobuilder = new Lang.Class({
             return null;
     },
 
+    _fillBuildDirectory: function(buildPath, cancellable) {
+        let version = buildPath.get_basename();
+
+        let meta = { "version": version };
+        JsonUtil.writeJsonFileAtomic(buildPath.get_child('meta.json'), meta, cancellable);
+    },
+
     _getNextBuildDirectory: function(cancellable) {
         let currentTime = GLib.DateTime.new_now_utc();
         let currentYmd = Format.vprintf('%d%02d%02d', [currentTime.get_year(),
@@ -181,6 +188,8 @@ const Autobuilder = new Lang.Class({
             let lastBuildPath = this._buildsDir.path.get_child(lastVersion);
             BuildUtil.atomicSymlinkSwap(buildPath.get_child('last-build'), lastBuildPath, null);
         }
+
+        this._fillBuildDirectory(buildPath, cancellable);
 
         return buildPath;
     },
