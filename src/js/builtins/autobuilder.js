@@ -23,6 +23,7 @@ const GSystem = imports.gi.GSystem;
 
 const Builtin = imports.builtin;
 const Task = imports.task;
+const JsonUtil = imports.jsonutil;
 const BuildUtil = imports.buildutil;
 const ProcUtil = imports.procutil;
 const VersionedDir = imports.versioneddir;
