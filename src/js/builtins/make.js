@@ -78,7 +78,7 @@ const Make = new Lang.Class({
     },
 
     _onTaskExecuting: function(taskmaster, task) {
-	print("Task " + task.name + " executing in " + task._taskCwd.get_path());
+	print("Task " + task.name + " executing on " + task.buildName);
 	let output = task._taskCwd.get_child('output.txt');
 	if (this._oneOnly) {
 	    let context = new GSystem.SubprocessContext({ argv: ['tail', '-f', output.get_path() ] });
@@ -91,10 +91,10 @@ const Make = new Lang.Class({
 	if (this._oneOnly)
 	    this._tail.request_exit();
 	if (success) {
-	    print("Task " + task.name + " complete: " + task._taskCwd.get_path());
+	    print("Task " + task.name + " complete: " + task.buildName);
 	} else {
 	    this._failed = true;
-	    print("Task " + task.name + " failed: " + task._taskCwd.get_path());
+	    print("Task " + task.name + " failed: " + task.buildName);
 	}
     },
 

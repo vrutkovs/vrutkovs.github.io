@@ -389,7 +389,7 @@ const TaskRunner = new Lang.Class({
         let buildPath = this.taskmaster.tasksPath.resolve_relative_path(this.name);
         buildPath = GSystem.file_realpath(buildPath);
 
-        this._buildName = buildPath.get_basename();
+        this.buildName = buildPath.get_basename();
         this._taskCwd = buildPath.get_child(this.name);
         GSystem.file_ensure_directory(this._taskCwd, false, cancellable);
 
@@ -436,7 +436,7 @@ const TaskRunner = new Lang.Class({
 	let targetPath = this.workdir.get_relative_path(this._taskCwd);
 
 	let meta = { taskMetaVersion: 0,
-                     buildName: this._buildName,
+                     buildName: this.buildName,
 		     success: success,
 		     errmsg: errmsg,
 		     elapsedMillis: elapsedMillis,

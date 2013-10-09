@@ -92,7 +92,7 @@ const Autobuilder = new Lang.Class({
     },
 
     _onTaskExecuting: function(taskmaster, task) {
-	print("Task " + task.name + " executing in " + task._taskCwd.get_path());
+	print("Task " + task.name + " executing on " + task.buildName);
 	this._updateStatus();
     },
 
@@ -104,9 +104,9 @@ const Autobuilder = new Lang.Class({
 	    this._runResolve();
 
 	if (success) {
-	    print("Task " + task.name + " complete: " + task._taskCwd.get_path());
+	    print("Task " + task.name + " complete: " + task.buildName);
 	} else {
-	    print("Task " + task.name + " failed: " + task._taskCwd.get_path());
+	    print("Task " + task.name + " failed: " + task.buildName);
 	}
 	this._updateStatus();
     },
