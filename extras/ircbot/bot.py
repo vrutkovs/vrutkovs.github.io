@@ -85,7 +85,7 @@ class BuildGnomeOrg(irc.IRCClient):
             self._query_new_task(taskname, announce_always=False)
 
     def _get_task_state(self, taskname):
-        current_task_path = os.path.join(self._workdir, 'tasks/%s/current' % (taskname, ))
+        current_task_path = os.path.join(self._workdir, 'tasks/%s/%s/' % (taskname, taskname))
         meta_path = os.path.join(current_task_path, 'meta.json')
         if not os.path.exists(meta_path):
             return None, ""
@@ -109,28 +109,28 @@ class BuildGnomeOrg(irc.IRCClient):
         if metadata is None:
             return None
 
-        taskver = metadata['taskVersion']
+        build_name = metadata['buildName']
 
         last_state = self._last_task_state.get(taskname)
-        last_version = last_state['taskVersion'] if last_state else None
-        version_unchanged = taskver == last_version
+        last_build_name = last_state['buildName'] if last_state else None
+        build_unchanged = (build_name == last_build_name)
 
         self._last_task_state[taskname] = metadata
 
-        if version_unchanged:
+        if build_unchanged:
             return None
         else:
             return last_state, metadata, status_msg
 
     def _status_line_for_task(self, taskname):
         metadata, status_msg = self._get_task_state(taskname)
-        taskver = metadata['taskVersion']
+        build_name = metadata['buildName']
         millis = float(metadata['elapsedMillis'])
         success = metadata['success']
         success_str = success and 'successful' or 'failed'
 
         msg = u"continuous:%s %s: %s in %.1f seconds. %s " \
-              % (taskname, taskver, success_str, millis / 1000.0, status_msg)
+              % (build_name, taskver, success_str, millis / 1000.0, status_msg)
 
         msg += "%s/%s/output.txt" % (self._workurl, metadata['path'])
 
