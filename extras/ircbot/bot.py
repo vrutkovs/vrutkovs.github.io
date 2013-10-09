@@ -130,7 +130,7 @@ class BuildGnomeOrg(irc.IRCClient):
         success_str = success and 'successful' or 'failed'
 
         msg = u"continuous:%s %s: %s in %.1f seconds. %s " \
-              % (build_name, taskver, success_str, millis / 1000.0, status_msg)
+              % (taskname, build_name, success_str, millis / 1000.0, status_msg)
 
         msg += "%s/%s/output.txt" % (self._workurl, metadata['path'])
 
