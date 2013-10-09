@@ -96,6 +96,8 @@ const Autobuilder = new Lang.Class({
     },
 
     _onTaskCompleted: function(taskmaster, task, success, error) {
+        let cancellable = null;
+
         if (!task.changed)
             GSystem.shutil_rm_rf(task.buildPath, cancellable);
 
