@@ -293,10 +293,8 @@ const TaskMaster = new Lang.Class({
 	if (idx == -1)
 	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskData.name);
 	this._executing.splice(idx, 1);
-        if (!runner.changed)
-            return;
 
-	if (success) {
+	if (success && runner.changed) {
 	    let taskName = runner.taskData.name;
 	    let taskDef = runner.taskData.taskDef;
 	    let after = this._taskset.getTasksAfter(taskName);
