@@ -85,7 +85,7 @@ class BuildGnomeOrg(irc.IRCClient):
             self._query_new_task(taskname, announce_always=False)
 
     def _get_task_state(self, taskname):
-        current_task_path = os.path.join(self._workdir, 'tasks/%s/%s/' % (taskname, taskname))
+        current_task_path = os.path.join(self._workdir, 'results/tasks/%s/%s/' % (taskname, taskname))
         meta_path = os.path.join(current_task_path, 'meta.json')
         if not os.path.exists(meta_path):
             return None, ""

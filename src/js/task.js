@@ -132,6 +132,9 @@ const TaskMaster = new Lang.Class({
         this.tasksPath = workdir.get_child('tasks');
 	GSystem.file_ensure_directory(this.tasksPath, true, null);
 
+        this.completedTasksPath = workdir.get_child('results/tasks');
+	GSystem.file_ensure_directory(this.completedTasksPath, true, null);
+
 	this._processAfter = params.processAfter;
 	this._skipTasks = {};
 	for (let i = 0; i < params.skip.length; i++)
@@ -292,6 +295,9 @@ const TaskMaster = new Lang.Class({
 	if (idx == -1)
 	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskData.name);
 	this._executing.splice(idx, 1);
+
+        let link = this.tasksPath.get_child(taskName);
+        BuildUtil.atomicSymlinkSwap(link, runner.buildPath, this.cancellable);
 
 	if (success && runner.changed) {
 	    let taskName = runner.taskData.name;
