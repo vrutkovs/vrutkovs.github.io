@@ -155,7 +155,6 @@ const TaskMaster = new Lang.Class({
     _setTaskBuildPath: function(taskName, buildPath) {
         let taskLink = this.tasksPath.get_child(taskName);
         BuildUtil.atomicSymlinkSwap(taskLink, buildPath, this.cancellable);
-        return buildPath;
     },
 
     _pushTaskDataImmediate: function(taskData) {
