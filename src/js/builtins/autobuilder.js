@@ -60,6 +60,9 @@ const Autobuilder = new Lang.Class({
 
         this._buildsDir = new VersionedDir.VersionedDir(this.workdir.get_child('builds'), this._VERSION_RE);
 
+        this._resultsDir = this.workdir.get_child('results');
+        GSystem.file_ensure_directory(this._resultsDir, true, cancellable);
+
 	if (args.autoupdate_self)
 	    this._autoupdate_self = Gio.File.new_for_path(args.autoupdate_self);
 
@@ -99,11 +102,18 @@ const Autobuilder = new Lang.Class({
 	if (task.name == 'resolve')
 	    this._runResolve();
 
+        let resultsPath;
+
 	if (success) {
 	    print("Task " + task.name + " complete: " + task.buildName);
+            resultsPath = this._resultsDir.get_child('successful');
 	} else {
 	    print("Task " + task.name + " failed: " + task.buildName);
+            resultsPath = this._resultsDir.get_child('failed');
 	}
+
+        BuildUtil.atomicSymlinkSwap(resultsPath, task.buildPath, null);
+
 	this._updateStatus();
     },
 
