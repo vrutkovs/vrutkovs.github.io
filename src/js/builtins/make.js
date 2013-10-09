@@ -45,7 +45,6 @@ const Make = new Lang.Class({
 	this._loop = loop;
 	this._failed = false;
 	this._cancellable = cancellable;
-	this._tasksComplete = false;
 	this._oneOnly = args.only;
 	let taskmaster = new Task.TaskMaster(this.workdir,
 					     { onEmpty: Lang.bind(this, this._onTasksComplete),
@@ -98,10 +97,7 @@ const Make = new Lang.Class({
 	}
     },
 
-    _onTasksComplete: function(success, err) {
-	this._tasksComplete = true;
-	if (!success)
-	    this._err = err;
+    _onTasksComplete: function() {
 	this._loop.quit();
     }
 });

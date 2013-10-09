@@ -265,7 +265,7 @@ const TaskMaster = new Lang.Class({
 	if (this._executing.length == 0 &&
 	    this._pendingTasksList.length == 0) {
             if (this._onEmpty)
-	        this._onEmpty(true, null);
+	        this._onEmpty();
 	    return;
 	} else if (this._pendingTasksList.length == 0) {
 	    return;
