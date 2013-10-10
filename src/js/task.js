@@ -343,6 +343,8 @@ const Task = new Lang.Class({
 	BuildUtil.checkIsWorkDirectory(this.workdir);
         this.builddir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_BUILDDIR'));
 
+        this._buildName = this.builddir.get_basename();
+
 	this.mirrordir = this.workdir.get_child('src');
 	GSystem.file_ensure_directory(this.mirrordir, true, null);
 	this.cachedir = this.workdir.resolve_relative_path('cache/raw');
