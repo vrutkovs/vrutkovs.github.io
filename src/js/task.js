@@ -297,7 +297,7 @@ const TaskMaster = new Lang.Class({
 	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + taskName);
 	this._executing.splice(idx, 1);
 
-        let link = this.tasksPath.get_child(taskName);
+        let link = this.completedTasksPath.get_child(taskName);
         BuildUtil.atomicSymlinkSwap(link, runner.buildPath, this.cancellable);
 
 	if (success && runner.changed) {
