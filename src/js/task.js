@@ -284,6 +284,7 @@ const TaskMaster = new Lang.Class({
     },
 
     _onComplete: function(success, error, runner) {
+	let taskName = runner.taskData.name;
 	let idx = -1;
 	for (let i = 0; i < this._executing.length; i++) {
 	    let executingRunner = this._executing[i];
@@ -293,14 +294,13 @@ const TaskMaster = new Lang.Class({
 	    break;
 	}
 	if (idx == -1)
-	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + runner.taskData.name);
+	    throw new Error("TaskMaster: Internal error - Failed to find completed task:" + taskName);
 	this._executing.splice(idx, 1);
 
         let link = this.tasksPath.get_child(taskName);
         BuildUtil.atomicSymlinkSwap(link, runner.buildPath, this.cancellable);
 
 	if (success && runner.changed) {
-	    let taskName = runner.taskData.name;
 	    let taskDef = runner.taskData.taskDef;
 	    let after = this._taskset.getTasksAfter(taskName);
 	    for (let i = 0; i < after.length; i++) {
