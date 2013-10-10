@@ -66,13 +66,14 @@ const TaskBuildDisks = new Lang.Class({
             return;
         }
 
-        let buildData = JsonUtil.loadJson(this.builddir.get_child('build.json'), cancellable);
+        let buildDataPath = this.builddir.get_child('build.json');
+        let buildData = JsonUtil.loadJson(buildDataPath, cancellable);
 
         let workImageDir = Gio.File.new_for_path('images');
         GSystem.file_ensure_directory(workImageDir, true, cancellable);
 
         let destPath = workImageDir.get_child('build-' + this._buildName + '.json');
-        GSystem.file_linkcopy(latestPath, destPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
+        GSystem.file_linkcopy(buildDataPath, destPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
 
         let targets = buildData['targets'];
 
