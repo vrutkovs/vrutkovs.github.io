@@ -12,7 +12,7 @@
     var taskNames = ['build', 'smoketest', 'integrationtest', 'applicationstest'];
 
     function _loadTask(taskname) {
-        var url = WORKURL + 'tasks/' + taskname + '/current/meta.json';
+        var url = WORKURL + 'results/tasks/' + taskname + '/' + taskname + '/meta.json';
         $.getJSON(url, function(data) {
             taskData[taskname] = data;
             $(repoDataSignal).trigger("taskdata-changed", [taskname]);
@@ -60,7 +60,7 @@
     function renderBuild(container, build) {
         var now = new Date();
 
-        var version = build['meta']['version'];
+        var version = build['meta']['buildName'];
 
         var divider = document.createElement('li');
         container.appendChild(divider);
@@ -109,7 +109,7 @@
         var meta = taskData[taskName];
         statusNode.setAttribute('href', WORKURL + meta['path']);
         statusNode.setAttribute('rel', 'external');
-        var text = meta.taskVersion + ': ' + (meta.success ? "success" : "failed ");
+        var text = meta.buildName + ': ' + (meta.success ? "success" : "failed ");
         statusNode.appendChild(document.createTextNode(text));
         if (meta['status'])
             spanNode.appendChild(document.createTextNode('  ' + meta['status']));
