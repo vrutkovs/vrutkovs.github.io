@@ -3,16 +3,17 @@
 (function($, exports) {
     "use strict";
 
-    var HOSTNAME = "https://build.gnome.org/";
-    var TRACKED_BUILD = "buildmaster";
-    var WORKURL = HOSTNAME + "ostree/" + TRACKED_BUILD + "/";
-
     var repoDataSignal = {};
     var taskData = {};
     var taskNames = ['build', 'smoketest', 'integrationtest', 'applicationstest'];
 
+    function _getUrl(suffix) {
+        return window.location.protocol + '//' + window.location.host +
+            window.location.pathname + 'ostree/buildmaster/' + suffix;
+    }
+
     function _loadTask(taskname) {
-        var url = WORKURL + 'results/tasks/' + taskname + '/' + taskname + '/meta.json';
+        var url = _getUrl('results/tasks/' + taskname + '/' + taskname + '/meta.json');
         $.getJSON(url, function(data) {
             taskData[taskname] = data;
             $(repoDataSignal).trigger("taskdata-changed", [taskname]);
@@ -80,7 +81,7 @@
         container.appendChild(li);
         var a = document.createElement('a');
         li.appendChild(a);
-        a.setAttribute('href', WORKURL + 'tasks/build/' + build['v'] + '/log');
+        a.setAttribute('href', _getUrl('tasks/build/' + build['v'] + '/log'));
         a.setAttribute('rel', 'external');
 
         var state = build['state'];
@@ -107,7 +108,7 @@
         $(spanNode).empty();
 
         var meta = taskData[taskName];
-        statusNode.setAttribute('href', WORKURL + meta['path']);
+        statusNode.setAttribute('href', _getUrl(meta['path']));
         statusNode.setAttribute('rel', 'external');
         var text = meta.buildName + ': ' + (meta.success ? "success" : "failed ");
         statusNode.appendChild(document.createTextNode(text));
@@ -116,7 +117,7 @@
 
         if (taskName == 'smoketest') {
             var img = $("#smoketest-final-img").get(0);
-            img.setAttribute('src', WORKURL + meta['path'] + '/work-gnome-continuous-x86_64-runtime/screenshot-final.png');
+            img.setAttribute('src', _getUrl(meta['path'] + '/work-gnome-continuous-x86_64-runtime/screenshot-final.png'));
         }
     }
 
