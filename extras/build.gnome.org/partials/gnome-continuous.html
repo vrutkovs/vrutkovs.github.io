@@ -1,0 +1,25 @@
+<div>
+  <h1>GNOME-Continuous</h1>
+  <p>See <a href="https://wiki.gnome.org/GnomeContinuous">GNOME-Continuous</a>
+    for more information. </p>
+  <p>
+    State: <span>{{ runningState }}</span>
+  </p>
+  <p ng-repeat="task in tasks">
+    {{ task.name }}: <a href="{{ getUrl(task.path) }}" rel="external">
+      <span>{{ task.buildName }}:</span>
+      <span ng-switch on="{{ task.success }}">
+        <span ng-switch-when="true">success</span>
+        <span ng-switch-when="false">failed</span>
+      </span>
+    </a>
+    <span>{{ task.status }}</span>
+  </p>
+
+  <p>Maintainer: Colin Walters &lt;walters@verbum.org&gt;</p>
+  <p>
+    <center>
+      <img src="{{ smoketestImage }}"></img>
+    </center>
+  </p>
+</div>
