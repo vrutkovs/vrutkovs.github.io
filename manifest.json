@@ -854,7 +854,8 @@
 
 		{"src": "fd-telepathy:telepathy-mission-control",
 		 "config-opts": ["--disable-gtk-doc",
-		                 "--disable-Werror"]},
+		                 "--disable-Werror",
+				 "--disable-upower"]},
 
 		{"src": "gnome:gnome-session",
 		 "config-opts": ["--disable-docbook-docs",
