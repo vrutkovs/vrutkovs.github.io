@@ -953,6 +953,8 @@
 
 		{"src": "gnome:gnome-maps"},
 
+		{"src": "gnome:gnome-logs"},
+
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"}
 	],
