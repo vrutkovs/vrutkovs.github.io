@@ -644,7 +644,8 @@
 
 		{"src": "gnome:gnome-menus"},
 
-		{"src": "gnome:glib-networking"},
+                {"src": "gnome:glib-networking",
+		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:libsoup",
 		 "config-args": ["--disable-tls-check"]},
