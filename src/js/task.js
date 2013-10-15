@@ -400,6 +400,7 @@ const TaskRunner = new Lang.Class({
 	context.set_environment(childEnv);
 	if (this.taskData.taskDef.PreserveStdout) {
 	    let outPath = this.taskCwd.get_child('output.txt');
+	    GSystem.shutil_rm_rf(outPath, cancellable);
 	    context.set_stdout_file_path(outPath.get_path());
 	    context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	} else {
