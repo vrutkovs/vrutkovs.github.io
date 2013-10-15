@@ -708,6 +708,8 @@ const TaskBuild = new Lang.Class({
         let rev = this._commit(buildRef, "Build", file, cancellable, { withParent: false });
         this.ostreeRepo.commit_transaction(cancellable);
 
+	GSystem.shutil_rm_rf(buildWorkdir, cancellable);
+
         let ostreeRevision = this._saveComponentBuild(buildRef, rev, expandedComponent, cancellable);
 
 	this._rebuiltComponents.push(basename);
