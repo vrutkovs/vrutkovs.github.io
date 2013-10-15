@@ -1355,6 +1355,7 @@ const TaskBuild = new Lang.Class({
 		this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
 		this._cleanupGarbage(composeRootdir, cancellable);
 		let [treename, ostreeRev] = this._commitComposedTree(runtimeTargetName, composeRootdir, cancellable);
+		GSystem.shutil_rm_rf(composeRootdir, cancellable);
 		targetRevisions[treename] = ostreeRev;
 	    }
 	}
@@ -1407,6 +1408,7 @@ const TaskBuild = new Lang.Class({
 
 	    let composeRootdir = this._checkoutOneTreeCore(rootName, composeContents, cancellable, { runTriggers: false });
 	    let [treename, rev] = this._commitComposedTree(rootName, composeRootdir, cancellable);
+	    GSystem.shutil_rm_rf(composeRootdir, cancellable);
 	    finalInstalledTestRevisions[treename] = rev;
 	}
 
