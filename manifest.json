@@ -744,6 +744,7 @@
 				 "--enable-miner-thunderbird=no",
 				 "--enable-miner-evolution=no",
 				 "--disable-nautilus-extension",
+				 "--disable-upower",
 				 "--with-unicode-support=libicu"]},
 
 		{"src": "gnome:dconf",
