@@ -9,7 +9,7 @@
 
     function _getUrl(suffix) {
         return window.location.protocol + '//' + window.location.host +
-            window.location.pathname + 'ostree/buildmaster/' + suffix;
+            window.location.pathname + 'continuous/buildmaster/' + suffix;
     }
 
     function _loadTask(taskname) {
