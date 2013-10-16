@@ -955,6 +955,8 @@
 
 		{"src": "gnome:gnome-logs"},
 
+		{"src": "gnome:evince"},
+
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"}
 	],
