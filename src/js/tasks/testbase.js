@@ -487,6 +487,8 @@ const TestOneDisk = new Lang.Class({
             throw new Error(this._failedMessage);
         }
 
+        GSystem.shutil_rm_rf(diskClone, cancellable);
+
         this._parentTask._postQemu(cancellable);
 
         print("Completed testing of " + diskPath.get_basename());
