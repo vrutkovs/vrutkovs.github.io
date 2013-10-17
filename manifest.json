@@ -462,6 +462,8 @@
 	        {"src": "fd:upower",
 		 "config-opts": ["--disable-man-pages",
 		                 "--disable-strict"],
+		 "tag": "UPOWER_0_9_22",
+		 "tag-reason": "Porting to 1.0 is still ongoing",
 		 "patches": ["upower-no-builddir.patch"]},
 
 	        {"src": "0pointer:libdaemon",
