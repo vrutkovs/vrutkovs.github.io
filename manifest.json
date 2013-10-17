@@ -462,8 +462,6 @@
 	        {"src": "fd:upower",
 		 "config-opts": ["--disable-man-pages",
 		                 "--disable-strict"],
-		 "tag": "0.9",
-		 "tag-reason": "Porting to 1.0 is still ongoing",
 		 "patches": ["upower-no-builddir.patch"]},
 
 	        {"src": "0pointer:libdaemon",
@@ -968,7 +966,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 30,
+    "build-epoch": {"version": 31,
 		    "all": false,
 		    "component-names": ["gnome-session", "mutter-wayland", "mutter", "gnome-control-center", "gnome-shell"]}
 }
