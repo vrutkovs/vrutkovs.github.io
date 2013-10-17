@@ -966,7 +966,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 28,
+    "build-epoch": {"version": 29,
 		    "all": false,
-		    "component-names": ["mutter-wayland"]}
+		    "component-names": ["gnome-session"]}
 }
