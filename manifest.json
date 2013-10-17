@@ -966,7 +966,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 26,
+    "build-epoch": {"version": 27,
 		    "all": false,
-		    "component-names": ["libevdev", "xorg-driver-xf86-input-evdev"]}
+		    "component-names": ["gnome-control-center", "gnome-shell", "mutter"]}
 }
