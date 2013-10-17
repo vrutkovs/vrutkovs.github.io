@@ -968,7 +968,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 29,
+    "build-epoch": {"version": 30,
 		    "all": false,
-		    "component-names": ["gnome-session"]}
+		    "component-names": ["gnome-session", "mutter-wayland", "mutter", "gnome-control-center", "gnome-shell"]}
 }
