@@ -954,7 +954,11 @@
 
 		{"src": "gnome:gnome-logs"},
 
-		{"src": "gnome:evince"},
+		{"src": "gnome:evince",
+		 "config-opts": ["--enable-introspection"]},
+
+		{"src": "gnome:gnome-documents",
+		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"}
