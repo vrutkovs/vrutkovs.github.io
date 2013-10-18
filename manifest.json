@@ -90,6 +90,8 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "tag": "abc5fe72503fcc30998334e73c5d8e58f9a9d85e",
+		 "tag-reason": "stack protector issues",
 		 "config-opts": ["--disable-manpages",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
