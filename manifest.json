@@ -528,6 +528,7 @@
 		 "config-opts": ["--enable-pango",
 		                 "--enable-gdm-transition",
 		                 "--disable-libdrm_nouveau",
+		                 "--disable-documentation",
 				 "--enable-systemd-integration",
 				 "--with-system-root-install=yes"]},
 
