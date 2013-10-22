@@ -60,8 +60,9 @@ const TaskBuildDisks = new Lang.Class({
 	      let currentImageLink = baseImageDir.get_child('current');
 	      let previousImageLink = baseImageDir.get_child('previous');
 
+        let isLocal = this._buildName == 'local';
         let targetImageDir = baseImageDir.get_child(this._buildName);
-        if (targetImageDir.query_exists(null)) {
+        if (!isLocal && targetImageDir.query_exists(null)) {
             print("Already created " + targetImageDir.get_path());
             return;
         }
@@ -122,6 +123,10 @@ const TaskBuildDisks = new Lang.Class({
             this._postDiskCreation(squashedName, diskPath, cancellable);
             print("post-disk creation complete");
 	      }
+
+        if (isLocal) {
+            return;
+        }
 
         GSystem.file_rename(workImageDir, targetImageDir, cancellable);
 
