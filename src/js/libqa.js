@@ -172,16 +172,21 @@ function modifyBootloaderAppendKernelArgs(mntdir, kernelArgs, cancellable) {
     let lines = conf.split('\n');
     let modifiedLines = [];
     
+    let didModify = false;
     let kernelArg = kernelArgs.join(' ');
-    let kernelLineRe = /APPEND \//;
+    let kernelLineRe = /\tAPPEND /;
     for (let i = 0; i < lines.length; i++) {
 	let line = lines[i];
 	let match = kernelLineRe.exec(line);
-	if (!match)
+	if (!match) {
 	    modifiedLines.push(line);
-	else
+	} else {
 	    modifiedLines.push(line + ' ' + kernelArg);
+	    didModify = true;
+	}
     }
+    if (!didModify)
+	throw new Error("Failed to find APPEND option in syslinux.cfg");
     let modifiedConf = modifiedLines.join('\n');
     confPath.replace_contents(modifiedConf, null, false,
 			      Gio.FileCreateFlags.NONE,
