@@ -565,7 +565,7 @@
 				 "--enable-wayland-egl-server",
 				 "--enable-kms-egl-platform",
 				 "--enable-xlib-egl-platform"],
-		 "branch": "cogl-1.16"},
+		 "branch": "cogl-1.18"},
 
 		{"src": "gnome:clutter",
 		 "config-opts": ["--enable-installed-tests",
