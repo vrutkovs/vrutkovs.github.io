@@ -973,6 +973,9 @@
 				 "--disable-text-highlight",
 				 "--disable-pst-import"]},
 
+		{"src": "gnome:evolution-ews",
+		 "config-opts": ["--with-internal-lzx"]},
+
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"}
 	],
