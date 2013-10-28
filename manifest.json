@@ -793,9 +793,9 @@
 		 "config-opts": ["--enable-nss"],
 		 "patches": ["liboauth-tarballs-as-git-autogen.patch"]},
 
-		{"src": "gnome:libgdata",
-		 "tag": "cea908c22fd9b94b4319c40985c0ce356f2e137f",
-		 "tag-reason": "needs uhttpmock, but gitorious is down"},
+		{"src": "git:https://git.gitorious.org/uhttpmock/uhttpmock.git"},
+
+		{"src": "gnome:libgdata"},
 
                 {"src": "gnome:grilo",
 		 "config-opts": ["--disable-vala"]},
