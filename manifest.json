@@ -90,8 +90,6 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "7b1132f60d2a447c31556c23ea90ea31447ac557",
-		 "tag-reason": "next commit causes systemctl preset to segfault",
 		 "config-opts": ["--disable-manpages",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
