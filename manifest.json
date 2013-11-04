@@ -712,6 +712,7 @@
 		 "config-opts": ["--disable-strict",
 				 "--disable-service-packs",
 				 "--enable-NetworkManager",
+				 "--enable-systemd",
 				 "--disable-man-pages",
 				 "--disable-bash-completion",
 				 "--disable-tests",
