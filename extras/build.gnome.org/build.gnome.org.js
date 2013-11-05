@@ -3,6 +3,7 @@
 (function($, exports) {
     "use strict";
 
+    var status = null;
     var repoDataSignal = {};
     var taskData = {};
     var taskNames = ['build', 'smoketest', 'integrationtest', 'applicationstest'];
@@ -10,6 +11,13 @@
     function _getUrl(suffix) {
         return window.location.protocol + '//' + window.location.host +
             window.location.pathname + 'continuous/buildmaster/' + suffix;
+    }
+
+    function _loadStatus() {
+        $.getJSON(_getUrl('autobuilder-status.json'), function(data) {
+            status = data;
+            $(repoDataSignal).trigger("status-changed");
+        });
     }
 
     function _loadTask(taskname) {
@@ -21,6 +29,7 @@
     }
 
     function repowebInit() {
+        _loadStatus();
         for (var i = 0; i < taskNames.length; i++) {
             _loadTask(taskNames[i]);
         }
@@ -125,6 +134,18 @@
         repowebInit();
         $(repoDataSignal).on("taskdata-changed", function (event, taskName) {
             _renderTask(taskName);
+        });
+        $(repoDataSignal).on("status-changed", function (event) {
+            var runningStateNode = $("#running-state").get(0);
+            $(runningStateNode).empty();
+            var text;
+            console.log("status=" + JSON.stringify(status));
+            if (status.running) {
+                text = 'Running: ' + status.running.join(' ') + '; load=' + status.systemLoad[0];
+            } else {
+                text = 'Idle, awaiting commits';
+            }
+            runningStateNode.appendChild(document.createTextNode(text));
         });
     }
 

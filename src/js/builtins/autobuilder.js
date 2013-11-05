@@ -122,18 +122,32 @@ const Autobuilder = new Lang.Class({
     _updateStatus: function() {
 	let newStatus = "";
 	let taskstateList = this._taskmaster.getTaskState();
+	let runningTasks = [];
+	let queuedTasks = [];
 	for (let i = 0; i < taskstateList.length; i++) {
 	    let taskstate = taskstateList[i];
+	    let name = taskstate.task.name;
 	    if (taskstate.running)
-		newStatus += ("[" + taskstate.task.name + "] ");
+		runningTasks.push(name);
 	    else
-		newStatus += (taskstate.task.name + " ");
+		queuedTasks.push(name);
 	}
-	if (newStatus == "")
+	if (runningTasks.length == 0 && queuedTasks.length == 0) {
 	    newStatus = "[idle]";
+	} else {
+	    newStatus = "running: " + JSON.stringify(runningTasks);
+	    if (queuedTasks.length)
+		newStatus += " queued: " + JSON.stringify(queuedTasks);
+	}
 	if (newStatus != this._status) {
 	    this._status = newStatus;
 	    print(this._status);
+	    let [success,loadAvg,etag] = Gio.File.new_for_path('/proc/loadavg').load_contents(null);
+	    loadAvg = loadAvg.toString().replace(/\n$/, '').split(' ');
+	    let statusPath = Gio.File.new_for_path('autobuilder-status.json');
+	    JsonUtil.writeJsonFileAtomic(statusPath, {'running': runningTasks,
+						      'queued': queuedTasks,
+						      'systemLoad': loadAvg}, null);
 	    this._impl.emit_property_changed('Status', new GLib.Variant("s", this._status));
 	}
     },
