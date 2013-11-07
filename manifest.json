@@ -960,6 +960,9 @@
 
 		{"src": "gnome:gnome-logs"},
 
+		{"src": "gnome:d-feet",
+		 "config-opts": ["--disable-tests"]},
+
 		{"src": "gnome:evince",
 		 "config-opts": ["--enable-introspection"]},
 
