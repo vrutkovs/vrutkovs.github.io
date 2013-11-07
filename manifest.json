@@ -90,6 +90,8 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "tag": "0fc6e1ed00ee1af4282e46d40ceb07b3afedebef",
+		 "tag-reason": "logind brokenness (likely fallout from bus porting)",
 		 "config-opts": ["--disable-manpages",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
