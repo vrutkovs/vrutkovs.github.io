@@ -140,7 +140,7 @@
             $(runningStateNode).empty();
             var text;
             console.log("status=" + JSON.stringify(status));
-            if (status.running) {
+            if (status.running.length > 0) {
                 text = 'Running: ' + status.running.join(' ') + '; load=' + status.systemLoad[0];
             } else {
                 text = 'Idle, awaiting commits';
