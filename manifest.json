@@ -319,6 +319,8 @@
 
 		{"src": "fd:xorg/app/xrandr"},
 
+		{"src": "fd:xorg/app/xhost"},
+
 		{"src": "fd:xkeyboard-config",
 		 "config-opts": ["--with-xkb-rules-symlink=xorg",
 		                 "--with-xkb-base=/usr/share/X11/xkb"],
