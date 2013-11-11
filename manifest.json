@@ -90,7 +90,7 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "0d95178e49eaf70fce9882d2a1277a9cd3555f34",
+		 "tag": "46e65dcc3a522b5e992e165b5e61d14254026859",
 		 "tag-reason": "fails in initramfs",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
