@@ -94,6 +94,7 @@
 		 "tag-reason": "fails in initramfs",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
+				 "--disable-networkd",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
 
