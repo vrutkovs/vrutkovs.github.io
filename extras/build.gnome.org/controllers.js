@@ -17,6 +17,7 @@
     bgoControllers.controller('ContinuousStatusCtrl', function($scope, $http) {
         getContinuousTask($http, 'build').success(function(data) {
             $scope.status = data.success ? 'good' : 'bad';
+            $scope.buildName = data.buildName;
         });
     });
 
