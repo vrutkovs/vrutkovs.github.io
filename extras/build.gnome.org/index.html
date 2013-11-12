@@ -1,14 +1,21 @@
 <!doctype html>
 <html ng-app="build.gnome.org">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular-route.min.js"></script>
-    <script src="app.js"></script>
-    <script src="controllers.js"></script>
-  </head>
-  <body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="app.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular-route.min.js"></script>
+  <script src="app.js"></script>
+  <script src="controllers.js"></script>
+</head>
+<body>
+  <div class="container">
     <div ng-view></div>
-  </body>
+
+    <footer>
+      This site is maintained in the <a href="http://git.gnome.org/browse/gnome-continuous">gnome-continuous</a> git module.
+    </footer>
+  </div>
+</body>
 </html>
