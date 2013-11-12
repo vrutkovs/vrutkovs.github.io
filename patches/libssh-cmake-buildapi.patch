@@ -1,4 +1,4 @@
-From 8fe85118718324fa2abaa3f5077d09703a58f913 Mon Sep 17 00:00:00 2001
+From 9841e201a9da3b9c56c2dc9877b82fb24a9c6d61 Mon Sep 17 00:00:00 2001
 From: Colin Walters <walters@verbum.org>
 Date: Tue, 12 Nov 2013 10:50:07 -0500
 Subject: [PATCH] build: Add a "configure" script implementing the GNOME Build API
@@ -10,10 +10,10 @@ cmake.
 ---
  configure |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
  1 files changed, 49 insertions(+), 0 deletions(-)
- create mode 100644 configure
+ create mode 100755 configure
 
 diff --git a/configure b/configure
-new file mode 100644
+new file mode 100755
 index 0000000..b50e1ff
 --- /dev/null
 +++ b/configure
