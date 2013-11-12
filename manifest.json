@@ -925,6 +925,8 @@
 		{"src": "gnome:gnome-shell-extensions",
 		 "config-opts": ["--enable-extensions=classic-mode"]},
 
+                {"src": "git:https://github.com/hughsie/appdata-tools.git"},
+
 		{"src": "gnome:gnome-terminal",
 		 "config-opts": ["--without-nautilus-extension"]},
 
