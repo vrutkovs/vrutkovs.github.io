@@ -16,7 +16,7 @@
             }).
             when('/gnome-continuous', {
                 templateUrl: 'partials/gnome-continuous.html',
-                controller: 'GnomeContinuousCtrl',
+                controller: 'ContinuousTaskViewCtrl',
             }).
             otherwise({
                 redirectTo: '/',

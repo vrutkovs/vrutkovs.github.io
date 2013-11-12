@@ -10,7 +10,17 @@
             window.location.pathname + 'continuous/buildmaster/' + suffix;
     }
 
-    bgoControllers.controller('GnomeContinuousCtrl', function($scope, $http) {
+    function getContinuousTask($http, taskName) {
+        return $http.get(getUrl('results/tasks/' + taskName + '/' + taskName + '/meta.json'));
+    }
+
+    bgoControllers.controller('ContinuousStatusCtrl', function($scope, $http) {
+        getContinuousTask($http, 'build').success(function(data) {
+            $scope.status = data.success ? 'good' : 'bad';
+        });
+    });
+
+    bgoControllers.controller('ContinuousTaskViewCtrl', function($scope, $http) {
         $scope.getUrl = getUrl;
 
         $http.get(getUrl('autobuilder-status.json')).success(function(status) {
@@ -25,7 +35,7 @@
 
         var tasks = [];
         taskNames.forEach(function(taskName) {
-            $http.get(getUrl('results/tasks/' + taskName + '/' + taskName + '/meta.json')).success(function(data) {
+            getContinuousTask($http, taskName).success(function(data) {
                 // Mangle the data a bit so we can render it better
                 data['name'] = taskName;
 
