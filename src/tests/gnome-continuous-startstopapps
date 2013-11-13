@@ -121,7 +121,7 @@ const StartStopApps = new GObject.Class({
 					cancellable).deep_unpack();
 	let [success, result] = res;
 	if (!success)
-	    throw new Error("Failed to eval " + code.substr(0, 20));
+	    throw new Error("Failed to eval " + code.substr(0, 20) + ": " + result);
 	return result ? JSON.parse(result) : null;
     },
 
