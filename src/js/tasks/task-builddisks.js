@@ -74,6 +74,7 @@ const TaskBuildDisks = new Lang.Class({
         GSystem.file_ensure_directory(workImageDir, true, cancellable);
 
         let destPath = workImageDir.get_child('build-' + this._buildName + '.json');
+        GSystem.shutil_rm_rf(destPath, cancellable);
         GSystem.file_linkcopy(buildDataPath, destPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
 
         let targets = buildData['targets'];
