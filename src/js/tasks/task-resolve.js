@@ -80,9 +80,9 @@ const TaskResolve = new Lang.Class({
 	let componentNames = this._snapshot.getAllComponentNames();
 	for (let i = 0; i < componentNames.length; i++) {
 	    let component = this._snapshot.getComponent(componentNames[i]);
-	    let branchOrTag = component['branch'] || component['tag'];
+	    let tagOrBranch = component['tag'] || component['branch'];
             let mirrordir = Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
-            let revision = Vcs.describeVersion(mirrordir, branchOrTag);
+            let revision = Vcs.describeVersion(mirrordir, tagOrBranch);
             component['revision'] = revision;
 	}
 
