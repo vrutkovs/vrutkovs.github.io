@@ -64,20 +64,44 @@ const TaskApplicationsTest = new Lang.Class({
         }
     },
 
+    _extractIcon: function(appId, iconTuple, cancellable) {
+        let [ext, iconBytes] = iconTuple;
+
+        if (!iconBytes.length)
+            return null;
+
+        let iconDir = Gio.File.new_for_path('icons');
+        GSystem.file_ensure_directory(iconDir, true, null);
+
+        let icon = iconDir.get_child(appId + ext);
+        let s = icon.replace(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+        s.write_bytes(iconBytes.toGBytes(), cancellable);
+        s.close(cancellable);
+        return icon;
+    },
+
     _onCommandChannelAsyncMessage: function(msgId, value) {
         if (msgId == 'TestingAppStart') {
-            this._testingApp = value.deep_unpack();
-            print("got testingAppStart id=" + this._testingApp);
-            this._allApps[this._testingApp] = {'state': 'running'};
+            let [appId, iconTuple] = value.deep_unpack();
+            print("got testingAppStart id=" + appId);
+            this._testingApp = appId;
+            let app = {};
+            let icon = this._extractIcon(appId, iconTuple, null);
+            if (icon)
+                app.icon = this.workdir.get_relative_path(icon);
+            app.state = 'running';
+            this._allApps[this._testingApp] = app;
             this._testingAppCoredumped = false;
         } else if (msgId == 'TestingAppTimedOut') {
             print("got TestingAppTimedOut");
-            this._allApps[this._testingApp] = {'state': 'timeout'};
+            let app = this._allApps[this._testingApp];
+            app.state = 'timeout';
             this._testingApp = null;
         } else if (msgId == 'TestingAppComplete') {
+            let app = this._allApps[this._testingApp];
             let successfulStr = !this._testingAppCoredumped ? 'success' : 'failed';
             print("got TestingAppComplete success=" + successfulStr);
-            this._allApps[this._testingApp] = {'state': successfulStr};
+            app.state = successfulStr;
             this._testingApp = null;
         } else {
             print("Got unknown asyncmessage: " + msgId);

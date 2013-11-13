@@ -17,15 +17,49 @@
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
+const Gtk = imports.gi.Gtk;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 
+Gtk.init(null);
+
 const sessionBus = Gio.bus_get_sync(Gio.BusType.SESSION, null);
 
 const CLOSE_ALL_APPS = 'Shell.AppSystem.get_default().get_running().forEach(function (app) { app.request_quit(); });';
 const GET_APP_IDS = 'Shell.AppSystem.get_default().get_running().map(function (a) { return a.get_id(); });';
+
+function getExtension(filename) {
+    let parts = filename.split('.');
+
+    // No extension
+    if (parts.length == 1)
+        return '';
+
+    return parts[parts.length - 1];
+}
+
+function getAppIcon(app) {
+    const ICON_SIZE = 256;
+
+    let icon = app.get_icon();
+    if (!icon)
+        return ['', []];
+
+    let theme = Gtk.IconTheme.get_default();
+    let info = theme.lookup_by_gicon(icon, ICON_SIZE, 0);
+    if (!info)
+        return ['', []];
+
+    try {
+        let [success, byteArray] = GLib.file_get_contents(info.get_filename());
+        let extension = getExtension(GLib.path_get_basename(info.get_filename()));
+        return [('.' + extension), byteArray.toGBytes()];
+    } catch(e) {
+        return ['', []];
+    }
+}
 
 const StartStopApps = new GObject.Class({
     Name: 'StartStopApps',
@@ -75,7 +109,8 @@ const StartStopApps = new GObject.Class({
 
         this._shellEval(CLOSE_ALL_APPS, this._cancellable);
 
-        this._sendAsyncMessage('TestingAppStart', GLib.Variant.new("s", appid));
+        let icon = getAppIcon(this._testingApp);
+        this._sendAsyncMessage('TestingAppStart', GLib.Variant.new("(s(say))", [appid, icon]));
         this._testingApp.launch([], this._cancellable);
         this._appCheckRunningIterations = 0;
         this._appCheckRunningTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
