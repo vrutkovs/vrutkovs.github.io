@@ -4,8 +4,13 @@ body {
 
 	margin: 0;
 
+	display: -moz-box;
+	-moz-box-orient: vertical;
+
 	display: flex;
 	flex-direction: column;
+
+	width: 100%;
 	min-height: 100vh;
 }
 
@@ -15,6 +20,7 @@ h1 {
 }
 
 .content {
+	-moz-box-flex: 1;
 	flex: 1;
 }
 
@@ -33,6 +39,7 @@ footer {
 }
 
 .machine {
+	display: -moz-box;
 	display: flex;
 
 	border-radius: 6px;
