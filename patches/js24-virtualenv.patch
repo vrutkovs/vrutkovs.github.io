@@ -1,0 +1,58 @@
+From 9103724a995e4a1438a113f71dc0263042458316 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Thu, 28 Nov 2013 10:16:34 -0500
+Subject: [PATCH] virtualenv: Support cases where host Python only ships .pyo
+
+Apparently on at least OpenEmbedded Python, only the .pyo files
+are shipped.  Change everywhere where Virtualenv looks for .pyc
+to also handle .pyo.
+
+This fixes the build of js24 inside gnome-continuous (which uses
+OpenEmbedded python).
+---
+ js/src/python/virtualenv/virtualenv.py |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/js/src/python/virtualenv/virtualenv.py b/js/src/python/virtualenv/virtualenv.py
+index d33f60a..2bcc327 100755
+--- a/js/src/python/virtualenv/virtualenv.py
++++ b/js/src/python/virtualenv/virtualenv.py
+@@ -914,7 +914,7 @@ def main():
+             logger.notify('Running virtualenv with interpreter %s' % interpreter)
+             env['VIRTUALENV_INTERPRETER_RUNNING'] = 'true'
+             file = __file__
+-            if file.endswith('.pyc'):
++            if file.endswith('.pyc') or site_filename.endswith('.pyo'):
+                 file = file[:-1]
+             popen = subprocess.Popen([interpreter, file] + sys.argv[1:], env=env)
+             raise SystemExit(popen.wait())
+@@ -1195,7 +1195,7 @@ def copy_required_modules(dst_prefix):
+                 else:
+                     dst_filename = change_prefix(filename, dst_prefix)
+                 copyfile(filename, dst_filename)
+-                if filename.endswith('.pyc'):
++                if filename.endswith('.pyc') or filename.endswith('.pyo'):
+                     pyfile = filename[:-1]
+                     if os.path.exists(pyfile):
+                         copyfile(pyfile, dst_filename[:-1])
+@@ -1261,7 +1261,7 @@ def install_python(home_dir, lib_dir, inc_dir, bin_dir, site_packages, clear):
+     mkdir(join(lib_dir, 'site-packages'))
+     import site
+     site_filename = site.__file__
+-    if site_filename.endswith('.pyc'):
++    if site_filename.endswith('.pyc') or site_filename.endswith('.pyo'):
+         site_filename = site_filename[:-1]
+     elif site_filename.endswith('$py.class'):
+         site_filename = site_filename.replace('$py.class', '.py')
+@@ -1882,7 +1882,7 @@ def create_bootstrap_script(extra_text, python_version=''):
+     be run with a particular Python version.
+     """
+     filename = __file__
+-    if filename.endswith('.pyc'):
++    if filename.endswith('.pyc') or filename.endswith('.pyo'):
+         filename = filename[:-1]
+     f = codecs.open(filename, 'r', encoding='utf-8')
+     content = f.read()
+-- 
+1.7.1
+

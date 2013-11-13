@@ -776,7 +776,20 @@
 				 "--enable-wayland"],
 		 "setuid": ["/runtime/usr/bin/mutter-launch"]},
 
+                {"src": "tarball:https://people.mozilla.org/~sstangl/mozjs-24.1.0.rc1.tar.bz2",
+		 "name": "js24",
+		 "checksum": "69ca3ae747cae5cad980bdcd59e688bc99114901c8c1e0b789d187f4ef1e7264",
+		 "patches": ["js24-buildapi.patch", "js24-virtualenv.patch"],
+		 "config-opts": ["--enable-threadsafe",
+		                 "--with-system-nspr",
+				 "--disable-tests",
+				 "--disable-strip",
+				 "--enable-ctypes",
+				 "--enable-system-ffi",
+				 "--disable-intl-api"]},
+
 		{"src": "gnome:gjs",
+		 "branch": "wip/js24",
 		 "config-opts": ["--enable-installed-tests"]},
 
                 {"src": "ibus:ibus.git",
