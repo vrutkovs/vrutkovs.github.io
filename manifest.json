@@ -577,7 +577,7 @@
 				 "--enable-wayland-compositor",
 				 "--enable-egl-backend",
 				 "--enable-evdev-input"],
-		 "branch": "clutter-1.16"},
+		 "branch": "clutter-1.18"},
 
 		{"src": "gnome:libnotify"},
 
@@ -766,8 +766,6 @@
 		{"src": "gnome:mutter",
 		 "name": "mutter-wayland",
 		 "branch": "wayland",
-		 "tag": "72a900787f93cae5d153fb416c0fed3428b8bdc9",
-		 "tag-reason": "Needs https://bugzilla.gnome.org/show_bug.cgi?id=707560",
 		 "config-opts": ["--enable-compile-warnings=maximum",
 				 "--enable-wayland"],
 		 "setuid": ["/runtime/usr/bin/mutter-launch"]},
