@@ -53,6 +53,7 @@ const TaskBuildDisks = new Lang.Class({
     _onlyTreeSuffixes: ['-runtime'],
 
     execute: function(cancellable) {
+        let isLocal = this._buildName == 'local';
 	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
         let baseImageVersionedDir = new VersionedDir.VersionedDir(baseImageDir, this._VERSION_RE);
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
@@ -60,7 +61,6 @@ const TaskBuildDisks = new Lang.Class({
 	      let currentImageLink = baseImageDir.get_child('current');
 	      let previousImageLink = baseImageDir.get_child('previous');
 
-        let isLocal = this._buildName == 'local';
         let targetImageDir = baseImageDir.get_child(this._buildName);
         if (!isLocal && targetImageDir.query_exists(null)) {
             print("Already created " + targetImageDir.get_path());
@@ -97,8 +97,9 @@ const TaskBuildDisks = new Lang.Class({
 	          let diskName = squashedName + '.qcow2';
             let diskPath = workImageDir.get_child(diskName);
             let prevPath = currentImageLink.get_child(diskName);
+            let prevExists = prevPath.query_exists(null);
             GSystem.shutil_rm_rf(diskPath, cancellable);
-            let doCloneDisk = this._inheritPreviousDisk && prevPath.query_exists(null);
+            let doCloneDisk = this._inheritPreviousDisk && prevExists;
             if (doCloneDisk) {
                 LibQA.copyDisk(prevPath, diskPath, cancellable);
             } else {
@@ -126,6 +127,9 @@ const TaskBuildDisks = new Lang.Class({
 	      }
 
         if (isLocal) {
+            let localImageDir = baseImageDir.get_child('local');
+            GSystem.shutil_rm_rf(localImageDir, cancellable);
+            GSystem.file_rename(workImageDir, localImageDir, cancellable);
             return;
         }
 
