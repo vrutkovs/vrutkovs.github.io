@@ -28,12 +28,14 @@ const BuildUtil = imports.buildutil;
 const ProcUtil = imports.procutil;
 const VersionedDir = imports.versioneddir;
 
-var AutoBuilderIface = <interface name="org.gnome.OSTreeBuild.AutoBuilder">
-<method name="queueResolve">
-    <arg type="as" direction="in" />
-</method>
-<property name="Status" type="s" access="read" />
-</interface>;
+var AutoBuilderIface = '<node> \
+<interface name="org.gnome.OSTreeBuild.AutoBuilder"> \
+<method name="queueResolve"> \
+    <arg type="as" direction="in" /> \
+</method> \
+<property name="Status" type="s" access="read" /> \
+</interface> \
+</node>';
 
 const Autobuilder = new Lang.Class({
     Name: 'Autobuilder',

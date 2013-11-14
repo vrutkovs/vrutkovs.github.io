@@ -35,18 +35,20 @@ const JSONUtil = imports.jsonutil;
 const TIMEOUT_SECONDS = 10 * 60;
 const COMPLETE_IDLE_WAIT_SECONDS = 10;
 
-const CommandSocketIface = <interface name="org.gnome.Continuous.Command">
-    <method name='AsyncMessage'>
-    <arg name="msgId" direction="in" type="s"/>
-    <arg name="value" direction="in" type="v"/>
-    </method>
-    <method name='Screenshot'>
-    <arg name="name" direction="in" type="s"/>
-    </method>
-    <signal name='ScreenshotComplete'>
-    <arg name="name" direction="out" type="s"/>
-    </signal>
-</interface>;
+const CommandSocketIface = '<node> \
+<interface name="org.gnome.Continuous.Command"> \
+    <method name="AsyncMessage"> \
+    <arg name="msgId" direction="in" type="s"/> \
+    <arg name="value" direction="in" type="v"/> \
+    </method> \
+    <method name="Screenshot"> \
+    <arg name="name" direction="in" type="s"/> \
+    </method> \
+    <signal name="ScreenshotComplete"> \
+    <arg name="name" direction="out" type="s"/> \
+    </signal> \
+</interface> \
+</node>';
 
 // This proxy class exists to avoid tangling up the TestOneDisk class
 // with the Command DBus API.  It also keeps track of the SaveFile API
