@@ -79,6 +79,8 @@
 		 "config-opts": ["--disable-manpages"]},
 
                 {"src": "gnome:gobject-introspection",
+		 "tag": "c33fc7622c63981572ffc26c4cdf540c8b4926c2",
+		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=712211",
 		 "config-opts": ["--disable-tests"]},
 
 		{"src": "gnome:vala-bootstrap",
