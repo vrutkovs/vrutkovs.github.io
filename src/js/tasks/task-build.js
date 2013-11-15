@@ -1335,6 +1335,7 @@ const TaskBuild = new Lang.Class({
 	    archInitramfsImages[architecture] = kernelInitramfsData;
 	    this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
 	    let [treename, ostreeRev] = this._commitComposedTree(develTargetName, composeRootdir, cancellable);
+	    GSystem.shutil_rm_rf(composeRootdir, cancellable);
 	    targetRevisions[treename] = ostreeRev;
 	    // Also note the revision of this, since it will be used
 	    // as the buildroot for installed tests
