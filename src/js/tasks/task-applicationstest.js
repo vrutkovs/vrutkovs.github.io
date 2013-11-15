@@ -69,7 +69,6 @@ const TaskApplicationsTest = new Lang.Class({
             this._testingApp = value.deep_unpack();
             print("got testingAppStart id=" + this._testingApp);
             this._allApps[this._testingApp] = {'state': 'running'};
-            GSystem.file_ensure_directory(this._statusPath.get_parent(), true, null);
             this._testingAppCoredumped = false;
         } else if (msgId == 'TestingAppTimedOut') {
             print("got TestingAppTimedOut");
