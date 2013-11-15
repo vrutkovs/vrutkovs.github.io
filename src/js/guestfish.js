@@ -135,7 +135,7 @@ const GuestMount = new Lang.Class({
                 if (!(e.origError && e.origError.domain == GLib.spawn_exit_error_quark()))
                     throw e;
                 else {
-                    let proc = GSystem.Subprocess.new_simple_argv(['fuser', '-m', mntdir.get_path()],
+                    let proc = GSystem.Subprocess.new_simple_argv(['fuser', '-m', this._mntdir.get_path()],
                                                                   GSystem.SubprocessStreamDisposition.INHERIT,
                                                                   GSystem.SubprocessStreamDisposition.INHERIT,
                                                                   cancellable);
