@@ -16,7 +16,11 @@
             }).
             when('/gnome-continuous', {
                 templateUrl: 'partials/gnome-continuous.html',
-                controller: 'ContinuousTaskViewCtrl',
+                controller: 'ContinuousHomeCtrl',
+            }).
+            when('/gnome-continuous/build/:buildName', {
+                templateUrl: 'partials/gnome-continuous-build.html',
+                controller: 'ContinuousBuildViewCtrl',
             }).
             otherwise({
                 redirectTo: '/',

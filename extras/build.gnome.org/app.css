@@ -86,3 +86,28 @@ footer {
 .machine.bad .status {
     background-image: url(images/build-bad.svg);
 }
+
+.app {
+    padding: 1em;
+    float: left;
+    text-align: center;
+}
+
+.app .icon, .app .icon img {
+    width: 96px;
+    height: 96px;
+
+    position: relative;
+}
+
+.app .emblem {
+    width: 48px;
+    height: 48px;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+}
+
+.app.good .emblem {
+    background-image: url(images/app-good.png);
+}

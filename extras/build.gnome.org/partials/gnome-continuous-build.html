@@ -1,0 +1,18 @@
+<article>
+  <h1>GNOME-Continuous</h1>
+  <h2>{{ buildName }}</h2>
+  <div class="tasks">
+    <div ng-repeat="task in tasks">
+      {{ task.name }} : {{ task.status }}
+    </div>
+  </div>
+
+  <div class="app-grid">
+    <a ng-repeat="app in apps" class="app" ng-class="app.status" title="{{ app.name }}" href="???">
+      <div class="icon">
+        <img src="{{ app.icon }}">
+        <div class="emblem"></div>
+      </div>
+    </a>
+  </div>
+</article>
