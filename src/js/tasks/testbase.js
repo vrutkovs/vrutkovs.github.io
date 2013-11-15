@@ -50,9 +50,6 @@ const CommandSocketIface = '<node> \
 </interface> \
 </node>';
 
-// This proxy class exists to avoid tangling up the TestOneDisk class
-// with the Command DBus API.  It also keeps track of the SaveFile API
-// state.
 const CommandSocketProxy = new Lang.Class({
     Name: 'CommandSocketProxy',
 
@@ -63,7 +60,6 @@ const CommandSocketProxy = new Lang.Class({
         this._dbusImpl.export(connection, '/org/gnome/Continuous/Command');
         this._asyncMessageHandler = asyncMessageHandler;
         this._screenshotHandler = screenshotHandler;
-        this._savingFiles = {};
     },
 
     Screenshot: function(name) {
