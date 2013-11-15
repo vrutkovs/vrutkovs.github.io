@@ -1,5 +1,5 @@
 #!/usr/bin/env gjs
-// -*- indent-tabs-mode: nil; tab-width: 2; -*-
+// -*- mode: js; indent-tabs-mode: nil; tab-width: 2; -*-
 // Copyright (C) 2013 Colin Walters <walters@verbum.org>
 //
 // This library is free software; you can redistribute it and/or
