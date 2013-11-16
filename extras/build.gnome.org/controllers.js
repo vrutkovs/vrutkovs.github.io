@@ -34,6 +34,12 @@
         var apps = [];
         $http.get(buildRoot + 'applicationstest/apps.json').success(function(data) {
             var apps = data['apps'];
+
+            // Older builds use a different scheme for the
+            // applicationstest; just ignore them.
+            if (!apps.forEach)
+                return;
+
             apps.forEach(function(app) {
                 // Mangle the data a bit
 
