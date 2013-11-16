@@ -27,9 +27,6 @@
                 data['name'] = taskName;
 
                 tasks.push(data);
-
-                if (taskName == 'smoketest')
-                    $scope.smoketestImage = getUrl(data['path'] + '/work-gnome-continuous-x86_64-runtime/screenshot-final.png');
             });
         });
         $scope.tasks = tasks;
