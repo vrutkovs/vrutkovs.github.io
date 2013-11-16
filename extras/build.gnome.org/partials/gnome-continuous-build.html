@@ -8,7 +8,7 @@
   </div>
 
   <div class="app-grid">
-    <a ng-repeat="app in apps" class="app" ng-class="app.status" title="{{ app.name }}" href="???">
+    <a ng-repeat="app in apps" class="app" ng-class="app.status" title="{{ app.name }}" href="{{ app.screenshot }}">
       <div class="icon">
         <img src="{{ app.icon }}">
         <div class="emblem"></div>

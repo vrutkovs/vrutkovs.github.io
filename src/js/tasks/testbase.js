@@ -258,6 +258,7 @@ const TestOneDisk = new Lang.Class({
         }
 
         // Convert to PNG if possible
+        let screenshotPath = filePath;
         if (modified && imports.gi.GdkPixbuf) {
             let GdkPixbuf = imports.gi.GdkPixbuf;
             let pixbuf = null;
@@ -271,6 +272,7 @@ const TestOneDisk = new Lang.Class({
             }
             if (pixbuf != null) {
                 let outFilename = this._subworkdir.get_child(filename.replace(/ppm$/, 'png'));
+                screenshotPath = outFilename;
                 pixbuf.savev(outFilename.get_path(), "png", [], []);
             }
             GSystem.file_unlink(filePath, this._cancellable);
@@ -279,6 +281,7 @@ const TestOneDisk = new Lang.Class({
         if (name == null) {
             this._requestingScreenshot = false;
         } else {
+            this._parentTask._screenshotTaken(screenshotPath);
             this._commandProxy._dbusImpl.emit_signal('ScreenshotComplete',
                                                      GLib.Variant.new('(s)', [name]));
         }
@@ -532,6 +535,9 @@ const TestBase = new Lang.Class({
     },
 
     _postQemu: function(cancellable) {
+    },
+
+    _screenshotTaken: function(path) {
     },
 
     execute: function(cancellable) {

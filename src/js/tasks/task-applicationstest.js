@@ -80,6 +80,13 @@ const TaskApplicationsTest = new Lang.Class({
         return icon;
     },
 
+    _screenshotTaken: function(path) {
+        if (this._testingApp) {
+            let app = this._allApps[this._testingApp];
+            app.screenshot = this.workdir.get_relative_path(path);
+        }
+    },
+
     _onCommandChannelAsyncMessage: function(msgId, value) {
         if (msgId == 'TestingAppStart') {
             let [appId, iconTuple] = value.deep_unpack();

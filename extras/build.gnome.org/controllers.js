@@ -42,6 +42,7 @@
                 var icon = app.icon ? (ROOT + app.icon) : '/images/app-generic.png';
                 apps.push({ id: id,
                             name: id, /* XXX */
+                            screenshot: (ROOT + app.screenshot),
                             status: (app.state == "success") ? 'good' : 'bad',
                             icon: icon });
             });
