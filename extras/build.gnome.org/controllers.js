@@ -36,19 +36,23 @@
 
         var apps = [];
         $http.get(buildRoot + 'applicationstest/apps.json').success(function(data) {
-            var appsDict = data['apps'];
-            Object.keys(appsDict).forEach(function(id) {
-                var app = appsDict[id];
-                var icon = app.icon ? (ROOT + app.icon) : '/images/app-generic.png';
-                apps.push({ id: id,
-                            name: id, /* XXX */
-                            screenshot: (ROOT + app.screenshot),
-                            status: (app.state == "success") ? 'good' : 'bad',
-                            icon: icon });
-            });
-        });
-        $scope.apps = apps;
+            var apps = data['apps'];
+            apps.forEach(function(app) {
+                // Mangle the data a bit
 
+                app.name = app.id; /* XXX */
+                app.status = (app.state == "success") ? 'good' : 'bad';
+
+                // XXX -- this should probably be in the template
+                if (app.icon)
+                    app.icon = ROOT + app.icon;
+                else
+                    app.icon = '/images/app-generic.png';
+
+                app.screenshot = ROOT + app.screenshot;
+            });
+            $scope.apps = apps;
+        });
     });
 
     bgoControllers.controller('ContinuousHomeCtrl', function($scope, $http) {

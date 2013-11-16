@@ -82,7 +82,7 @@ const TaskApplicationsTest = new Lang.Class({
 
     _screenshotTaken: function(path) {
         if (this._testingApp) {
-            let app = this._allApps[this._testingApp];
+            let app = this._testingApp;
             app.screenshot = this.workdir.get_relative_path(path);
         }
     },
@@ -91,21 +91,25 @@ const TaskApplicationsTest = new Lang.Class({
         if (msgId == 'TestingAppStart') {
             let [appId, iconTuple] = value.deep_unpack();
             print("got testingAppStart id=" + appId);
-            this._testingApp = appId;
             let app = {};
+            app.id = appId;
+
             let icon = this._extractIcon(appId, iconTuple, null);
             if (icon)
                 app.icon = this.workdir.get_relative_path(icon);
+
             app.state = 'running';
-            this._allApps[this._testingApp] = app;
+            this._allApps.push(app);
+
+            this._testingApp = app;
             this._testingAppCoredumped = false;
         } else if (msgId == 'TestingAppTimedOut') {
             print("got TestingAppTimedOut");
-            let app = this._allApps[this._testingApp];
+            let app = this._testingApp;
             app.state = 'timeout';
             this._testingApp = null;
         } else if (msgId == 'TestingAppComplete') {
-            let app = this._allApps[this._testingApp];
+            let app = this._testingApp;
             let successfulStr = !this._testingAppCoredumped ? 'success' : 'failed';
             print("got TestingAppComplete success=" + successfulStr);
             app.state = successfulStr;
@@ -122,7 +126,7 @@ const TaskApplicationsTest = new Lang.Class({
     },
    
     _prepareDisk: function(mntdir, arch, cancellable) {
-        this._allApps = {};
+        this._allApps = [];
         let osname = this._buildData['snapshot']['osname'];
         let datadir = LibQA.getDatadir();
         let startStopAppsName = 'gnome-continuous-startstopapps';
