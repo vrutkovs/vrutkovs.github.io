@@ -29,7 +29,6 @@ const Task = imports.task;
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
 const LibQA = imports.libqa;
-const VersionedDir = imports.versioneddir;
 const JsonUtil = imports.jsonutil;
 const JSUtil = imports.jsutil;
 const GuestFish = imports.guestfish;
@@ -45,9 +44,6 @@ const TaskBuildDisks = new Lang.Class({
         TaskAfter: ['build'],
     },
 
-    // Legacy
-    _VERSION_RE: /^(\d+)\.(\d+)$/,
-
     _imageSubdir: 'images',
     _inheritPreviousDisk: true,
     _onlyTreeSuffixes: ['-runtime'],
@@ -55,7 +51,6 @@ const TaskBuildDisks = new Lang.Class({
     execute: function(cancellable) {
         let isLocal = this._buildName == 'local';
 	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
-        let baseImageVersionedDir = new VersionedDir.VersionedDir(baseImageDir, this._VERSION_RE);
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
 
 	      let currentImageLink = baseImageDir.get_child('current');
@@ -150,8 +145,6 @@ const TaskBuildDisks = new Lang.Class({
             GSystem.file_rename(newPreviousTmppath, previousImageLink, cancellable);
         }
         BuildUtil.atomicSymlinkSwap(baseImageDir.get_child('current'), targetImageDir, cancellable);
-
-        baseImageVersionedDir.cleanOldVersions(IMAGE_RETAIN_COUNT, cancellable);
     },
 
     _postDiskCreation: function(squashedName, diskPath, cancellable) {

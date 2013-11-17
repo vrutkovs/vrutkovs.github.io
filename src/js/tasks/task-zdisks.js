@@ -31,9 +31,6 @@ const TaskZDisks = new Lang.Class({
         TaskScheduleMinSecs: 3*60*60,  // Only do this every 3 hours
     },
 
-    // Legacy
-    _VERSION_RE: /^(\d+)\.(\d+)$/,
-
     _imageSubdir: 'images/z',
     _inheritPreviousDisk: false,
     _onlyTreeSuffixes: ['-runtime', '-devel-debug'],
