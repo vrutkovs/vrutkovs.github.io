@@ -43,8 +43,6 @@ const Autobuilder = new Lang.Class({
 
     DESCRIPTION: "Automatically fetch git repositories and build",
 
-    _VERSION_RE: /^(\d+\d\d\d\d)\.(\d+)$/,
-
     _init: function() {
 	this.parent();
 
@@ -170,55 +168,6 @@ const Autobuilder = new Lang.Class({
 	return true;
     },
 
-    _getLastVersion: function(cancellable) {
-        let allVersions = this._buildsDir.loadVersions(cancellable);
-        if (allVersions.length > 0)
-            return allVersions[allVersions.length-1];
-        else
-            return null;
-    },
-
-    _fillBuildDirectory: function(buildPath, cancellable) {
-        let version = buildPath.get_basename();
-
-        let meta = { "version": version };
-        JsonUtil.writeJsonFileAtomic(buildPath.get_child('meta.json'), meta, cancellable);
-    },
-
-    _getNextBuildDirectory: function(cancellable) {
-        let currentTime = GLib.DateTime.new_now_utc();
-        let currentYmd = Format.vprintf('%d%02d%02d', [currentTime.get_year(),
-                                                       currentTime.get_month(),
-                                                       currentTime.get_day_of_month()]);
-
-        let version = null;
-        let lastVersion = this._getLastVersion(cancellable);
-        if (lastVersion) {
-            let match = this._VERSION_RE.exec(lastVersion);
-            if (!match) throw new Error();
-            let lastYmd = match[1];
-            let lastSerial = match[2];
-            if (lastYmd == currentYmd) {
-                version = currentYmd + '.' + (parseInt(lastSerial) + 1);
-            }
-        }
-        if (version === null) {
-            version = currentYmd + '.0';
-        }
-
-        let buildPath = this._buildsDir.path.get_child(version);
-        GSystem.file_ensure_directory(buildPath, true, cancellable);
-
-        if (lastVersion) {
-            let lastBuildPath = this._buildsDir.path.get_child(lastVersion);
-            BuildUtil.atomicSymlinkSwap(buildPath.get_child('last-build'), lastBuildPath, null);
-        }
-
-        this._fillBuildDirectory(buildPath, cancellable);
-
-        return buildPath;
-    },
-
     _runResolve: function() {
 	let cancellable = null;
 	
@@ -234,7 +183,17 @@ const Autobuilder = new Lang.Class({
 	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable,
 			     { cwd: this._autoupdate_self })
 
-        let buildPath = this._getNextBuildDirectory(cancellable);
+	let previousVersion = this._buildsDir.currentVersion(cancellable);
+        let buildPath = this._buildsDir.allocateNewVersion(cancellable);
+        let version = this._buildsDir.pathToVersion(buildPath);
+        if (previousVersion) {
+            let lastBuildPath = this._buildsDir.createPathForVersion(previousVersion);
+            BuildUtil.atomicSymlinkSwap(buildPath.get_child('last-build'), lastBuildPath, null);
+        }
+
+        let meta = { "version": version };
+        JsonUtil.writeJsonFileAtomic(buildPath.get_child('meta.json'), meta, cancellable);
+
 	if (this._initialResolveNeeded) {
 	    this._initialResolveNeeded = false;
 	    this._taskmaster.pushTask(buildPath, 'resolve', { });

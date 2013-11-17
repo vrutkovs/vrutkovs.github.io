@@ -26,33 +26,125 @@ const BuildUtil = imports.buildutil;
 const VersionedDir = new Lang.Class({
     Name: 'VersionedDir',
 
-    _init: function(path, regexp) {
+    _YMD_SERIAL_VERSION_RE: /^(\d+)(\d\d)(\d\d)\.(\d+)$/,
+    _YEAR_OR_SERIAL_VERSION_RE: /^(\d+)$/,
+    _MONTH_OR_DAY_VERSION_RE: /^\d\d$/,
+
+    _init: function(path) {
 	this.path = path;
-	this._regexp = regexp;
+	this._cachedResults = null;
 	GSystem.file_ensure_directory(this.path, true, null);
     },
 
-    loadVersions: function(cancellable) {
-	let e = this.path.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
+    _createPathForParsedVersion: function(year, month, day, serial) {
+	return this.path.resolve_relative_path(Format.vprintf('%s/%s/%s/%s',
+							      [year, month, day, serial]));
+    },
+
+    createPathForVersion: function(ymdSerial) {
+	let match = this._YMD_SERIAL_VERSION_RE.exec(ymdSerial);
+	if (!match) throw new Error();
+	return this.path.resolve_relative_path(match[1] + '/' + match[2] + '/' +
+					       match[3] + '/' + match[4]);
+    },
+
+    _iterateChildrenMatching: function(dir, pattern, callback, cancellable) {
+	let e = dir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
 	let info;
-	let results = [];
 	while ((info = e.next_file(cancellable)) != null) {
+	    let srcpath = e.get_child(info);
 	    let name = info.get_name();
-	    let match = this._regexp.exec(name);
+	    let match = pattern.exec(name);
 	    if (!match)
 		continue;
-	    results.push(name);
+	    callback(srcpath, match, cancellable);
 	}
 	e.close(null);
+    },
+
+    _loadYear: function(yeardir, results, cancellable) {
+	this._iterateChildrenMatching(yeardir, this._MONTH_OR_DAY_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  this._loadMonth(srcpath, results, cancellable);
+				      }), cancellable);
+    },
+
+    _loadMonth: function(monthdir, results, cancellable) {
+	this._iterateChildrenMatching(monthdir, this._MONTH_OR_DAY_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  this._loadDay(srcpath, results, cancellable);
+				      }), cancellable);
+    },
+
+    _loadDay: function(daydir, results, cancellable) {
+	this._iterateChildrenMatching(daydir, this._YEAR_OR_SERIAL_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  results.push(this.pathToVersion(srcpath));
+				      }), cancellable);
+    },
+
+    _convertLegacyLayout: function(cancellable) {
+	this._iterateChildrenMatching(this.path, this._YMD_SERIAL_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  let path = this._createPathForParsedVersion(match[1], match[2], match[3], match[4]);
+					  print("convert " + srcpath.get_path() + " -> " + path.get_path());
+					  GSystem.file_ensure_directory(path.get_parent(), true, cancellable);
+					  GSystem.file_rename(srcpath, path, cancellable);
+				      }), cancellable);
+    },
+
+    relpathToVersion: function(relpath) {
+	let parts = relpath.split('/');
+	return parts[0] + parts[1] + parts[2] + '.' + parts[3];
+    },
+
+    pathToVersion: function(path) {
+	return this.relpathToVersion(this.path.get_relative_path(path));
+    },
+
+    loadVersions: function(cancellable) {
+	if (this._cachedResults !== null)
+	    return this._cachedResults;
+	let results = [];
+	this._convertLegacyLayout(cancellable);
+	this._iterateChildrenMatching(this.path, this._YEAR_OR_SERIAL_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  this._loadYear(srcpath, results, cancellable);
+				      }), cancellable);
 	results.sort(BuildUtil.compareVersions);
+	this._cachedResults = results;
 	return results;
     },
 
-    cleanOldVersions: function(retain, cancellable) {
+    currentVersion: function(cancellable) {
 	let versions = this.loadVersions(cancellable);
-	while (versions.length > retain) {
-	    let child = this.path.get_child(versions.shift());
-	    GSystem.shutil_rm_rf(child, cancellable);
-	}
+	if (versions.length > 0)
+	    return versions[versions.length - 1];
+	return null;
     },
+
+    allocateNewVersion: function(cancellable) {
+        let currentTime = GLib.DateTime.new_now_utc();
+        let currentYmd = Format.vprintf('%d%02d%02d', [currentTime.get_year(),
+                                                       currentTime.get_month(),
+                                                       currentTime.get_day_of_month()]);
+	let versions = this.loadVersions(cancellable);
+	let newVersion = null;
+	if (versions.length > 0) {
+	    let last = versions[versions.length-1];
+	    let match = this._YMD_SERIAL_VERSION_RE.exec(last);
+	    if (!match) throw new Error();
+            let lastYmd = match[1] + match[2] + match[3];
+            let lastSerial = match[4];
+            if (lastYmd == currentYmd) {
+                newVersion = currentYmd + '.' + (parseInt(lastSerial) + 1);
+            }
+	}
+	if (newVersion === null)
+	    newVersion = currentYmd + '.0';
+	let path = this.createPathForVersion(newVersion);
+        GSystem.file_ensure_directory(path, true, cancellable);
+	this._cachedResults.push(newVersion);
+	return path;
+    }
 });

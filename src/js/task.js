@@ -24,6 +24,7 @@ const Signals = imports.signals;
 const GSystem = imports.gi.GSystem;
 const OSTree = imports.gi.OSTree;
 const Params = imports.params;
+const VersionedDir = imports.versioneddir;
 const JsonUtil = imports.jsonutil;
 const ProcUtil = imports.procutil;
 const BuildUtil = imports.buildutil;
@@ -343,7 +344,8 @@ const Task = new Lang.Class({
 	BuildUtil.checkIsWorkDirectory(this.workdir);
         this.builddir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_BUILDDIR'));
 
-        this._buildName = this.builddir.get_basename();
+	let relpath = this.workdir.get_relative_path(this.builddir);
+	this._buildName = VersionedDir.VersionedDir.prototype.relpathToVersion(relpath);
 
 	this.mirrordir = this.workdir.get_child('src');
 	GSystem.file_ensure_directory(this.mirrordir, true, null);
@@ -387,7 +389,7 @@ const TaskRunner = new Lang.Class({
         let buildPath = this.taskmaster.tasksPath.resolve_relative_path(this.name);
         this.buildPath = GSystem.file_realpath(buildPath);
 
-        this.buildName = this.buildPath.get_basename();
+        this.buildName = this.workdir.get_relative_path(this.buildPath);
         this.taskCwd = this.buildPath.get_child(this.name);
         GSystem.file_ensure_directory(this.taskCwd, false, cancellable);
 
