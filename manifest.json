@@ -996,7 +996,9 @@
 		{"src": "gnome:hotssh"},
 
 		{"src": "gnome:gnome-desktop-testing",
-		 "component": "testing"}
+		 "component": "testing"},
+
+		{"src": "gnome:gnome-tweak-tool"}
 	],
 
     "installed-tests-components": [],
