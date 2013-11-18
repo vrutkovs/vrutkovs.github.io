@@ -23,6 +23,11 @@ const Format = imports.format;
 const GSystem = imports.gi.GSystem;
 const BuildUtil = imports.buildutil;
 
+function relpathToVersion(relpath) {
+    let parts = relpath.split('/');
+	return parts[0] + parts[1] + parts[2] + '.' + parts[3];
+}
+
 const VersionedDir = new Lang.Class({
     Name: 'VersionedDir',
 
@@ -93,13 +98,8 @@ const VersionedDir = new Lang.Class({
 				      }), cancellable);
     },
 
-    relpathToVersion: function(relpath) {
-	let parts = relpath.split('/');
-	return parts[0] + parts[1] + parts[2] + '.' + parts[3];
-    },
-
     pathToVersion: function(path) {
-	return this.relpathToVersion(this.path.get_relative_path(path));
+	return relpathToVersion(this.path.get_relative_path(path));
     },
 
     loadVersions: function(cancellable) {
