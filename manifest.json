@@ -900,7 +900,7 @@
 		{"src": "gnome:libwnck"},
 
 		{"src": "gnome:vte",
-		 "branch": "vte-0-34"},
+		 "branch": "vte-0-36"},
 
 		{"src": "git:git://git.kernel.org/pub/scm/utils/dash/dash.git"},
 
