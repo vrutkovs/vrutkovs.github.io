@@ -124,7 +124,7 @@ class BuildGnomeOrg(irc.IRCClient):
 
     def _relpath_to_version(self, relpath):
         parts = relpath.split('/')
-        return parts[0] + parts[1] + parts[2] + '.' + parts[3];
+        return parts[1] + parts[2] + parts[3] + '.' + parts[4];
 
     def _status_line_for_task(self, taskname):
         metadata, status_msg = self._get_task_state(taskname)
