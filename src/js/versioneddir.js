@@ -146,5 +146,14 @@ const VersionedDir = new Lang.Class({
         GSystem.file_ensure_directory(path, true, cancellable);
 	this._cachedResults.push(newVersion);
 	return path;
+    },
+
+    deleteCurrentVersion: function(cancellable) {
+	let versions = this.loadVersions(cancellable);
+	if (versions.length == 0)
+	    throw new Error();
+	let last = versions.pop();
+	let path = this.createPathForVersion(last);
+	GSystem.shutil_rm_rf(path, cancellable);
     }
 });

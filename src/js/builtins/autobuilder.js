@@ -98,11 +98,13 @@ const Autobuilder = new Lang.Class({
     _onTaskCompleted: function(taskmaster, task, success, error) {
         let cancellable = null;
 
-        if (!task.changed)
-            GSystem.shutil_rm_rf(task.buildPath, cancellable);
-
-	if (task.name == 'resolve')
+        if (task.name == 'resolve') {
+	    if (!task.changed) {
+		print("Resolve is unchanged");
+		this._buildsDir.deleteCurrentVersion(null);
+	    }
 	    this._runResolve();
+	}
 
         let resultsPath;
 
