@@ -22,11 +22,9 @@
     };
 
     bgoControllers.controller('ContinuousStatusCtrl', function($scope, $http) {
-	console.log("request meta.json");
         $http.get(ROOT + 'results/tasks/build/build/meta.json').success(function(data) {
             $scope.status = data.success ? 'good' : 'bad';
             $scope.buildVersion = relpathToVersion(data.buildPath);
-	    console.log("scope.buildVersion=" + $scope.buildVersion);
         });
     });
 
@@ -34,7 +32,8 @@
         var buildVersion = $routeParams.buildVersion;
         $scope.buildVersion = buildVersion;
 
-        var buildRoot = ROOT + 'builds/' + $scope.buildPath + '/';
+	var buildPath = versionToRelpath(buildVersion);
+        var buildRoot = ROOT + 'builds/' + buildPath + '/';
 
         var tasks = [];
         taskNames.forEach(function(taskName) {
