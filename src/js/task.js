@@ -413,6 +413,14 @@ const TaskRunner = new Lang.Class({
 	this._proc = new GSystem.Subprocess({ context: context });
 	this._proc.init(cancellable);
 
+	let targetPath = this.workdir.get_relative_path(this.taskCwd);
+
+	let meta = { taskMetaVersion: 0,
+                     buildName: this.buildName,
+		     complete: false,
+		     path: targetPath };
+	JsonUtil.writeJsonFileAtomic(this.taskCwd.get_child('meta.json'), meta, cancellable);
+
 	this._proc.wait(cancellable, Lang.bind(this, this._onChildExited));
     },
 
@@ -438,6 +446,7 @@ const TaskRunner = new Lang.Class({
 
 	let meta = { taskMetaVersion: 0,
                      buildName: this.buildName,
+		     complete: true,
 		     success: success,
 		     errmsg: errmsg,
 		     elapsedMillis: elapsedMillis,

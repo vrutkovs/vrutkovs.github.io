@@ -58,7 +58,7 @@ const Autobuilder = new Lang.Class({
     execute: function(args, loop, cancellable) {
 	this._initWorkdir(null, cancellable);
 
-        this._buildsDir = new VersionedDir.VersionedDir(this.workdir.get_child('builds'), this._VERSION_RE);
+        this._buildsDir = new VersionedDir.VersionedDir(this.workdir.get_child('builds'));
 
         this._resultsDir = this.workdir.get_child('results');
         GSystem.file_ensure_directory(this._resultsDir, true, cancellable);
@@ -190,9 +190,6 @@ const Autobuilder = new Lang.Class({
             let lastBuildPath = this._buildsDir.createPathForVersion(previousVersion);
             BuildUtil.atomicSymlinkSwap(buildPath.get_child('last-build'), lastBuildPath, null);
         }
-
-        let meta = { "version": version };
-        JsonUtil.writeJsonFileAtomic(buildPath.get_child('meta.json'), meta, cancellable);
 
 	if (this._initialResolveNeeded) {
 	    this._initialResolveNeeded = false;
