@@ -416,7 +416,7 @@ const TaskRunner = new Lang.Class({
 	let targetPath = this.workdir.get_relative_path(this.taskCwd);
 
 	let meta = { taskMetaVersion: 0,
-                     buildName: this.buildName,
+                     buildPath: this.buildName,
 		     complete: false,
 		     path: targetPath };
 	JsonUtil.writeJsonFileAtomic(this.taskCwd.get_child('meta.json'), meta, cancellable);
@@ -445,7 +445,7 @@ const TaskRunner = new Lang.Class({
 	let targetPath = this.workdir.get_relative_path(this.taskCwd);
 
 	let meta = { taskMetaVersion: 0,
-                     buildName: this.buildName,
+                     buildPath: this.buildName,
 		     complete: true,
 		     success: success,
 		     errmsg: errmsg,

@@ -109,10 +109,10 @@ class BuildGnomeOrg(irc.IRCClient):
         if metadata is None:
             return None
 
-        build_name = metadata['buildName']
+        build_name = metadata['buildPath']
 
         last_state = self._last_task_state.get(taskname)
-        last_build_name = last_state['buildName'] if last_state else None
+        last_build_name = last_state['buildPath'] if last_state else None
         build_unchanged = (build_name == last_build_name)
 
         self._last_task_state[taskname] = metadata
@@ -122,9 +122,13 @@ class BuildGnomeOrg(irc.IRCClient):
         else:
             return last_state, metadata, status_msg
 
+    def _relpath_to_version(self, relpath):
+        parts = relpath.split('/')
+        return parts[0] + parts[1] + parts[2] + '.' + parts[3];
+
     def _status_line_for_task(self, taskname):
         metadata, status_msg = self._get_task_state(taskname)
-        build_name = metadata['buildName']
+        build_name = self._relpath_to_version(metadata['buildPath'])
         millis = float(metadata['elapsedMillis'])
         success = metadata['success']
         success_str = success and 'successful' or 'failed'
