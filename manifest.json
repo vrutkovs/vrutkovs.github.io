@@ -752,7 +752,10 @@
 				 "--enable-miner-thunderbird=no",
 				 "--enable-miner-evolution=no",
 				 "--disable-nautilus-extension",
-				 "--disable-upower",
+				 "--disable-tracker-needle",
+				 "--disable-tracker-preferences",
+				 "--disable-tracker-search-bar",
+				 "--disable-tracker-explorer",
 				 "--with-unicode-support=libicu"]},
 
 		{"src": "gnome:dconf",
