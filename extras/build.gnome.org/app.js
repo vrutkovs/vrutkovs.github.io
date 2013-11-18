@@ -18,7 +18,7 @@
                 templateUrl: 'partials/gnome-continuous.html',
                 controller: 'ContinuousHomeCtrl',
             }).
-            when('/gnome-continuous/build/:buildName', {
+            when('/gnome-continuous/build/:buildVersion', {
                 templateUrl: 'partials/gnome-continuous-build.html',
                 controller: 'ContinuousBuildViewCtrl',
             }).

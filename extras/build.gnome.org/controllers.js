@@ -7,25 +7,43 @@
 
     var ROOT = '/continuous/buildmaster/';
 
+    var YMD_SERIAL_VERSION_RE = /^(\d+)(\d\d)(\d\d)\.(\d+)$/;
+
+    function relpathToVersion(relpath) {
+	var parts = relpath.split('/');
+	parts.shift(); // Remove builds/
+	return parts[0] + parts[1] + parts[2] + '.' + parts[3];
+    };
+
+    function versionToRelpath(version) {
+	var match = YMD_SERIAL_VERSION_RE.exec(version);
+	return 'builds/' + match[1] + '/' + match[2] + '/' +
+	    match[3] + '/' + match[4];
+    };
+
     bgoControllers.controller('ContinuousStatusCtrl', function($scope, $http) {
+	console.log("request meta.json");
         $http.get(ROOT + 'results/tasks/build/build/meta.json').success(function(data) {
             $scope.status = data.success ? 'good' : 'bad';
-            $scope.buildName = data.buildName;
+            $scope.buildVersion = relpathToVersion(data.buildName);
+	    console.log("scope.buildVersion=" + $scope.buildVersion);
         });
     });
 
     bgoControllers.controller('ContinuousBuildViewCtrl', function($scope, $http, $routeParams) {
-        var buildName = $routeParams.buildName;
-        $scope.buildName = buildName;
+        var buildVersion = $routeParams.buildVersion;
+	console.log("buildVersion=" + buildVersion);
+        $scope.buildVersion = buildVersion;
+        $scope.buildPath = versionToRelpath(buildName);
 
-        var buildRoot = ROOT + 'builds/' + buildName + '/';
+        var buildRoot = ROOT + $scope.buildPath + '/';
 
         var tasks = [];
         taskNames.forEach(function(taskName) {
             $http.get(buildRoot + taskName + '/meta.json').success(function(data) {
                 // Mangle the data a bit so we can render it better
                 data['name'] = taskName;
-
+		data['version'] = relpathToVersion(data['buildName']);
                 tasks.push(data);
             });
         });
@@ -64,6 +82,7 @@
         // Just get the most recent build for now. We need an
         // API to iterate over all the builds.
         $http.get(ROOT + 'results/tasks/build/build/meta.json').success(function(data) {
+            data.buildVersion = relpathToVersion(data.buildName);
             builds.push(data);
         });
         $scope.builds = builds;
