@@ -109,6 +109,9 @@ class BuildGnomeOrg(irc.IRCClient):
         if metadata is None:
             return None
 
+        if not metadata['complete']:
+            return None
+
         build_name = metadata['buildPath']
 
         last_state = self._last_task_state.get(taskname)
