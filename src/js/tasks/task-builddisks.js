@@ -62,6 +62,8 @@ const TaskBuildDisks = new Lang.Class({
             return;
         }
 
+        print("Creating image for buildName=" + this._buildName);
+
         let buildDataPath = this.builddir.get_child('build.json');
         let buildData = JsonUtil.loadJson(buildDataPath, cancellable);
 

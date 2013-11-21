@@ -345,7 +345,14 @@ const Task = new Lang.Class({
         this.builddir = Gio.File.new_for_path(GLib.getenv('_OSTBUILD_BUILDDIR'));
 
 	let relpath = this.workdir.get_relative_path(this.builddir);
-	this._buildName = VersionedDir.relpathToVersion(relpath);
+	if (relpath == 'local') {
+	    this._buildName = 'local';
+	} else if (relpath.indexOf('builds/') == 0) {
+	    relpath = relpath.substring(7);
+	    this._buildName = VersionedDir.relpathToVersion(relpath);
+	} else {
+	    throw new Error();
+	}
 
 	this.mirrordir = this.workdir.get_child('src');
 	GSystem.file_ensure_directory(this.mirrordir, true, null);
