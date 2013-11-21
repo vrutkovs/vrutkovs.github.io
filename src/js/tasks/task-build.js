@@ -702,11 +702,13 @@ const TaskBuild = new Lang.Class({
 
         let setuidFiles = expandedComponent['setuid'] || [];
 
-
+	let startTime = GLib.get_monotonic_time();
         this.ostreeRepo.prepare_transaction(cancellable);
         let file = this._writeMtreeFromDirectory(finalBuildResultDir, setuidFiles, cancellable);
         let rev = this._commit(buildRef, "Build", file, cancellable, { withParent: false });
         this.ostreeRepo.commit_transaction(cancellable);
+	let endTime = GLib.get_monotonic_time();
+        print("Commit component  " + buildRef + " is " + rev + " (" + this._formatElapsedTime(endTime - startTime) + " elapsed)");
 
 	GSystem.shutil_rm_rf(buildWorkdir, cancellable);
 
@@ -827,15 +829,28 @@ const TaskBuild = new Lang.Class({
 				       Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
     },
 
+    _formatElapsedTime: function(microseconds) {
+	let millis = microseconds / 1000;
+	if (millis > 1000) {
+	    let seconds = millis / 1000;
+	    return Format.vprintf("%.1f s", [seconds]);
+	}
+	return Format.vprintf("%.1f ms", [millis]);
+    },
+
     _commitComposedTree: function(targetName, composeRootdir, cancellable) {
         let treename = this.osname + '/' + targetName;
+
+	print("Preparing commit of " + composeRootdir.get_path() + " to " + targetName);
+	let startTime = GLib.get_monotonic_time();
 
         this.ostreeRepo.prepare_transaction(cancellable);
         this.ostreeRepo.scan_hardlinks(cancellable);
 
         let file = this._writeMtreeFromDirectory(composeRootdir, [], cancellable);
         let rev = this._commit(treename, "Compose", file, cancellable);
-        print("Compose of " + targetName + " is " + rev);
+	let endTime = GLib.get_monotonic_time();
+        print("Compose of " + targetName + " is " + rev + " (" + this._formatElapsedTime(endTime - startTime) + " elapsed)");
 
         this.ostreeRepo.commit_transaction(cancellable);
 
