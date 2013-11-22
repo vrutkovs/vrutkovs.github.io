@@ -133,10 +133,15 @@ const TestOneDisk = new Lang.Class({
         }
         if (this._foundAllMessageIds || this._failed)
             return;
+        if (!line)
+            return;
+        let data = JSON.parse(line);
+        let message = data['MESSAGE'];
+        let messageId = data['MESSAGE_ID'];
+        let identifier = data['SYSLOG_IDENTIFIER'] || data['_EXE'];
+        if (message)
+            this._journalTextStream.write_all(identifier + ': ' + message + "\n", null);
         if (line) {
-            let data = JSON.parse(line);
-            let message = data['MESSAGE'];
-            let messageId = data['MESSAGE_ID'];
             if (messageId) {
                 if (this._pendingRequiredMessageIds[messageId]) {
                     print("Found required message ID " + messageId);
@@ -437,7 +442,12 @@ const TestOneDisk = new Lang.Class({
         }
 
         let consoleOutput = subworkdir.get_child('console.out');
-        let journalOutput = subworkdir.get_child('journal-json.txt');
+        let journalJson = subworkdir.get_child('journal.json');
+        let journalText = subworkdir.get_child('journal.txt');
+        GSystem.shutil_rm_rf(journalText, cancellable);
+        this._journalTextStream = journalText.replace(null, false,
+                                                      Gio.FileCreateFlags.REPLACE_DESTINATION,
+                                                      cancellable);
         this._commandSocketPath = subworkdir.get_child('command.sock');
 
         let commandSocketRelpath = subworkdir.get_relative_path(this._commandSocketPath);
@@ -447,7 +457,7 @@ const TestOneDisk = new Lang.Class({
                                        '-chardev', 'socket,id=charmonitor,path=qemu.monitor,server,nowait',
                                        '-mon', 'chardev=charmonitor,id=monitor,mode=control',
                                        '-device', 'virtio-serial',
-                                       '-chardev', 'file,id=journaljson,path=' + journalOutput.get_path(),
+                                       '-chardev', 'file,id=journaljson,path=' + journalJson.get_path(),
                                        '-device', 'virtserialport,chardev=journaljson,name=org.gnome.journaljson',
                                        '-chardev', 'socket,id=commandchan,server,path=' + commandSocketRelpath,
                                        '-device', 'virtserialport,chardev=commandchan,name=org.gnome.commandchan']);
@@ -463,7 +473,7 @@ const TestOneDisk = new Lang.Class({
 
         qemu.wait(cancellable, Lang.bind(this, this._onQemuExited));
 
-        let journalMonitor = journalOutput.monitor_file(0, cancellable);
+        let journalMonitor = journalJson.monitor_file(0, cancellable);
         journalMonitor.connect('changed', Lang.bind(this, this._onJournalChanged));
 
         let commandConnectAttemptTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
@@ -479,8 +489,12 @@ const TestOneDisk = new Lang.Class({
 
         this._complete = true;
 
-        if (this._qemu)
+        if (this._qemu) {
             this._qemu.force_exit();
+        }
+
+        if (this._journalTextStream)
+            this._journalTextStream.close(null);
 
         GLib.source_remove(timeoutId);
         
