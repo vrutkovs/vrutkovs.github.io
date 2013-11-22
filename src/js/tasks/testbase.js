@@ -498,13 +498,13 @@ const TestOneDisk = new Lang.Class({
 
         GLib.source_remove(timeoutId);
         
-        if (this._failed) {
-            throw new Error(this._failedMessage);
-        }
-
         GSystem.shutil_rm_rf(diskClone, cancellable);
 
         this._parentTask._postQemu(cancellable);
+
+        if (this._failed) {
+            throw new Error(this._failedMessage);
+        }
 
         print("Completed testing of " + diskPath.get_basename());
     }

@@ -58,13 +58,30 @@ const TaskIntegrationTest = new Lang.Class({
     CompletedTag: 'integrated',
     
     _handleMessage: function(message, cancellable) {
-        if (message['MESSAGE_ID'] == "0eee66bf98514369bef9868327a43cf1") {
-            print(message['MESSAGE']);
+        let gdtrTest = message['GDTR_TEST'];
+        if (!gdtrTest)
+            return;
+        let msgId = message['MESSAGE_ID'];
+        if (!msgId)
+            return;
+        let msg = message['MESSAGE'];
+        if (msgId == "0eee66bf98514369bef9868327a43cf1") {
             this._oneTestFailed = true;
+            this._allTests[gdtrTest] = 'failed';
+        } else if (msgId == 'ca0b037012363f1898466829ea163e7d') {
+            this._allTests[gdtrTest] = 'skipped';
+        } else if (msgId == '142bf5d40e9742e99d3ac8c1ace83b36') {
+            this._allTests[gdtrTest] = 'success';
+        } else {
+            return;
         }
+        print(msg);
     },
 
     _postQemu: function(cancellable) {
+        let testsJson = Gio.File.new_for_path('installed-test-results.json');
+        JSONUtil.writeJsonFileAtomic(testsJson, this._allTests, null);
+
         if (this._oneTestFailed) {
             throw new Error("Not all tests passed");
         }
@@ -105,5 +122,7 @@ Type=Application\n';
         GSystem.file_ensure_directory(dest.get_parent(), true, cancellable);
         dest.replace_contents(desktopFile, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION,
                               cancellable);
+
+        this._allTests = {};
     }
 });
