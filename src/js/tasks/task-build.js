@@ -1430,7 +1430,10 @@ const TaskBuild = new Lang.Class({
 	    finalInstalledTestRevisions[treename] = rev;
 	}
 
-	this._writeStatus('built: ' + this._rebuiltComponents.join(' '), cancellable);
+	if (this._rebuiltComponents.length > 0)
+	    this._writeStatus('built: ' + this._rebuiltComponents.join(' '), cancellable);
+	else
+	    this._writeStatus('(no components built)', cancellable);
 
 	JsonUtil.writeJsonFileAtomic(this.builddir.get_child('build.json'), buildData, cancellable);
     }
