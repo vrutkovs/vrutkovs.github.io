@@ -71,6 +71,10 @@ footer {
     text-decoration: none;
 }
 
+.task-failed {
+    color: red
+}
+
 .machine.good {
     background-color: lightgreen;
 }

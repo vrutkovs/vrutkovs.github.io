@@ -5,9 +5,31 @@
   <p>
     State: <span>{{ runningState }}</span>
   </p>
-  <p ng-repeat="build in builds">
-    <a href="#/gnome-continuous/build/{{ build.buildVersion }}">{{ build.buildVersion }}</a>
-  </p>
+  
+  <div>
+    <h3>Tasks</h3>
+    <p ng-repeat="task in completedTasks">
+      <span><a class="task" href="{{ task.href }}">{{ task.name }} {{ task.version }}</a>: <span ng-if="task.success" class="task-success">Successful</span> <span ng-if="!task.success" class="task-failed">Failed</span></span>
+    </p>
+  </div>
+    
+  <div class="installed-tests">
+    <h3><a href="https://live.gnome.org/GnomeGoals/InstalledTests">InstalledTests</a></h3>
+    <div>Version {{ integrationtest.version }}</div>
+    <div> {{ installedTestsSuccessful.length }} successful, {{ installedTestsSkipped.length }} skipped</div>
+    <div>Failed: {{ installedTestsFailed }}</div>
+  </div>
+
+  <div class="app-grid">
+    <h3>Application Tests</h3>
+    <div>Version {{ applicationstest.version }}</div>
+    <a ng-repeat="app in apps" class="app" ng-class="app.status" title="{{ app.name }}" href="{{ app.screenshot }}">
+      <div class="icon">
+        <img src="{{ app.icon }}">
+        <div class="emblem"></div>
+      </div>
+    </a>
+  </div>
 
   <p>Maintainer: Colin Walters &lt;walters@verbum.org&gt;</p>
 </article>
