@@ -42,7 +42,12 @@
                 data['name'] = taskName;
 		data['version'] = relpathToVersion(data['buildPath']);
                 tasks.push(data);
-            });
+            }).error(function(data, status, headers, config) {
+		data = {};
+		data['name'] = taskName;
+		data['status'] = '(not found for this build)';
+                tasks.push(data);
+	    });
         });
         $scope.tasks = tasks;
 
