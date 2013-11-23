@@ -123,7 +123,7 @@
         });
         $scope.completedTasks = completedTasks;
 
-	$http.get(ROOT + '/results/tasks/integrationtest/integrationtest/installed-test-results.js').success(function(data) {
+	$http.get(ROOT + '/results/tasks/integrationtest/integrationtest/installed-test-results.json').success(function(data) {
 	    var testname;
 	    var total = 0;
 	    var failed = [];
