@@ -145,7 +145,7 @@
 	    $scope.installedTestsSkipped = skipped;
 	});
 
-	renderApps($http, 'results/tasks/build', function(apps) {
+	renderApps($http, 'results/tasks/applicationstest', function(apps) {
             $scope.apps = apps;
 	});
     });
