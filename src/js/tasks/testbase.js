@@ -428,7 +428,7 @@ const TestOneDisk = new Lang.Class({
         LibQA.createDiskSnapshot(diskPath, diskClone, cancellable);
         let [gfmnt, mntdir] = LibQA.newReadWriteMount(diskClone, cancellable);
         try {
-            LibQA.modifyBootloaderAppendKernelArgs(mntdir, ["systemd.log_level=debug systemd.log_target=console console=ttyS0"], cancellable);
+            LibQA.modifyBootloaderAppendKernelArgs(mntdir, ["console=ttyS0"], cancellable);
 
             let [currentDir, currentEtcDir] = LibQA.getDeployDirs(mntdir, osname);
             
