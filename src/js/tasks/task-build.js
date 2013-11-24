@@ -28,6 +28,7 @@ const Params = imports.params;
 const FileUtil = imports.fileutil;
 const AsyncUtil = imports.asyncutil;
 const ProcUtil = imports.procutil;
+const JSUtil = imports.jsutil;
 const StreamUtil = imports.streamutil;
 const JsonUtil = imports.jsonutil;
 const Snapshot = imports.snapshot;
@@ -556,12 +557,24 @@ const TaskBuild = new Lang.Class({
 	line += "\n";
     	let match = WARNING_RE.exec(line);
     	if (match && line.indexOf('libtool: ') != 0) {
-	    this._nWarnings++;
-    	    this._warningOutputStream.write_all(line, null);
+	    if (JSUtil.stringEndswith(line, '[-Wdeprecated-declarations]\n')) {
+		this._nDeprecations++;
+    		this._deprecationOutputStream.write_all(line, null);
+	    } else {
+		this._nWarnings++;
+    		this._warningOutputStream.write_all(line, null);
+	    }
     	}
     	this._buildOutputStream.write_all(line, null);
     	src.read_line_async(0, null,
     			    Lang.bind(this, this._onBuildResultLine));
+    },
+
+    _openReplaceFile: function(path, cancellable) {
+	GSystem.shutil_rm_rf(path, cancellable);
+	return path.replace(null, false,
+			    Gio.FileCreateFlags.REPLACE_DESTINATION,
+			    cancellable);
     },
 
     _buildOneComponent: function(component, architecture, cancellable, params) {
@@ -709,18 +722,15 @@ const TaskBuild = new Lang.Class({
 	context.set_environment(ProcUtil.objectToEnvironment(envCopy));
 
 	let buildOutputPath = Gio.File.new_for_path('log-' + basename + '.txt');
-	GSystem.shutil_rm_rf(buildOutputPath, cancellable);
-	this._buildOutputStream = buildOutputPath.replace(null, false,
-							  Gio.FileCreateFlags.REPLACE_DESTINATION,
-							  cancellable);
+	this._buildOutputStream = this._openReplaceFile(buildOutputPath, cancellable);
 
 	this._nWarnings = 0;
 	let warningOutputPath = Gio.File.new_for_path('warnings-' + basename + '.txt');
-	GSystem.shutil_rm_rf(warningOutputPath, cancellable);
-	this._warningOutputStream = warningOutputPath.replace(null, false,
-							      Gio.FileCreateFlags.REPLACE_DESTINATION,
-							      cancellable);
-	
+	this._warningOutputStream = this._openReplaceFile(warningOutputPath, cancellable);
+
+	this._nDeprecations = 0;
+	let deprecationsOutputPath = Gio.File.new_for_path('deprecations-' + basename + '.txt');
+	this._deprecationOutputStream = this._openReplaceFile(deprecationsOutputPath, cancellable);
 	
 	let proc = new GSystem.Subprocess({ context: context });
 	proc.init(cancellable);
@@ -736,17 +746,21 @@ const TaskBuild = new Lang.Class({
 	while (this._readingOutput) {
 	    context.iteration(true);
 	}
-	print("Done reading output nWarnings=" + this._nWarnings);
+	print("build output EOF");
 
 	buildInputDataStream.close(null);
 	this._buildOutputStream.close(null);
 	this._warningOutputStream.close(null);
+	this._deprecationOutputStream.close(null);
 	if (this._nWarnings == 0)
 	    GSystem.shutil_rm_rf(warningOutputPath, cancellable);
+	if (this._nDeprecations == 0)
+	    GSystem.shutil_rm_rf(deprecationsOutputPath, cancellable);
 	try {
 	    proc.wait_sync_check(cancellable);
 	} catch (e) {
-	    this._writeStatus('built: ' + this._rebuiltComponents.join(' ') + ' failed: ' + basename, cancellable);
+	    this._failedComponent = {'name': basename};
+	    this._writeStatus(cancellable);
 	    print("Build of " + basename + " failed");
 	    throw e;
 	}
@@ -778,7 +792,9 @@ const TaskBuild = new Lang.Class({
 
         let ostreeRevision = this._saveComponentBuild(buildRef, rev, expandedComponent, cancellable);
 
-	this._rebuiltComponents.push(basename);
+	this._rebuiltComponents.push({ 'name': basename,
+				       'warnings': this._nWarnings,
+				       'deprecations': this._nDeprecations });
         return ostreeRevision;
     },
 
@@ -1160,7 +1176,7 @@ const TaskBuild = new Lang.Class({
 
 	GSystem.shutil_rm_rf(checkoutdir, cancellable);
 
-	this._rebuiltComponents.push(basename);
+	this._rebuiltComponents.push({'name': basename});
 	
 	this._writeComponentCache(buildname, basemeta, cancellable);
     },
@@ -1173,11 +1189,24 @@ const TaskBuild = new Lang.Class({
 	throw new Error("Failed to find target " + name);
     },
 
-    _writeStatus: function(text, cancellable) {
+    _writeStatus: function(cancellable) {
 	let statusTxtPath = Gio.File.new_for_path('status.txt');
-	statusTxtPath.replace_contents(text + '\n', null, false,
+	let msg = '';
+	if (this._rebuiltComponents.length > 0) {
+	    msg += 'built:';
+	    for (let i = 0; i < this._rebuiltComponents.length; i++) {
+		msg += ' ' + this._rebuiltComponents[i]['name'];
+	    }
+	}
+	if (this._failedComponent)
+	    msg += ' failed: ' + this._failedComponent['name'];
+	statusTxtPath.replace_contents(msg + '\n', null, false,
 				       Gio.FileCreateFlags.REPLACE_DESTINATION,
 				       cancellable);
+	let buildDataPath = Gio.File.new_for_path('build.json');
+	let buildData = {'built': this._rebuiltComponents,
+			 'failed': this._failedComponent };
+	JsonUtil.writeJsonFileAtomic(buildDataPath, buildData, cancellable);
     },
 
     _cleanupGarbage: function(rootdir, cancellable) {
@@ -1207,6 +1236,7 @@ const TaskBuild = new Lang.Class({
         let osname = this._snapshot.data['osname'];
 	this.osname = osname;
 
+	this._failedComponent = null;
 	this._rebuiltComponents = [];
 
 	this.patchdir = this.workdir.get_child('patches');
@@ -1401,14 +1431,16 @@ const TaskBuild = new Lang.Class({
 	    }
 
 	    let composeRootdir;
-	    BuildUtil.timeSubtask("checkout " + develTarget, Lang.bind(this, function() {
+	    BuildUtil.timeSubtask("checkout " + develTargetName, Lang.bind(this, function() {
 		composeRootdir = this._checkoutOneTree(develTarget, componentBuildRevs, cancellable);
 	    }));
 	    let kernelInitramfsData = this._prepareKernelAndInitramfs(architecture, composeRootdir, initramfsDepends, cancellable);
 	    archInitramfsImages[architecture] = kernelInitramfsData;
 	    this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
 	    let [treename, ostreeRev] = this._commitComposedTree(develTargetName, composeRootdir, cancellable);
-	    GSystem.shutil_rm_rf(composeRootdir, cancellable);
+	    BuildUtil.timeSubtask("cleanup " + develTargetName, Lang.bind(this, function() {
+		GSystem.shutil_rm_rf(composeRootdir, cancellable);
+	    }));
 	    targetRevisions[treename] = ostreeRev;
 	    // Also note the revision of this, since it will be used
 	    // as the buildroot for installed tests
@@ -1426,12 +1458,17 @@ const TaskBuild = new Lang.Class({
 		let runtimeTargetName = 'buildmaster/' + architecture + '-' + target;
 		let runtimeTarget = this._findTargetInList(runtimeTargetName, targetsList);
 
-		let composeRootdir = this._checkoutOneTree(runtimeTarget, componentBuildRevs, cancellable);
+		let composeRootdir;
+		BuildUtil.timeSubtask("checkout " + runtimeTargetName, Lang.bind(this, function() {
+		    composeRootdir = this._checkoutOneTree(runtimeTarget, componentBuildRevs, cancellable);
+		}));
 		let kernelInitramfsData = archInitramfsImages[architecture];
 		this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
 		this._cleanupGarbage(composeRootdir, cancellable);
 		let [treename, ostreeRev] = this._commitComposedTree(runtimeTargetName, composeRootdir, cancellable);
-		GSystem.shutil_rm_rf(composeRootdir, cancellable);
+		BuildUtil.timeSubtask("cleanup " + runtimeTargetName, Lang.bind(this, function() {
+		    GSystem.shutil_rm_rf(composeRootdir, cancellable);
+		}));
 		targetRevisions[treename] = ostreeRev;
 	    }
 	}
@@ -1488,10 +1525,7 @@ const TaskBuild = new Lang.Class({
 	    finalInstalledTestRevisions[treename] = rev;
 	}
 
-	if (this._rebuiltComponents.length > 0)
-	    this._writeStatus('built: ' + this._rebuiltComponents.join(' '), cancellable);
-	else
-	    this._writeStatus('(no components built)', cancellable);
+	this._writeStatus(cancellable);
 
 	JsonUtil.writeJsonFileAtomic(this.builddir.get_child('build.json'), buildData, cancellable);
     }
