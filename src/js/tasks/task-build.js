@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Colin Walters <walters@verbum.org>
+// Copyright (C) 2011,2013 Colin Walters <walters@verbum.org>
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -47,6 +47,8 @@ const DEVEL_DIRS = ['usr/include', 'usr/share/aclocal',
 const DOC_DIRS = ['usr/share/doc', 'usr/share/gtk-doc',
 		  'usr/share/man', 'usr/share/info'];
 
+const WARNING_RE = /: warning: /;
+
 const TaskBuild = new Lang.Class({
     Name: "TaskBuild",
     Extends: Task.Task,
@@ -66,15 +68,14 @@ const TaskBuild = new Lang.Class({
 	    let child = buildrootCachedir.get_child(finfo.get_name());
 	    if (child.equal(keepRoot))
 		continue;
-            print("Removing old cached buildroot " + child.get_path());
-            GSystem.shutil_rm_rf(child, cancellable);
+	    BuildUtil.timeSubtask("Remove old cached buildroot", Lang.bind(this, function() {
+		GSystem.shutil_rm_rf(child, cancellable);
+	    }));
 	}
 	direnum.close(cancellable);
     },
 
     _composeBuildrootCore: function(workdir, componentName, architecture, rootContents, cancellable) {
-        let starttime = GLib.DateTime.new_now_utc();
-
         let buildname = Format.vprintf('%s/%s/%s', [this.osname, componentName, architecture]);
         let buildrootCachedir = this.cachedir.resolve_relative_path('roots/' + buildname);
         GSystem.file_ensure_directory(buildrootCachedir, true, cancellable);
@@ -113,36 +114,35 @@ const TaskBuild = new Lang.Class({
 	}
 
         let cachedRootTmp = cachedRoot.get_parent().get_child(cachedRoot.get_basename() + '.tmp');
-	GSystem.shutil_rm_rf(cachedRootTmp, cancellable);
+	BuildUtil.timeSubtask("clean cached buildroot", Lang.bind(this, function () {
+	    GSystem.shutil_rm_rf(cachedRootTmp, cancellable);
+	}));
 
-        trees.forEach(Lang.bind(this, function([root, commit, subpath]) {
-            let subtree = root.resolve_relative_path(subpath);
-            let subtreeInfo = subtree.query_info(OSTREE_GIO_FAST_QUERYINFO,
-                                                 Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-                                                 cancellable);
-
-            this.ostreeRepo.checkout_tree(OSTree.RepoCheckoutMode.USER,
-                                          OSTree.RepoCheckoutOverwriteMode.UNION_FILES,
-                                          cachedRootTmp, subtree, subtreeInfo, cancellable);
-        }));
-	
-	this._runTriggersInRoot(cachedRootTmp, cancellable);
-
-        let builddirTmp = cachedRootTmp.get_child('ostbuild');
-        GSystem.file_ensure_directory(builddirTmp.resolve_relative_path('source/' + componentName), true, cancellable);
-	GSystem.file_ensure_directory(builddirTmp.get_child('results'), true, cancellable);
-	cachedRootTmp.resolve_relative_path('etc/passwd').replace_contents(etcPasswd, null, false,
-									   Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-	cachedRootTmp.resolve_relative_path('etc/group').replace_contents(etcGroup, null, false,
-									  Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-        GSystem.file_rename(cachedRootTmp, cachedRoot, cancellable);
+	BuildUtil.timeSubtask("compose buildroot", Lang.bind(this, function () {
+            trees.forEach(Lang.bind(this, function([root, commit, subpath]) {
+		let subtree = root.resolve_relative_path(subpath);
+		let subtreeInfo = subtree.query_info(OSTREE_GIO_FAST_QUERYINFO,
+                                                     Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+                                                     cancellable);
+		
+		this.ostreeRepo.checkout_tree(OSTree.RepoCheckoutMode.USER,
+                                              OSTree.RepoCheckoutOverwriteMode.UNION_FILES,
+                                              cachedRootTmp, subtree, subtreeInfo, cancellable);
+            }));
+	    this._runTriggersInRoot(cachedRootTmp, cancellable);
+	    let builddirTmp = cachedRootTmp.get_child('ostbuild');
+	    GSystem.file_ensure_directory(builddirTmp.resolve_relative_path('source/' + componentName), true, cancellable);
+	    GSystem.file_ensure_directory(builddirTmp.get_child('results'), true, cancellable);
+	    cachedRootTmp.resolve_relative_path('etc/passwd').replace_contents(etcPasswd, null, false,
+									       Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+	    cachedRootTmp.resolve_relative_path('etc/group').replace_contents(etcGroup, null, false,
+									      Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+            GSystem.file_rename(cachedRootTmp, cachedRoot, cancellable);
+	}));
 
         this._cleanStaleBuildroots(buildrootCachedir, cachedRoot, cancellable);
 
-        let endtime = GLib.DateTime.new_now_utc();
-        print(Format.vprintf("Composed buildroot; %d seconds elapsed", [endtime.difference(starttime) / GLib.USEC_PER_SEC]));
         return cachedRoot;
-
     }, 
 
     _composeBuildroot: function(workdir, componentName, architecture, cancellable) {
@@ -538,6 +538,32 @@ const TaskBuild = new Lang.Class({
         }
     },
 
+    _onBuildResultLine: function(src, result) {
+    	let line;
+    	try {
+    	    [line,len] = src.read_line_finish_utf8(result);
+    	} catch (e) {
+    	    if (!e.domain) {
+    		this._readingOutput = false;
+		throw e;
+	    }
+	    line = '[INVALID UTF-8]';
+    	}
+    	if (line == null) {
+    	    this._readingOutput = false;
+    	    return;
+    	}
+	line += "\n";
+    	let match = WARNING_RE.exec(line);
+    	if (match && line.indexOf('libtool: ') != 0) {
+	    this._nWarnings++;
+    	    this._warningOutputStream.write_all(line, null);
+    	}
+    	this._buildOutputStream.write_all(line, null);
+    	src.read_line_async(0, null,
+    			    Lang.bind(this, this._onBuildResultLine));
+    },
+
     _buildOneComponent: function(component, architecture, cancellable, params) {
 	params = Params.parse(params, { installedTests: false });
         let basename = component['name'];
@@ -678,11 +704,45 @@ const TaskBuild = new Lang.Class({
         envCopy['CXXFLAGS'] = OPT_COMMON_CFLAGS[architecture];
 
 	let context = new GSystem.SubprocessContext({ argv: childArgs });
+	context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
+	context.set_stderr_disposition(GSystem.SubprocessStreamDisposition.STDERR_MERGE);
 	context.set_environment(ProcUtil.objectToEnvironment(envCopy));
+
+	let buildOutputPath = Gio.File.new_for_path('log-' + basename + '.txt');
+	GSystem.shutil_rm_rf(buildOutputPath, cancellable);
+	this._buildOutputStream = buildOutputPath.replace(null, false,
+							  Gio.FileCreateFlags.REPLACE_DESTINATION,
+							  cancellable);
+
+	this._nWarnings = 0;
+	let warningOutputPath = Gio.File.new_for_path('warnings-' + basename + '.txt');
+	GSystem.shutil_rm_rf(warningOutputPath, cancellable);
+	this._warningOutputStream = warningOutputPath.replace(null, false,
+							      Gio.FileCreateFlags.REPLACE_DESTINATION,
+							      cancellable);
+	
 	
 	let proc = new GSystem.Subprocess({ context: context });
 	proc.init(cancellable);
 	print("Started child process " + context.argv.map(GLib.shell_quote).join(' '));
+
+	let buildInputStream = proc.get_stdout_pipe();
+	let buildInputDataStream = Gio.DataInputStream.new(buildInputStream);
+	this._readingOutput = true;
+	buildInputDataStream.read_line_async(0, cancellable,
+					     Lang.bind(this, this._onBuildResultLine));
+
+	let context = GLib.MainContext.default();
+	while (this._readingOutput) {
+	    context.iteration(true);
+	}
+	print("Done reading output nWarnings=" + this._nWarnings);
+
+	buildInputDataStream.close(null);
+	this._buildOutputStream.close(null);
+	this._warningOutputStream.close(null);
+	if (this._nWarnings == 0)
+	    GSystem.shutil_rm_rf(warningOutputPath, cancellable);
 	try {
 	    proc.wait_sync_check(cancellable);
 	} catch (e) {
@@ -695,22 +755,26 @@ const TaskBuild = new Lang.Class({
 	GSystem.shutil_rm_rf(finalBuildResultDir, cancellable);
         GSystem.file_ensure_directory(finalBuildResultDir, true, cancellable);
 
-	this._processBuildResults(component, componentResultdir, finalBuildResultDir, cancellable);
+	BuildUtil.timeSubtask("process build results", Lang.bind(this, function() {
+	    this._processBuildResults(component, componentResultdir, finalBuildResultDir, cancellable);
+	}));
 
         let recordedMetaPath = finalBuildResultDir.get_child('_ostbuild-meta.json');
         JsonUtil.writeJsonFileAtomic(recordedMetaPath, expandedComponent, cancellable);
 
         let setuidFiles = expandedComponent['setuid'] || [];
 
-	let startTime = GLib.get_monotonic_time();
-        this.ostreeRepo.prepare_transaction(cancellable);
-        let file = this._writeMtreeFromDirectory(finalBuildResultDir, setuidFiles, cancellable);
-        let rev = this._commit(buildRef, "Build", file, cancellable, { withParent: false });
-        this.ostreeRepo.commit_transaction(cancellable);
-	let endTime = GLib.get_monotonic_time();
-        print("Commit component  " + buildRef + " is " + rev + " (" + this._formatElapsedTime(endTime - startTime) + " elapsed)");
-
-	GSystem.shutil_rm_rf(buildWorkdir, cancellable);
+	let rev;
+	BuildUtil.timeSubtask("commit build of " + buildRef, Lang.bind(this, function() {
+            this.ostreeRepo.prepare_transaction(cancellable);
+            let file = this._writeMtreeFromDirectory(finalBuildResultDir, setuidFiles, cancellable);
+            rev = this._commit(buildRef, "Build", file, cancellable, { withParent: false });
+            this.ostreeRepo.commit_transaction(cancellable);
+            print("Commit component  " + buildRef + " is " + rev);
+	}));
+	BuildUtil.timeSubtask("clean build directory", Lang.bind(this, function() {
+	    GSystem.shutil_rm_rf(buildWorkdir, cancellable);
+	}));
 
         let ostreeRevision = this._saveComponentBuild(buildRef, rev, expandedComponent, cancellable);
 
@@ -829,30 +893,19 @@ const TaskBuild = new Lang.Class({
 				       Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
     },
 
-    _formatElapsedTime: function(microseconds) {
-	let millis = microseconds / 1000;
-	if (millis > 1000) {
-	    let seconds = millis / 1000;
-	    return Format.vprintf("%.1f s", [seconds]);
-	}
-	return Format.vprintf("%.1f ms", [millis]);
-    },
-
     _commitComposedTree: function(targetName, composeRootdir, cancellable) {
         let treename = this.osname + '/' + targetName;
 
 	print("Preparing commit of " + composeRootdir.get_path() + " to " + targetName);
-	let startTime = GLib.get_monotonic_time();
-
-        this.ostreeRepo.prepare_transaction(cancellable);
-        this.ostreeRepo.scan_hardlinks(cancellable);
-
-        let file = this._writeMtreeFromDirectory(composeRootdir, [], cancellable);
-        let rev = this._commit(treename, "Compose", file, cancellable);
-	let endTime = GLib.get_monotonic_time();
-        print("Compose of " + targetName + " is " + rev + " (" + this._formatElapsedTime(endTime - startTime) + " elapsed)");
-
-        this.ostreeRepo.commit_transaction(cancellable);
+	let rev;
+	BuildUtil.timeSubtask("compose " + targetName, Lang.bind(this, function() {
+            this.ostreeRepo.prepare_transaction(cancellable);
+            this.ostreeRepo.scan_hardlinks(cancellable);
+            let file = this._writeMtreeFromDirectory(composeRootdir, [], cancellable);
+            rev = this._commit(treename, "Compose", file, cancellable);
+            this.ostreeRepo.commit_transaction(cancellable);
+	}));
+        print("Compose of " + targetName + " is " + rev);
 
         return [treename, rev];
     },
@@ -964,10 +1017,12 @@ const TaskBuild = new Lang.Class({
 			kernelRelease];
 	    
 	    print("Running: " + args.map(GLib.shell_quote).join(' '));
-	    let context = new GSystem.SubprocessContext({ argv: args });
-	    let proc = new GSystem.Subprocess({ context: context });
-	    proc.init(cancellable);
-	    proc.wait_sync_check(cancellable);
+	    BuildUtil.timeSubtask("dracut", Lang.bind(this, function() {
+		let context = new GSystem.SubprocessContext({ argv: args });
+		let proc = new GSystem.Subprocess({ context: context });
+		proc.init(cancellable);
+		proc.wait_sync_check(cancellable);
+	    }));
 
 	    // HACK: Move /etc back to /usr/etc
 	    GSystem.file_rename(etcDir, usrEtcDir, cancellable);
@@ -1345,7 +1400,10 @@ const TaskBuild = new Lang.Class({
 		initramfsDepends.push(component['name'] + ':' + buildRev);
 	    }
 
-	    let composeRootdir = this._checkoutOneTree(develTarget, componentBuildRevs, cancellable);
+	    let composeRootdir;
+	    BuildUtil.timeSubtask("checkout " + develTarget, Lang.bind(this, function() {
+		composeRootdir = this._checkoutOneTree(develTarget, componentBuildRevs, cancellable);
+	    }));
 	    let kernelInitramfsData = this._prepareKernelAndInitramfs(architecture, composeRootdir, initramfsDepends, cancellable);
 	    archInitramfsImages[architecture] = kernelInitramfsData;
 	    this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);

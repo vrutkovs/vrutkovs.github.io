@@ -119,3 +119,19 @@ function checkIsWorkDirectory(dir) {
 	throw new Error(".git found in " + dir.get_path() + "; are you in a gnome-ostree checkout?");
     }
 }
+
+function formatElapsedTime(microseconds) {
+    let millis = microseconds / 1000;
+    if (millis > 1000) {
+	let seconds = millis / 1000;
+	return Format.vprintf("%.1f s", [seconds]);
+    }
+    return Format.vprintf("%.1f ms", [millis]);
+}
+
+function timeSubtask(name, cb) {
+    let startTime = GLib.get_monotonic_time();
+    cb();
+    let endTime = GLib.get_monotonic_time();
+    print("Subtask " + name + " complete in " + formatElapsedTime(endTime - startTime));
+}
