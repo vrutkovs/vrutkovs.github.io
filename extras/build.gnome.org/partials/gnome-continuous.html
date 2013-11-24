@@ -7,22 +7,37 @@
   </p>
   
   <div>
-    <h3>Tasks</h3>
-    <p ng-repeat="task in completedTasks">
-      <span><a class="task" href="{{ task.href }}">{{ task.name }} {{ task.version }}</a>: <span ng-if="task.success" class="task-success">Successful</span> <span ng-if="!task.success" class="task-failed">Failed</span></span>
-    </p>
+    <h3>Resolve+Build</h3>
+    <div>Resolve <a href="{{ resolve.href }}">{{ resolve.version }}</a> <span ng-if="!resolve.success" class="task-failed">Failed</span></div>
+    <div>Build <a href="{{ build.href }}">{{ build.version }}</a> <span ng-if="!build.success" class="task-failed">Failed</span></div>
+    <div ng-if="buildData.built.length > 0">
+      <ul>
+	<li ng-repeat="builtComponent in buildData.built">{{ builtComponent.name }}
+	  <span ng-if="builtComponent.warnings > 0"><a href="{{ build.href }}/warnings-{{ builtComponent.name }}.txt">{{ builtComponent.warnings }} warnings</a></span>
+	  <span ng-if="builtComponent.deprecations > 0"><a href="{{ build.href }}/deprecations-{{ builtComponent.name }}.txt">{{ builtComponent.deprecations }} deprecations</a></span>
+	</li>
+      </ul>
+    </div>
+    <div ng-if="buildData.failed != null">
+      <span class="task-failed">Failed</span> <a href="{{ build.href }}/log-{{ buildData.failed.name }}.txt">{{ buildData.failed.name }}</a>
+    </div>
+  </div>
+
+  <div class="smoketest">
+    <h3>Smoketest</h3>
+    <div>Version <a href="{{ smoketest.href }}">{{ smoketest.version }}</a> <span ng-if="!smoketest.success" class="task-failed">Failed</span></div>
   </div>
     
   <div class="installed-tests">
     <h3><a href="https://live.gnome.org/GnomeGoals/InstalledTests">InstalledTests</a></h3>
-    <div>Version {{ integrationtest.version }}</div>
+    <div>Version <a href="{{ integrationtest.href }}">{{ integrationtest.version }}</a></div>
     <div> {{ installedTestsSuccessful.length }} successful, {{ installedTestsSkipped.length }} skipped</div>
     <div>Failed: {{ installedTestsFailed }}</div>
   </div>
 
   <div class="app-grid">
     <h3>Application Tests</h3>
-    <div>Version {{ applicationstest.version }}</div>
+    <div>Version <a href="{{ applicationstest.href }}">{{ applicationstest.version }}</a></div>
     <a ng-repeat="app in apps" class="app" ng-class="app.status" title="{{ app.name }}" href="{{ app.screenshot }}">
       <div class="icon">
         <img src="{{ app.icon }}">

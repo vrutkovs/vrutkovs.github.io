@@ -3,7 +3,7 @@
 
     var bgoControllers = angular.module('bgoControllers', []);
 
-    var taskNames = ['build', 'smoketest', 'integrationtest', 'applicationstest'];
+    var taskNames = ['resolve', 'build', 'smoketest', 'integrationtest', 'applicationstest'];
 
     var ROOT = '/continuous/buildmaster/';
 
@@ -122,6 +122,10 @@
 	    });
         });
         $scope.completedTasks = completedTasks;
+
+	$http.get(ROOT + '/results/tasks/build/build/build.json').success(function(data) {
+	    $scope.buildData = data;
+	});
 
 	$http.get(ROOT + '/results/tasks/integrationtest/integrationtest/installed-test-results.json').success(function(data) {
 	    var testname;
