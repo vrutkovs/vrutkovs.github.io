@@ -19,13 +19,14 @@
       </ul>
     </div>
     <div ng-if="buildData.failed != null">
-      <span class="task-failed">Failed</span> <a href="{{ build.href }}/log-{{ buildData.failed.name }}.txt">{{ buildData.failed.name }}</a>
+      <gjs/gi/span class="task-failed">Failed</span> <a href="{{ build.href }}/log-{{ buildData.failed.name }}.txt">{{ buildData.failed.name }}</a>
     </div>
   </div>
 
   <div class="smoketest">
     <h3>Smoketest</h3>
     <div>Version <a href="{{ smoketest.href }}">{{ smoketest.version }}</a> <span ng-if="!smoketest.success" class="task-failed">Failed</span></div>
+    <a href="{{ smoketest.href }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png"><img width="320" height="240" src="{{ smoketest.href }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png"></a>
   </div>
     
   <div class="installed-tests">
