@@ -109,7 +109,7 @@
                 // Mangle the data a bit so we can render it better
                 data['name'] = taskName;
 		data['version'] = relpathToVersion(data['buildPath']);
-		data['href'] = href;
+		data['href'] = ROOT + data['path'];
                 completedTasks.push(data);
 		completedTasks.sort(compareTaskData);
 		$scope[taskName] = data;
