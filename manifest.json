@@ -715,6 +715,8 @@
 		 "patches": ["gee-builddir.patch"]},
 
 		{"src": "git:git://gitorious.org/packagekit/packagekit.git",
+		 "tag": "8003d502f84cfd917ca8c50c0a548ffd75e34c78",
+		 "tag-reason": "commit doesn't build",
 		 "config-opts": ["--disable-strict",
 				 "--disable-service-packs",
 				 "--enable-NetworkManager",
