@@ -571,6 +571,8 @@
 				 "--enable-wayland-egl-server",
 				 "--enable-kms-egl-platform",
 				 "--enable-xlib-egl-platform"],
+		 "tag": "d24f632d91d18909e2ca033e300b3679d927752f",
+		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=719454",
 		 "branch": "cogl-1.18"},
 
 		{"src": "gnome:clutter",
