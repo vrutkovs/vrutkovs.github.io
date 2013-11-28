@@ -90,8 +90,6 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "bc9cdba5ddf78d0ecb5c64f55621bb2f474ea280",
-		 "tag-reason": "hang once we switch-root",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
