@@ -337,7 +337,7 @@ function _ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, pa
     let tmpPath = mirrordir.get_child('tarball-' + name);
     GSystem.shutil_rm_rf(tmpPath, cancellable);
     GSystem.file_ensure_directory(tmpPath.get_parent(), true, cancellable);
-    ProcUtil.runSync(['curl', '-o', tmpPath.get_path(), uri], cancellable,
+    ProcUtil.runSync(['curl', '-L', '-v', '-o', tmpPath.get_path(), uri], cancellable,
 		     { logInitiation: true });
 
     // And verify the checksum
