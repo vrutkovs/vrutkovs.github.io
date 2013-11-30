@@ -54,7 +54,6 @@ const TaskBuildDisks = new Lang.Class({
         GSystem.file_ensure_directory(baseImageDir, true, cancellable);
 
 	      let currentImageLink = baseImageDir.get_child('current');
-	      let previousImageLink = baseImageDir.get_child('previous');
 
         let targetImageDir = baseImageDir.get_child(this._buildName);
         if (!isLocal && targetImageDir.query_exists(null)) {
@@ -133,20 +132,19 @@ const TaskBuildDisks = new Lang.Class({
         GSystem.file_rename(workImageDir, targetImageDir, cancellable);
 
         let currentInfo = null;
+        let oldCurrent = null;
         try {
             currentInfo = currentImageLink.query_info('standard::symlink-target', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
         } catch (e) {
             if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND))
                 throw e;
         }
-        if (currentInfo != null) {
-            let newPreviousTmppath = baseImageDir.get_child('previous-new.tmp');
-            let currentLinkTarget = currentInfo.get_symlink_target();
-            GSystem.shutil_rm_rf(newPreviousTmppath, cancellable);
-            newPreviousTmppath.make_symbolic_link(currentLinkTarget, cancellable);
-            GSystem.file_rename(newPreviousTmppath, previousImageLink, cancellable);
-        }
+        if (currentInfo) {
+            oldCurrent = currentImageLink.get_parent().resolve_relative_path(currentInfo.get_symlink_target());
+        } 
         BuildUtil.atomicSymlinkSwap(baseImageDir.get_child('current'), targetImageDir, cancellable);
+        if (!isLocal && oldCurrent)
+            GSystem.shutil_rm_rf(oldCurrent, cancellable);
     },
 
     _postDiskCreation: function(squashedName, diskPath, cancellable) {
