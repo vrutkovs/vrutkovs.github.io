@@ -579,6 +579,8 @@
 				 "--enable-wayland-compositor",
 				 "--enable-egl-backend",
 				 "--enable-evdev-input"],
+		 "tag": "0b536c02f97d7adfa8c4af4a4214f02d4ac9f716",
+		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=719368",
 		 "branch": "clutter-1.18"},
 
 		{"src": "gnome:libnotify"},
