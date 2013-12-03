@@ -833,6 +833,7 @@
 		{"src": "cgwalters:libical-tarballs-as-git"},
 
 		{"src": "gnome:evolution-data-server",
+		 "irc_room": "evolution",
 		 "config-opts": ["--enable-installed-tests",
 				 "--enable-vala-bindings",
 				 "--disable-uoa"]},
@@ -1007,12 +1008,14 @@
 		{"src": "gnome:gtkhtml"},
 
 		{"src": "gnome:evolution",
+		 "irc_room": "evolution",
 		 "config-opts": ["--disable-bogofilter",
 				 "--disable-spamassassin",
 				 "--disable-text-highlight",
 				 "--disable-pst-import"]},
 
 		{"src": "gnome:evolution-ews",
+		 "irc_room": "evolution",
 		 "config-opts": ["--with-internal-lzx"]},
 
 		{"src": "git:git://git.libssh.org/projects/libssh.git",
