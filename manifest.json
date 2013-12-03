@@ -90,6 +90,8 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "tag": "059d9fbb5a691ced7428cff5ff1da5681cacf6da",
+		 "tag-reason": "logind RequestName fails with -EIO",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
