@@ -55,6 +55,7 @@ class BuildGnomeOrg(irc.IRCClient):
     def __init__(self):
         self._flood_channels = ['#testable']
         self._status_channels = ['#gnome-hackers']
+        self._joined_channels = []
         self._last_task_state = {}
         tracked_build = 'buildmaster'
         self._flood_tasks = ['build']
@@ -70,6 +71,10 @@ class BuildGnomeOrg(irc.IRCClient):
             self.join(chan)
 
         self._loop.start(1)
+
+    def joined(self, channel):
+        if channel not in self._joined_channels:
+            self._joined_channels.append(channel)
 
     def _msg_unicode(self, channel, msg):
         self.msg(channel, msg.encode('utf8'))
@@ -148,6 +153,36 @@ class BuildGnomeOrg(irc.IRCClient):
 
         return msg
 
+    def _get_channels_for_changed_components(self, taskname):
+        current_task_path = os.path.join(self._workdir, 'results/tasks/%s/%s/' % (taskname, taskname))
+        build_path = os.path.join(current_task_path, 'build.json')
+        if not os.path.exists(build_path):
+            return []
+
+        f = open(build_path)
+        build = json.load(f)
+        f.close()
+
+        if 'built' not in build.keys():
+            return []
+
+        component_names = [x['name'] for x in build['built'] if 'name' in x.keys()]
+
+        snapshot_path = os.path.join(current_task_path, 'snapshot.json')
+        if not os.path.exists(snapshot_path):
+            return []
+
+        f = open(snapshot_path)
+        snapshot = json.load(f)
+        f.close()
+
+        if 'components' not in snapshot.keys():
+            return []
+
+        component_descriptions = [x for x in snapshot['components'] if 'name' in x.keys() and x['name'] in component_names]
+
+        return [x['irc_room'] for x in component_descriptions if 'irc_room' in x.keys()]
+
     def _query_new_task(self, taskname, announce_always=False):
         querystate = self._update_task_state(taskname)
         if querystate is None:
@@ -164,10 +199,17 @@ class BuildGnomeOrg(irc.IRCClient):
 
         msg = self._status_line_for_task(taskname)
 
+        affected_channels = self._get_channels_for_changed_components(taskname)
+
         if announce_always or success_changed:
             self._sendTo(self._flood_channels, msg)
         if success_changed:
             self._sendTo(self._status_channels, msg)
+            if affected_channels:
+                for channel in affected_channels:
+                    if channel not in self._joined_channels:
+                        self.join(channel)
+                    self._sendTo(channel, msg)
 
     def _buildstatus_for_task(self, taskname):
         metadata, status_msg = self._get_task_state(taskname)
