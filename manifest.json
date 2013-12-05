@@ -787,7 +787,6 @@
 				 "--disable-intl-api"]},
 
 		{"src": "gnome:gjs",
-		 "branch": "wip/js24",
 		 "config-opts": ["--enable-installed-tests"]},
 
                 {"src": "ibus:ibus.git",
