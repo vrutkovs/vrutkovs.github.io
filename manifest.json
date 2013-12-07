@@ -729,7 +729,9 @@
 				 "--disable-systemd-updates"]},
 
                 {"src": "gnome:gtksourceview",
-                 "config-opts": ["--enable-compile-warnings=maximum", "--disable-maintainer-mode"]},
+                 "config-opts": ["--enable-compile-warnings=maximum",
+                                 "--disable-maintainer-mode",
+                                 "--enable-installed-tests"]},
 
                 {"src": "fd:exempi",
 		 "tag": "82aa3670838622e6ee645ebecfe2abd93ec56836",
