@@ -46,7 +46,7 @@ const TaskBuildDisks = new Lang.Class({
 
     _imageSubdir: 'images',
     _inheritPreviousDisk: true,
-    _onlyTreeSuffixes: ['-runtime'],
+    _onlyTreeSuffixes: ['-runtime', '-devel-debug'],
 
     execute: function(cancellable) {
         let isLocal = this._buildName == 'local';

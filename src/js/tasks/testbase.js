@@ -33,7 +33,6 @@ const JSUtil = imports.jsutil;
 const JSONUtil = imports.jsonutil;
 
 const TIMEOUT_SECONDS = 10 * 60;
-const COMPLETE_IDLE_WAIT_SECONDS = 10;
 
 const CommandSocketIface = '<node> \
 <interface name="org.gnome.Continuous.Command"> \
@@ -162,10 +161,10 @@ const TestOneDisk = new Lang.Class({
                 this._parentTask._handleMessage(data, this._cancellable);
             }
             if (this._countPendingRequiredMessageIds == 0 && !this._foundAllMessageIds) {
-                print("Found all required message IDs");
+                print("Found all required message IDs, waiting for " + this._parentTask.CompleteIdleWaitSeconds);
                 this._foundAllMessageIds = true;
                 this._parentTask._onSuccess();
-                GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, COMPLETE_IDLE_WAIT_SECONDS,
+                GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, this._parentTask.CompleteIdleWaitSeconds,
                                          Lang.bind(this, this._onFinalWait));
             } else {
                 this._readingJournal = true;
@@ -224,6 +223,12 @@ const TestOneDisk = new Lang.Class({
 
     _onQemuCommandComplete: function(datain, result) {
         let [response, len] = datain.read_line_finish_utf8(result);
+        let responseData = null;
+        try {
+            responseData = JSON.parse(response);
+        } catch (e) {}
+        if (responseData && responseData.error)
+            print("command response error=" + JSON.stringify(responseData.error));
         let onComplete = this._qmpCommandOutstanding.shift();
         if (this._qmpCommandOutstanding.length == 1)
             this._qmpIn.read_line_async(GLib.PRIORITY_DEFAULT, this._cancellable,
@@ -293,8 +298,18 @@ const TestOneDisk = new Lang.Class({
 
         if (isFinal) {
             print("Final screenshot complete");
-            this._loop.quit();
+            this._qmpCommand({"execute": "system_powerdown"},
+                             Lang.bind(this, this._onFinalPoweroff));
         }
+    },
+
+    _onFinalPoweroff: function() {
+        print("Poweroff request sent");
+        GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5,
+                                 Lang.bind(this, function() {
+                                     print("Poweroff timeout ");
+                                     this._loop.quit();
+                                 }));
     },
 
     _screenshot: function(params) {
@@ -328,7 +343,7 @@ const TestOneDisk = new Lang.Class({
     },
 
     _onFinalWait: function() {
-        print("Final wait complete");
+        print("Final wait complete at " + GLib.DateTime.new_now_local().format('%c'));
 
         this._screenshot({ isFinal: true });
     },
@@ -498,9 +513,14 @@ const TestOneDisk = new Lang.Class({
 
         GLib.source_remove(timeoutId);
         
-        GSystem.shutil_rm_rf(diskClone, cancellable);
+        let [gfmnt, mntdir] = LibQA.newReadWriteMount(diskClone, cancellable);
+        try {
+            this._parentTask._postQemu(mntdir, cancellable);
+        } finally {
+            gfmnt.umount(cancellable);
+        }
 
-        this._parentTask._postQemu(cancellable);
+        //GSystem.shutil_rm_rf(diskClone, cancellable);
 
         if (this._failed) {
             throw new Error(this._failedMessage);
@@ -518,6 +538,9 @@ const TestBase = new Lang.Class({
         TaskName: "testbase",
         TaskAfter: ['builddisks'],
     },
+
+    TestTrees: ['-runtime'],
+    CompleteIdleWaitSeconds: 10,
 
     BaseRequiredMessageIDs: ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
                              "f77379a8490b408bbe5f6940505a777b",  // systemd-journald
@@ -548,7 +571,7 @@ const TestBase = new Lang.Class({
     _onSuccess: function() {
     },
 
-    _postQemu: function(cancellable) {
+    _postQemu: function(mntdir, cancellable) {
     },
 
     _screenshotTaken: function(path) {
@@ -572,9 +595,23 @@ const TestBase = new Lang.Class({
             }
             if (!JSUtil.stringEndswith(name, '.qcow2'))
                 continue;
+            let matches = false;
+            for (let i = 0; i < this.TestTrees.length; i++) {
+                let tree = this.TestTrees[i];
+                if (JSUtil.stringEndswith(name, tree + '.qcow2')) {
+                    matches = true;
+                    break;
+                }
+            }
+            if (!matches) {
+                print("Skipping disk " + name + " not in " + JSON.stringify(this.TestTrees));
+                continue;
+            }
             disksToTest.push(name);
         }
         e.close(null);
+        if (disksToTest.length == 0)
+            throw new Error("Didn't find any matching .qcow2 disks in " + currentImages.get_path());
         this._buildData = null;
         if (buildJson != null)
             this._buildData = JSONUtil.loadJson(buildJson, cancellable);

@@ -78,7 +78,7 @@ const TaskIntegrationTest = new Lang.Class({
         print(msg);
     },
 
-    _postQemu: function(cancellable) {
+    _postQemu: function(mntdir, cancellable) {
         let testsJson = Gio.File.new_for_path('installed-test-results.json');
         JSONUtil.writeJsonFileAtomic(testsJson, this._allTests, null);
 
