@@ -144,7 +144,7 @@ class BuildGnomeOrg(irc.IRCClient):
         msg = u"continuous:%s %s: %s in %.1f seconds. %s " \
               % (taskname, build_name, success_str, millis / 1000.0, status_msg)
 
-        msg += "%s/%s/output.txt" % (self._workurl, metadata['path'])
+        msg += "%s/%s/" % (self._workurl, metadata['path'])
 
         if not success:
             msg = mirc_color(RED, msg)
