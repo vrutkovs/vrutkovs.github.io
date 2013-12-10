@@ -986,6 +986,8 @@
 
 		{"src": "gnome:gnome-logs"},
 
+		{"src": "gnome:gucharmap"},
+
 		{"src": "gnome:d-feet",
 		 "config-opts": ["--disable-tests"]},
 
