@@ -988,6 +988,8 @@
 
 		{"src": "gnome:gucharmap"},
 
+		{"src": "gnome:gnome-font-viewer"},
+
 		{"src": "gnome:d-feet",
 		 "config-opts": ["--disable-tests"]},
 
