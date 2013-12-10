@@ -181,7 +181,7 @@ class BuildGnomeOrg(irc.IRCClient):
 
         component_descriptions = [x for x in snapshot['components'] if 'name' in x.keys() and x['name'] in component_names]
 
-        return [x['irc_room'] for x in component_descriptions if 'irc_room' in x.keys()]
+        return [x['irc_room'].encode("utf-8") for x in component_descriptions if 'irc_room' in x.keys()]
 
     def _query_new_task(self, taskname, announce_always=False):
         querystate = self._update_task_state(taskname)
