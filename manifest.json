@@ -565,8 +565,6 @@
 		 "config-opts": ["--disable-gtk-theme"]},
 
 		{"src": "gnome:cogl",
-		 "tag": "a0bc2d96bee55a64a97370ef135c73c41bdffcac",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=720287",
 		 "config-opts": ["--enable-wayland-egl-platform",
 				 "--enable-wayland-egl-server",
 				 "--enable-kms-egl-platform",
@@ -574,8 +572,6 @@
 		 "branch": "cogl-1.18"},
 
 		{"src": "gnome:clutter",
-		 "tag": "af446a68033bd3811017bd4c49f2199fa7c2f7fe",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=720287",
 		 "config-opts": ["--enable-installed-tests",
 				 "--enable-wayland-backend",
 				 "--enable-wayland-compositor",
