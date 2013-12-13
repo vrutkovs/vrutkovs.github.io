@@ -710,6 +710,8 @@
 		 "patches": ["gee-builddir.patch"]},
 
 		{"src": "gnome:libgee",
+		 "tag": "f71b18a74bd752207b6030a9b1450e0be2b8cd05",
+		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=720391",
 		 "patches": ["gee-builddir.patch"]},
 
 		{"src": "git:git://gitorious.org/packagekit/packagekit.git",
