@@ -1040,7 +1040,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 31,
+    "build-epoch": {"version": 32,
 		    "all": false,
-		    "component-names": ["gnome-session", "mutter-wayland", "mutter", "gnome-control-center", "gnome-shell"]}
+		    "component-names": ["libgee"]}
 }
