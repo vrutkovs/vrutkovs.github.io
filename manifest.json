@@ -546,7 +546,8 @@
 
 		{"src": "fd-p11:p11-kit"},
 
-		{"src": "gnome:gcr"},
+		{"src": "gnome:gcr",
+		 "config-opts": ["--disable-valgrind"]},
 
 		{"src": "gnome:libsecret",
 		 "config-opts": ["--disable-manpages"]},
