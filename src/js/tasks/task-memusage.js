@@ -68,7 +68,7 @@ const TaskMemusage = new Lang.Class({
         print("Copied " + copied.length + " massif data files");
         for (let i = 0; i < copied.length; i++) {
             let path = copied[i].get_path();
-            let context = new GSystem.SubprocessContext({ argv: ['ms_print', path ] });
+            let context = new GSystem.SubprocessContext({ argv: ['ms_print', '--threshold=0.5', path ] });
             context.set_stdout_file_path(path + '.txt');
             let proc = new GSystem.Subprocess({ context: context });
             proc.init(cancellable);

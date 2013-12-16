@@ -75,7 +75,12 @@ let pid = Gio.File.new_for_path('/proc/self').query_info('standard::symlink-targ
                                                          Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
                                                          null).get_symlink_target();
 let logPath = '/var/tmp/massif-gnome-shell.' + pid;
-let shellProc = Gio.Subprocess.new(['valgrind', '--tool=massif', '--smc-check=all',
+let shellProc = Gio.Subprocess.new(['valgrind', '--tool=massif',
+                                    '--smc-check=all',
+                                    '--threshold=0.5',
+                                    '--alloc-fn=g_malloc',
+                                    '--alloc-fn=g_malloc0',
+                                    '--alloc-fn=g_realloc',
                                     '--massif-out-file=' + logPath,
                                     '/usr/bin/gnome-shell.real'],
                                    Gio.SubprocessFlags.STDIN_INHERIT);
