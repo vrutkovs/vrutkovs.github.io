@@ -44,9 +44,10 @@ const TaskMemusage = new Lang.Class({
     },
 
     TestTrees: ['-devel-debug'],
-    CompleteIdleWaitSeconds: 60,
+    CompleteIdleWaitSeconds: 5,
 
-    RequiredMessageIDs: ["0ce153587afa4095832d233c17a88001" // gnome-session ok
+    RequiredMessageIDs: ["0ce153587afa4095832d233c17a88001", // gnome-session ok
+                         "c15ddcb848ed44d9b39fadcfe7a34795" // gnome-shell-valgrind ok
                         ],
 
     FailedMessageIDs:   [],
@@ -77,25 +78,14 @@ const TaskMemusage = new Lang.Class({
    
     _prepareDisk: function(mntdir, arch, cancellable) {
         let osname = this._buildData['snapshot']['osname'];
+        let datadir = LibQA.getDatadir();
         let [deployDir, deployEtcDir] = LibQA.getDeployDirs(mntdir, osname);
         let shellPath = deployDir.resolve_relative_path('usr/bin/gnome-shell');
         let shellDotRealPath = deployDir.resolve_relative_path('usr/bin/gnome-shell.real');
         GSystem.file_rename(shellPath, shellDotRealPath, cancellable);
-        let massifWrapper = '#!/bin/sh\ntouch /var/tmp/massif-started;exec valgrind --tool=massif --smc-check=all --massif-out-file=/var/tmp/massif-gnome-shell.$$ /usr/bin/gnome-shell.real\n';
-        shellPath.replace_contents(massifWrapper, null, false,
-                                   Gio.FileCreateFlags.REPLACE_DESTINATION,
-                                   cancellable);
+        let massifWrapperSrc = datadir.resolve_relative_path('tests/gnome-shell-valgrind');
+        massifWrapperSrc.copy(shellPath, Gio.FileCopyFlags.OVERWRITE, cancellable, null, null);
         GSystem.file_chmod(shellPath, 493, cancellable);
         print("Replaced " + shellPath.get_path() + " with massif wrapper");
-        let desktopFile = '[Desktop Entry]\n\
-Encoding=UTF-8\n\
-Name=Timed logout\n\
-Exec=/usr/bin/sh -c \'sleep 30; touch /var/tmp/timed-logout.done; killall gnome-session\'\n\
-Terminal=false\n\
-Type=Application\n';
-        let dest = deployEtcDir.resolve_relative_path('xdg/autostart/gnome-continuous-timed-logout.desktop');
-        GSystem.file_ensure_directory(dest.get_parent(), true, cancellable);
-        dest.replace_contents(desktopFile, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION,
-                              cancellable);
     }
 });

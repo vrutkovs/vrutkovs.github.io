@@ -1,0 +1,100 @@
+#!/usr/bin/env gjs
+// -*- mode: js; indent-tabs-mode: nil; tab-width: 2; -*-
+// Copyright (C) 2013 Colin Walters <walters@verbum.org>
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the
+// Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+// Boston, MA 02111-1307, USA.
+
+const GLib = imports.gi.GLib;
+const Gio = imports.gi.Gio;
+const Lang = imports.lang;
+
+let running = true;
+let shellProcExited = false;
+let shellBusNameAvailable = false;
+let shellProxy = null;
+
+// Once we have a shell proxy, install a timeout in the shell process
+// for 10 seconds later.
+function onShellProxy(obj, result) {
+    print("Shell proxy created");
+    shellProxy = obj.new_finish(result);
+    let delayus = 5 * imports.gi.GLib.USEC_PER_SEC;
+    let result;
+    for (let i = 0; i < 30; i++) {
+        try {
+            result = shellProxy.call_sync("Eval", GLib.Variant.new("(s)",
+                                                                   ["imports.gi.GLib.timeout_add_seconds(0, 10, function() { imports.system.exit(0); });"]),
+                                          0, -1, null);
+            break;
+        } catch (e) {
+            print("Caught " + e + ", retrying in 5 seconds");
+            if (e.domain != Gio.DBusError)
+                throw e;
+            GLib.usleep(delayus);
+        }
+    }
+    let [success, resultval] = result.deep_unpack();
+    if (!success)
+        throw("Failed to eval: " + resultval);
+    print("Successfully installed shell timeout for 10 seconds: " + resultval);
+}
+
+// Wait for the shell DBus name to appear
+Gio.bus_watch_name(Gio.BusType.SESSION,
+                   "org.gnome.Shell", 0,
+                   function(conn, name, owner) {
+                       print("gnome-shell-valgrind: Shell appeared");
+                       shellBusNameAvailable = true;
+                       if (shellProxy)
+                           return;
+                       Gio.DBusProxy.new(conn, Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES, null, owner,
+                                         "/org/gnome/Shell",
+                                         "org.gnome.Shell", null,
+                                         onShellProxy);
+                   },
+                   function() {
+                       shellBusNameAvailable = false;
+                   });
+
+// And asynchronously spawn the real shell under massif as a
+// subprocess.  We indirect via /usr/bin/sh -c to use $$
+let pid = Gio.File.new_for_path('/proc/self').query_info('standard::symlink-target',
+                                                         Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+                                                         null).get_symlink_target();
+let logPath = '/var/tmp/massif-gnome-shell.' + pid;
+let shellProc = Gio.Subprocess.new(['valgrind', '--tool=massif', '--smc-check=all',
+                                    '--massif-out-file=' + logPath,
+                                    '/usr/bin/gnome-shell.real'],
+                                   Gio.SubprocessFlags.STDIN_INHERIT);
+
+shellProc.wait_async(null, function(obj, result) {
+    print("gnome-shell-valgrind: shell exited");
+    shellProcExited = true;
+    shellProc.wait_finish(result);
+});
+
+let ctx = GLib.MainContext.default();
+while (!(shellProcExited && !shellBusNameAvailable))
+    ctx.iteration(true);
+print("gnome-shell-valgrind: exiting, results in " + logPath);
+
+Gio.Subprocess.new(['sync'], 0).wait_check(null);
+
+let [success, stdout, stderr, estatus] =
+    GLib.spawn_sync(null,
+                    ['gnome-continuous-journal-log-hack',
+                     'c15ddcb848ed44d9b39fadcfe7a34795=gnome-shell-valgrind complete'],
+                    null, GLib.SpawnFlags.SEARCH_PATH, null);

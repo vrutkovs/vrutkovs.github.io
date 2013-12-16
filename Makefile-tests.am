@@ -20,5 +20,6 @@ testdatadir = $(pkgdatadir)/tests
 testdata_DATA = src/tests/gnome-ostree-export-journal-to-serialdev \
 	src/tests/gnome-ostree-export-journal-to-serialdev.service \
 	src/tests/gnome-continuous-startstopapps \
+	src/tests/gnome-shell-valgrind \
 	$(NULL)
 endif
