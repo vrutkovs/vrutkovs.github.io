@@ -1043,7 +1043,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 33,
+    "build-epoch": {"version": 34,
 		    "all": false,
-		    "component-names": ["cogl"]}
+		    "component-names": ["gjs", "gnome-shell"]}
 }
