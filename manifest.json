@@ -564,11 +564,25 @@
 		{"src": "gnome:librsvg",
 		 "config-opts": ["--disable-gtk-theme"]},
 
+		{"src": "fd-gstreamer:orc",
+		 "patches": ["orc-autogen.patch"]},
+
+		{"src": "fd-gstreamer:gstreamer",
+		 "config-opts": ["--disable-tests",
+		                 "--disable-fatal-warnings"]},
+
+		{"src": "fd-gstreamer:gst-plugins-base",
+		 "config-opts": ["--with-gtk=3.0",
+		                 "--disable-tests",
+				 "--disable-gnome_vfs",
+				 "--disable-fatal-warnings"]},
+
 		{"src": "gnome:cogl",
 		 "config-opts": ["--enable-wayland-egl-platform",
 				 "--enable-wayland-egl-server",
 				 "--enable-kms-egl-platform",
-				 "--enable-xlib-egl-platform"],
+				 "--enable-xlib-egl-platform",
+				 "--enable-cogl-gst"],
 		 "branch": "cogl-1.18"},
 
 		{"src": "gnome:clutter",
@@ -662,19 +676,6 @@
 				 "--enable-installed-tests"]},
 
 		{"src": "gnome:gnome-ostree-integration"},
-
-		{"src": "fd-gstreamer:orc",
-		 "patches": ["orc-autogen.patch"]},
-
-		{"src": "fd-gstreamer:gstreamer",
-		 "config-opts": ["--disable-tests",
-		                 "--disable-fatal-warnings"]},
-
-		{"src": "fd-gstreamer:gst-plugins-base",
-		 "config-opts": ["--with-gtk=3.0",
-		                 "--disable-tests",
-				 "--disable-gnome_vfs",
-				 "--disable-fatal-warnings"]},
 
 		{"src": "fd-gstreamer:gst-plugins-good",
 		 "config-opts": ["--with-gtk=3.0",
@@ -803,7 +804,11 @@
 		{"src": "gnome:libgweather"},
 
 		{"src": "gnome:clutter-gst",
+                 "name": "clutter-gst2",
                  "branch": "clutter-gst-2.0"},
+
+		{"src": "gnome:clutter-gst",
+                 "name": "clutter-gst3"},
 
 		{"src": "gnome:clutter-gtk"},
 
@@ -1038,7 +1043,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 32,
+    "build-epoch": {"version": 33,
 		    "all": false,
-		    "component-names": ["libgee"]}
+		    "component-names": ["cogl"]}
 }
