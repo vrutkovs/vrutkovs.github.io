@@ -981,7 +981,8 @@
 
 		{"src": "gnome:gnome-software",
 		 "config-opts": ["--disable-man",
-                                 "--disable-offline-appstream-data"]},
+                                 "--disable-offline-appstream-data",
+                                 "--enable-installed-tests"]},
 
 		{"src": "gnome:epiphany"},
 
