@@ -1,0 +1,43 @@
+From fc1b4e5b4705b75624668e6b99b4c3e0ac7425eb Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Sat, 21 Dec 2013 11:13:40 -0500
+Subject: [PATCH] build-sys: Add configure script, tweak Makefile to implement GNOME Build API
+
+See http://people.gnome.org/~walters/docs/build-api.txt
+---
+ Makefile  |    4 ++--
+ configure |    5 +++++
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+ create mode 100755 configure
+
+diff --git a/Makefile b/Makefile
+index 4733201..f47423b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,10 +1,10 @@
+ # dogtail *development* Makefile
+ 
+ all:
+-	python setup.py build_ext --inplace
++	python setup.py build
+ 
+ install:
+-	python setup.py install
++	python setup.py install --root=$(DESTDIR)
+ 
+ clean:
+ 	rm -rf api_docs/
+diff --git a/configure b/configure
+new file mode 100755
+index 0000000..47eb833
+--- /dev/null
++++ b/configure
+@@ -0,0 +1,5 @@
++#!/bin/bash
++# http://people.gnome.org/~walters/docs/build-api.txt
++# We don't support separate builddir when building from git
++#buildapi-variable-no-builddir
++exec python setup.py build
+-- 
+1.7.1
+

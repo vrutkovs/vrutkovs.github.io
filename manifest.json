@@ -954,6 +954,9 @@
 
                 {"src": "git:https://github.com/hughsie/appdata-tools.git"},
 
+                {"src": "git:git://git.fedorahosted.org/git/dogtail.git",
+		 "patches": ["dogtail-buildsys.patch"]},
+
 		{"src": "gnome:gnome-terminal",
 		 "config-opts": ["--without-nautilus-extension"]},
 
