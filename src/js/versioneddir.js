@@ -22,6 +22,8 @@ const Format = imports.format;
 
 const GSystem = imports.gi.GSystem;
 const BuildUtil = imports.buildutil;
+const FileUtil = imports.fileutil;
+const JsonUtil = imports.jsonutil;
 
 function relpathToVersion(relpath) {
     let parts = relpath.split('/');
@@ -123,6 +125,39 @@ const VersionedDir = new Lang.Class({
 	return null;
     },
 
+    _makeDirUpdateIndex: function(path, cancellable) {
+	let relpath = this.path.get_relative_path(path);
+	if (relpath == null) {
+	    GSystem.file_ensure_directory(path, true, cancellable);
+	    return;
+	}
+
+	let parent = path.get_parent();
+	this._makeDirUpdateIndex(parent, cancellable);
+	
+	let created = false;
+	try {
+	    path.make_directory(cancellable);
+	    created = true;
+	} catch (e) {
+	    if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS))
+		throw e;
+	}
+	let indexJsonPath = parent.get_child('index.json');
+	if (!created)
+	    created = !indexJsonPath.query_exists(null);
+	if (created) {
+	    let childNames = [];
+	    FileUtil.walkDir(parent, { depth: 1,
+				       fileType: Gio.FileType.DIRECTORY },
+			     Lang.bind(this, function(filePath, cancellable) {
+				 childNames.push(filePath.get_basename());
+			     }), cancellable);
+	    JsonUtil.writeJsonFileAtomic(indexJsonPath,
+					 { 'subdirs': childNames }, cancellable);
+	}
+    },
+
     allocateNewVersion: function(cancellable) {
         let currentTime = GLib.DateTime.new_now_utc();
         let currentYmd = Format.vprintf('%d%02d%02d', [currentTime.get_year(),
@@ -143,7 +178,7 @@ const VersionedDir = new Lang.Class({
 	if (newVersion === null)
 	    newVersion = currentYmd + '.0';
 	let path = this.createPathForVersion(newVersion);
-        GSystem.file_ensure_directory(path, true, cancellable);
+	this._makeDirUpdateIndex(path, cancellable);
 	this._cachedResults.push(newVersion);
 	return path;
     },
