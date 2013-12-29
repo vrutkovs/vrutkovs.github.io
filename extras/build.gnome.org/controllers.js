@@ -154,4 +154,31 @@
 	});
     });
 
+    bgoControllers.controller('ContinuousLogCtrl', function($scope, $http, $routeParams) {
+        var year = $routeParams.year;
+        var month = $routeParams.month;
+        var day = $routeParams.day;
+	var dayBaseUrl = ROOT + 'builds/' + year + '/' + month + '/' + day + '/';
+	var indexPath =  dayBaseUrl + 'index.json';
+	var snapshots = [];
+	$scope.snapshots = snapshots;
+	$scope.commitLimit = 10;
+        $http.get(indexPath).success(function(data) {
+	    if (data.length == 0)
+		return;
+	    var children = data['subdirs'];
+	    children.sort(function(a,b) { return parseInt(a) - parseInt(b) });
+	    for (var i = 0; i < children.length; i++) {
+		var baseHref = dayBaseUrl + children[i];
+		var version = relpathToVersion('builds/' + year + '/' + month + '/' + day + '/' + children[i]);
+		snapshots[i] = {'version': version,
+			        'href': baseHref,
+			        'bdiff': null};
+		$http.get(baseHref + '/bdiff.json').success(function(data) {
+		    this.snapshots[this.i]['bdiff'] = data;
+		}.bind({'snapshots': snapshots, 'i': i}));
+	    }
+	});
+    });
+
 })(window);

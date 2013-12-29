@@ -22,6 +22,10 @@
                 templateUrl: 'partials/gnome-continuous-build.html',
                 controller: 'ContinuousBuildViewCtrl',
             }).
+            when('/gnome-continuous/log/:year/:month/:day', {
+                templateUrl: 'partials/gnome-continuous-log.html',
+                controller: 'ContinuousLogCtrl',
+            }).
             otherwise({
                 redirectTo: '/',
             });
