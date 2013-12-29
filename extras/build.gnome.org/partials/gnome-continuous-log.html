@@ -16,7 +16,8 @@
 	</span>
       </div>
     </span>
-    <span ng-if="snapshot.bdiff == null">(No bdiff generated)</span>
+    <span ng-if="snapshot.loading">Loading...</span>
+    <span ng-if="snapshot.bdiff == null && !snapshot.loading">(No bdiff generated)</span>
     <br>
   </div>
 </article>

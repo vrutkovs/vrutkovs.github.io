@@ -102,6 +102,10 @@
             $scope.runningState = text;
         });
 
+	var now = new Date();
+	$scope.pushLogHref = "#/gnome-continuous/log/" + now.getUTCFullYear() + "/" +
+	    (now.getUTCMonth()+1) + "/" + now.getUTCDate();
+
         var completedTasks = [];
         taskNames.forEach(function(taskName) {
 	    var href = ROOT + 'results/tasks/' + taskName + '/' + taskName;
@@ -173,10 +177,15 @@
 		var version = relpathToVersion('builds/' + year + '/' + month + '/' + day + '/' + children[i]);
 		snapshots[i] = {'version': version,
 			        'href': baseHref,
-			        'bdiff': null};
+			        'bdiff': null,
+				'loading': true};
+		var bindData = {'snapshots': snapshots, 'i': i};
 		$http.get(baseHref + '/bdiff.json').success(function(data) {
-		    this.snapshots[this.i]['bdiff'] = data;
-		}.bind({'snapshots': snapshots, 'i': i}));
+		    this.snapshots[this.i].bdiff = data;
+		    this.snapshots[this.i].loading = false;
+		}.bind(bindData)).error(function() {
+		    this.snapshots[this.i].loading = false;
+		}.bind(bindData));
 	    }
 	});
     });
