@@ -102,9 +102,15 @@
             $scope.runningState = text;
         });
 
+	function formatDigits(x) {
+	    if (x < 10)
+		return "0" + x;
+	    return "" + x;
+	}
+
 	var now = new Date();
 	$scope.pushLogHref = "#/gnome-continuous/log/" + now.getUTCFullYear() + "/" +
-	    (now.getUTCMonth()+1) + "/" + now.getUTCDate();
+	    (formatDigits(now.getUTCMonth()+1)) + "/" + formatDigits(now.getUTCDate());
 
         var completedTasks = [];
         taskNames.forEach(function(taskName) {
