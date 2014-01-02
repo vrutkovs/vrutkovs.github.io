@@ -150,6 +150,10 @@
 		{"src": "fd:xorg/proto/kbproto",
 		 "component": "devel"},
 
+		{"src": "fd:xorg/proto/presentproto",
+		 "patches": ["xorg-autogen-merged.patch"],
+		 "component": "devel"},
+
 		{"src": "fd:xorg/proto/randrproto",
 		 "component": "devel"},
 
