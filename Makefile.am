@@ -15,30 +15,17 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-AM_CPPFLAGS = -DDATADIR='"$(datadir)"' -DLIBEXECDIR='"$(libexecdir)"'
-AM_CFLAGS = $(WARN_CFLAGS)
+include Makefile-decls.am
 
-NULL = 
-BUILT_SOURCES =
-MANPAGES =
-CLEANFILES =
-EXTRA_DIST =
-bin_PROGRAMS =
-sbin_PROGRAMS =
-bin_SCRIPTS =
-libexec_PROGRAMS =
-noinst_LTLIBRARIES =
-noinst_PROGRAMS =
-privlibdir = $(pkglibdir)
-privlib_LTLIBRARIES =
-INSTALL_DATA_HOOKS =
+ACLOCAL_AMFLAGS += -I m4 ${ACLOCAL_FLAGS}
+AM_CPPFLAGS += -DDATADIR='"$(datadir)"' -DLIBEXECDIR='"$(libexecdir)"'
+AM_CFLAGS += $(WARN_CFLAGS)
 
 include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 
-girdir= $(pkgdatadir)/gir-1.0
-typelibdir= $(pkglibdir)/girepository-1.0
+girdir = $(pkgdatadir)/gir-1.0
+typelibdir = $(pkglibdir)/girepository-1.0
 
 gir_DATA = $(INTROSPECTION_GIRS)
 typelib_DATA = $(gir_DATA:.gir=.typelib)
@@ -52,8 +39,6 @@ privlib_LTLIBRARIES += libgsystem.la
 include Makefile-ostbuild.am
 include Makefile-tests.am
 include Makefile-gsystem-introspection.am
-
-install-data-hook: $(INSTALL_DATA_HOOKS)
 
 release-tag:
 	git tag -m "Release $(VERSION)" v$(VERSION)
