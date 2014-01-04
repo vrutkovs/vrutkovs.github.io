@@ -1003,6 +1003,8 @@
 
 		{"src": "gnome:gucharmap"},
 
+		{"src": "gnome:seahorse"},
+
 		{"src": "gnome:gnome-font-viewer"},
 
 		{"src": "gnome:d-feet",
