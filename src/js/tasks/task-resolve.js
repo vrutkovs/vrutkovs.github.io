@@ -56,6 +56,18 @@ const TaskResolve = new Lang.Class({
         return true;
     },
 
+    _baseCommitFromDescribe: function(describe) {
+	if (describe.length == 40)
+	    return describe;
+	let g = describe.lastIndexOf('g');
+	if (g == -1)
+	    throw new Error("Failed to determine commit from " + describe);
+	let commit = describe.substring(g+1);
+	if (commit.length != 40) 
+	    throw new Error("Failed to determine commit from " + describe);
+	return commit;
+    },
+
     execute: function(cancellable) {
         let manifestPath = this.workdir.get_child('manifest.json');
         this._snapshot = Snapshot.fromFile(manifestPath, cancellable, { prepareResolve: true });
@@ -76,15 +88,40 @@ const TaskResolve = new Lang.Class({
 	    gitMirrorArgs.push.apply(gitMirrorArgs, componentsToFetch);
 	}
 	ProcUtil.runSync(gitMirrorArgs, cancellable, { logInitiation: true });
+
+	let resolveCachePath = this.cachedir.get_child('component-git-describe.json');
+	let resolveCache = {};
+	let modifiedCache = true;
+	if (resolveCachePath.query_exists(null)) {
+	    resolveCache = JsonUtil.loadJson(resolveCachePath, cancellable);
+	    modifiedCache = false;
+	}
 	
 	let componentNames = this._snapshot.getAllComponentNames();
 	for (let i = 0; i < componentNames.length; i++) {
 	    let component = this._snapshot.getComponent(componentNames[i]);
-	    let tagOrBranch = component['tag'] || component['branch'];
+	    let tagOrBranch = component['tag'] || component['branch'] || 'master';
             let mirrordir = Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
-            let revision = Vcs.describeVersion(mirrordir, tagOrBranch);
+	    let currentCommit = Vcs.revParse(mirrordir, tagOrBranch, cancellable);
+	    let revision = null;
+	    let cachedEntry = resolveCache[component['name']];
+	    if (cachedEntry) {
+		let previousCommit = cachedEntry['revision'];
+		if (currentCommit == previousCommit)
+		    revision = cachedEntry['describe'];
+	    }
+	    if (revision == null) {
+		print("Describe cache miss for " + component['name']);
+		revision = Vcs.describeVersion(mirrordir, tagOrBranch);
+		modifiedCache = true;
+		resolveCache[component['name']] = {'revision': currentCommit,
+						   'describe': revision};
+	    }
             component['revision'] = revision;
 	}
+
+	if (modifiedCache)
+            JsonUtil.writeJsonFileAtomic(resolveCachePath, resolveCache, cancellable);
 
         let modified = this._writeSnapshotToBuild(cancellable);
         if (modified) {
