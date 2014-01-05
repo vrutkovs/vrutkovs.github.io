@@ -17,7 +17,7 @@
 
 include Makefile-decls.am
 
-ACLOCAL_AMFLAGS += -I m4 ${ACLOCAL_FLAGS}
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_CPPFLAGS += -DDATADIR='"$(datadir)"' -DLIBEXECDIR='"$(libexecdir)"'
 AM_CFLAGS += $(WARN_CFLAGS)
 
