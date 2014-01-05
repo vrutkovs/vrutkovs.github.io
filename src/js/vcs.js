@@ -232,6 +232,12 @@ function ensureVcsMirror(mirrordir, component, cancellable,
     }
 }
 
+function revParse(dirpath, branch, cancellable) {
+    let args = ['git', 'rev-parse', branch]
+    return ProcUtil.runSyncGetOutputUTF8(args, cancellable,
+					 {cwd: dirpath}).replace(/[ \n]/g, '');
+}
+
 function _ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params) {
     let keytype = 'git';
     let fetch = params.fetch;
@@ -277,9 +283,7 @@ function _ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params) {
 	}
     }
 
-    let currentVcsVersion = ProcUtil.runSyncGetOutputUTF8(['git', 'rev-parse', branch], cancellable,
-							  {cwd: mirror}).replace(/[ \n]/g, '');
-
+    let currentVcsVersion = revParse(mirror, branch, cancellable);
     let changed = currentVcsVersion != lastFetchContents; 
     if (changed) {
         print(Format.vprintf("last fetch %s differs from branch %s", [lastFetchContents, currentVcsVersion]));
@@ -317,8 +321,7 @@ function _ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, pa
     }
     
     let importTag = 'tarball-import-' + checksum;
-    let gitRevision = ProcUtil.runSyncGetOutputUTF8StrippedOrNull(['git', 'rev-parse', importTag],
-								  cancellable, { cwd: mirror });
+    let gitRevision = revParse(mirror, importTag, cancellable);
     if (gitRevision != null) {
 	return mirror;
     }	
