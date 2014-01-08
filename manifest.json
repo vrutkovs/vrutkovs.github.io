@@ -923,8 +923,6 @@
 				 "--disable-cups"]},
 
 		{"src": "gnome:gnome-initial-setup",
-		 "tag": "57d7c8a4d545d1cf2731987d1b9462bf7996607e",
-		 "tag-reason": "No GtkHeaderBar in later commits",
 		 "config-opts": ["--disable-welcome-tour"]},
 
 		{"src": "gnome:libwnck"},
