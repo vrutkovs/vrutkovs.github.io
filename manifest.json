@@ -303,7 +303,7 @@
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "fd-mesa:mesa",
-            	 "branch": "9.2", 
+            	 "branch": "10.0", 
 		 "config-opts": [
             	     "--enable-pic", 
             	     "--disable-asm", 
