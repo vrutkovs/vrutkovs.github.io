@@ -38,7 +38,7 @@ const TaskBdiff = new Lang.Class({
 
     TaskDef: {
         TaskName: "bdiff",
-        TaskAfter: ['build'],
+        TaskAfter: ['resolve'],
     },
 
     _gitLogToJson: function(repoDir, specification) {
