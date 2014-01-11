@@ -232,10 +232,17 @@ function ensureVcsMirror(mirrordir, component, cancellable,
     }
 }
 
-function revParse(dirpath, branch, cancellable) {
-    let args = ['git', 'rev-parse', branch]
-    return ProcUtil.runSyncGetOutputUTF8(args, cancellable,
-					 {cwd: dirpath}).replace(/[ \n]/g, '');
+function revParse(dirpath, branch, cancellable, params) {
+    params = Params.parse(params, { allowNone: false });
+    let args = ['git', 'rev-parse', branch];
+    let res;
+    if (params.allowNone)
+	res = ProcUtil.runSyncGetOutputUTF8StrippedOrNull(args, cancellable, { cwd: dirpath });
+    else
+	res = ProcUtil.runSyncGetOutputUTF8(args, cancellable, { cwd: dirpath });
+    if (res === null)
+	return res;
+    return res.replace(/[ \n]/g, '');
 }
 
 function _ensureVcsMirrorGit(mirrordir, uri, branch, cancellable, params) {
@@ -321,7 +328,7 @@ function _ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, pa
     }
     
     let importTag = 'tarball-import-' + checksum;
-    let gitRevision = revParse(mirror, importTag, cancellable);
+    let gitRevision = revParse(mirror, importTag, cancellable, { allowNone: true });
     if (gitRevision != null) {
 	return mirror;
     }	
