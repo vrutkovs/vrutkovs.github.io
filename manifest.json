@@ -707,9 +707,9 @@
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
-		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.3.4.tar.xz",
+		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.3.3.tar.xz",
 		 "name": "webkitgtk",
-		 "checksum": "5e7d9daf4f87a25c4fee50d11d00e9b76879021e488a97827021b3ce7342a9a7",
+		 "checksum": "43b779d0c30a1d7af6fb62fcf4e0ed13871edd302317c6acaba7beb9c8157b1e",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--disable-geolocation",
@@ -989,7 +989,9 @@
                                  "--disable-offline-appstream-data",
                                  "--enable-installed-tests"]},
 
-		{"src": "gnome:epiphany"},
+		{"src": "gnome:epiphany",
+		 "tag": "3.11.2-81-g1227c9732890da40a14e746080792a784b9131bb",
+		 "tag-reason": "webkitgtk needs newer libstdc++"},
 
 		{"src": "gnome:gnome-calculator"},
 
