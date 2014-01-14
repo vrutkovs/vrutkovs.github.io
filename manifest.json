@@ -769,8 +769,6 @@
 				 "--with-unicode-support=libicu"]},
 
 		{"src": "gnome:dconf",
-                 "tag": "67f739bda92bd3c0fd512ff3a4a663ae8e160b9e",
-		 "tag-reason": "dconf update fails with missing /etc/dconf/db",
 		 "config-opts": ["--disable-man", "--disable-editor"]},
 
 		{"src": "gnome:zenity"},
