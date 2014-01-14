@@ -90,8 +90,6 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "ceceaf09f9e4a53f86c623d70931676255aef334",
-		 "tag-reason": "doesn't get past dracut",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
