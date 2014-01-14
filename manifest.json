@@ -840,6 +840,10 @@
 
                 {"src": "gnome:libchamplain"},
 
+                {"src": "gnome:unique"},
+
+                {"src": "gnome:gmime"},
+
 		{"src": "gnome:gnome-online-miners"},
 
 		{"src": "cgwalters:libical-tarballs-as-git"},
@@ -1006,6 +1010,8 @@
 		{"src": "gnome:gucharmap"},
 
 		{"src": "gnome:seahorse"},
+
+		{"src": "gnome:geary"},
 
 		{"src": "gnome:libgda"},
 
