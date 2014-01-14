@@ -1142,6 +1142,8 @@ const TaskBuild = new Lang.Class({
                                {overwrite:false});
 	}
 
+        print("Rebuilding Yocto from " + basemeta['src']);
+
         // Just keep reusing the old working directory downloads and sstate
         let oldBuilddir = this.workdir.get_child('build-' + basemeta['name']);
         let sstateDir = oldBuilddir.get_child('sstate-cache');
@@ -1217,6 +1219,20 @@ const TaskBuild = new Lang.Class({
 	    GSystem.file_unlink(f, cancellable);
     },
 
+    _processOverride: function(component) {
+        let name = component['name'];
+        let overridePath = this.workdir.resolve_relative_path('overrides/' + name);
+        if (overridePath.query_exists(null)) {
+            print("Using override:  " + overridePath.get_path());
+            component['src'] = 'local:' + overridePath.get_path();
+            delete component['tag'];
+            delete component['tag-reason'];
+            // We don't want to attempt to apply patches over top
+            // of what the override has.
+            delete component['patches'];
+        }
+    },
+
     execute: function(cancellable) {
 
 	this._linuxUserChrootPath = BuildUtil.findUserChrootPath();
@@ -1244,19 +1260,11 @@ const TaskBuild = new Lang.Class({
         let components = this._snapshot.data['components'];
 
 	// Pick up overrides from $workdir/overrides/$name
+        this._processOverride(this._snapshot.data['base']);
         for (let i = 0; i < components.length; i++) {
 	    let component = components[i];
 	    let name = component['name'];
-	    let overridePath = this.workdir.resolve_relative_path('overrides/' + name);
-	    if (overridePath.query_exists(null)) {
-		print("Using override:  " + overridePath.get_path());
-		component['src'] = 'local:' + overridePath.get_path();
-		delete component['tag'];
-		delete component['tag-reason'];
-		// We don't want to attempt to apply patches over top
-		// of what the override has.
-		delete component['patches'];
-	    }
+	    this._processOverride(component);
 	}
 
         this._componentBuildCachePath = this.cachedir.get_child('component-builds.json');
