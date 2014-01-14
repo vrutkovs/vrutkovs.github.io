@@ -18,6 +18,6 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-if test -x "$(which dconf 2>/dev/null)"; then
+if test -x "$(which dconf 2>/dev/null)" && test -d /etc/dconf/db; then
     exec dconf update
 fi
