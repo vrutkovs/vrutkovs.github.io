@@ -802,7 +802,7 @@
 
                 {"src": "ibus:ibus.git",
 		 "patches": ["ibus-builddir.patch",
-			     "ibus-no-desktop.patch"],
+			     "ibus-dconf-update.patch"],
 		 "config-opts": ["--disable-tests", 
 				 "--disable-gconf",
 				 "--enable-dconf",
