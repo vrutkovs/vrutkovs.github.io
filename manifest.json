@@ -840,8 +840,6 @@
 
                 {"src": "gnome:libchamplain"},
 
-                {"src": "gnome:unique"},
-
                 {"src": "gnome:gmime"},
 
 		{"src": "gnome:gnome-online-miners"},
