@@ -1011,6 +1011,11 @@
 
 		{"src": "gnome:geary"},
 
+		{"src": "gnome:totem-pl-parser"},
+
+		{"src": "gnome:totem",
+		 "config-opts": ["--disable-vala"]},
+
 		{"src": "gnome:libgda"},
 
 		{"src": "gnome:gdl"},
