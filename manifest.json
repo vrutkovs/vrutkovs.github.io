@@ -1058,6 +1058,8 @@
 		{"src": "git:git://git.libssh.org/projects/libssh.git",
 		 "patches": ["libssh-cmake-buildapi.patch"]},
 
+		{"src": "gnome:libgssh"},
+
 		{"src": "gnome:hotssh"},
 
 		{"src": "gnome:gnome-desktop-testing",
