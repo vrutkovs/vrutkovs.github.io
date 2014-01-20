@@ -1085,7 +1085,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 36,
+    "build-epoch": {"version": 37,
 		    "all": false,
-		    "component-names": ["evolution-ews"]}
+		    "component-names": ["clutter", "mutter", "mutter-wayland", "gnome-shell", "clutter-gst2", "clutter-gst3", "clutter-gtk"]}
 }
