@@ -228,7 +228,7 @@ function injectTestUserCreation(currentDir, currentEtcDir, username, params, can
     }
     let addUserService = '[Unit]\n\
 Description=Add user %s\n\
-Before=gdm.service\n\
+Before=multi-user.target\n\
 [Service]\n\
 ExecStart=%s\n\
 Type=oneshot\n';
