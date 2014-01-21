@@ -1085,7 +1085,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 37,
+    "build-epoch": {"version": 38,
 		    "all": false,
-		    "component-names": ["clutter", "mutter", "mutter-wayland", "gnome-shell", "clutter-gst2", "clutter-gst3", "clutter-gtk"]}
+		    "component-names": ["libchamplain"]}
 }
