@@ -675,12 +675,6 @@
 		{"src": "gnome:libsoup",
 		 "config-args": ["--disable-tls-check"]},
 
-		{"src": "gnome:ostree",
-		 "initramfs-depends": true,
-		 "config-opts": ["--with-soup-gnome",
-		                 "--with-dracut",
-				 "--enable-installed-tests"]},
-
 		{"src": "gnome:gnome-ostree-integration"},
 
 		{"src": "fd-gstreamer:gst-plugins-good",
@@ -797,6 +791,12 @@
 
 		{"src": "gnome:gjs",
 		 "config-opts": ["--enable-installed-tests"]},
+
+		{"src": "gnome:ostree",
+		 "initramfs-depends": true,
+		 "config-opts": ["--with-soup-gnome",
+		                 "--with-dracut",
+				 "--enable-installed-tests"]},
 
                 {"src": "ibus:ibus.git",
 		 "patches": ["ibus-builddir.patch",
