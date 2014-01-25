@@ -87,8 +87,6 @@
 		                 "--disable-vapigen"]},
 
 		{"src": "gnome:vala",
-		 "tag": "e9eb1ebb8f4911144628c793707db86af7c2e26c",
-		 "tag-reason": "Breaks gnome-calculator build ",
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
