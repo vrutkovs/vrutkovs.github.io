@@ -93,6 +93,7 @@
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
+				 "--enable-compat-libs",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
 
