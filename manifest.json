@@ -1085,7 +1085,8 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 38,
+    "build-epoch": {"version": 39,
 		    "all": false,
-		    "component-names": ["libchamplain"]}
+		    "component-names": ["polkit", "accountsservice", "gdm", "NetworkManager", "dbus", "mutter-wayland", "linux-vd_agent",
+				       "gnome-logs", "gnome-session", "gnome-desktop-testing", "ModemManager"]}
 }
