@@ -90,12 +90,11 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "7a821bfec1bffff043a5bcd82f9cba8927b4b4cb",
+		 "tag": "c9ccc19f9eb0599109094c57b7a2f668d708f0c1",
 		 "tag-reason": "Depends on gcc 4.8",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
-				 "--enable-compat-libs",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
 
