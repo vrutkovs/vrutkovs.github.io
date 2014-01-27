@@ -1060,6 +1060,8 @@
 
 		{"src": "gnome:evolution",
 		 "irc_room": "evolution",
+		 "tag": "f30598b6146b2b6922b00052872a8c55f152ca66",
+		 "tag-reason": "docs are broken by next commit",
 		 "config-opts": ["--disable-bogofilter",
 				 "--disable-spamassassin",
 				 "--disable-text-highlight",
