@@ -536,6 +536,7 @@
 		 "name": "gtk3"},
 
 	        {"src": "fd:plymouth",
+		 "initramfs-depends": true,
 		 "config-opts": ["--enable-pango",
 		                 "--enable-gdm-transition",
 		                 "--disable-libdrm_nouveau",
@@ -1087,7 +1088,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 40,
+    "build-epoch": {"version": 41,
 		    "all": false,
-		    "component-names": ["dbus"]}
+		    "component-names": ["plymouth"]}
 }
