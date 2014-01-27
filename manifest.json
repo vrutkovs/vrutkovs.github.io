@@ -1087,8 +1087,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 39,
+    "build-epoch": {"version": 40,
 		    "all": false,
-		    "component-names": ["polkit", "accountsservice", "gdm", "NetworkManager", "dbus", "mutter-wayland", "linux-vd_agent",
-				       "gnome-logs", "gnome-session", "gnome-desktop-testing", "ModemManager"]}
+		    "component-names": ["dbus"]}
 }
