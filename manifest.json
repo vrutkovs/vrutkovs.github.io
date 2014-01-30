@@ -696,9 +696,7 @@
 
 		{"src": "gnome:geocode-glib"},
 
-		{"src": "fd:geoclue",
-		 "tag": "2.0.0-31-g2c5ef6d9591f13321b22c6a0b8674e9379de2014",
-		 "tag-reason": "attempts to make distcheck work ending in tears"},
+		{"src": "fd:geoclue"},
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
