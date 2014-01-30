@@ -1086,7 +1086,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 42,
+    "build-epoch": {"version": 43,
 		    "all": false,
-		    "component-names": ["xorg-driver-xf86-input-evdev", "clutter", "mutter"]}
+		    "component-names": ["clutter-gst2", "clutter-gst3"]}
 }
