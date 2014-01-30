@@ -1086,7 +1086,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 43,
+    "build-epoch": {"version": 44,
 		    "all": false,
-		    "component-names": ["clutter-gst2", "clutter-gst3"]}
+		    "component-names": ["clutter-gtk"]}
 }
