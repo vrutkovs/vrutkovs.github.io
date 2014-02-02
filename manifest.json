@@ -353,7 +353,8 @@
 		{"src": "fd:xorg/driver/xf86-video-wayland",
 		 "patches": ["xorg-autogen-merged.patch"]},
 
-                {"src": "git:git://github.com/xkbcommon/libxkbcommon"},
+                {"src": "git:git://github.com/xkbcommon/libxkbcommon",
+		 "config-opts": ["--disable-x11"]},
 
                 {"src": "git:git://git.xiph.org/celt.git"},
 
