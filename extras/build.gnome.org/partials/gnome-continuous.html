@@ -9,8 +9,7 @@
   </p>
   
   <div>
-    <h3>Resolve+Build</h3>
-    <div>Resolve <a href="{{ resolve.href }}">{{ resolve.version }}</a> <span ng-if="!resolve.success" class="task-failed">Failed</span></div>
+    <h3>Build</h3>
     <div>Build <a href="{{ build.href }}">{{ build.version }}</a> <span ng-if="!build.success" class="task-failed">Failed</span></div>
     <div ng-if="buildData.built.length > 0">
       <ul>
