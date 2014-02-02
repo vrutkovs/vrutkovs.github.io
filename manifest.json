@@ -1087,7 +1087,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 44,
+    "build-epoch": {"version": 45,
 		    "all": false,
-		    "component-names": ["clutter-gtk"]}
+		    "component-names": ["libchamplain"]}
 }
