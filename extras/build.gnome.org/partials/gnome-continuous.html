@@ -8,6 +8,14 @@
     <a href="{{ pushLogHref }}">Today's resolve log</a>
   </p>
   
+  <p>
+    <h3>Active critical bugs</h3>
+    <ul>
+      <li><a href="https://bugzilla.gnome.org/show_bug.cgi?id=722803">Bug 722803</a>: No headerbar in initial setup mode</li>
+      <li><a href="https://bugzilla.gnome.org/show_bug.cgi?id=723553">Bug 723553</a>: gdm crashing (assertions in gdbusconnection.c)</li>
+    </ul>
+  </p>
+  
   <div>
     <h3>Build</h3>
     <div>Build <a href="{{ build.href }}">{{ build.version }}</a> <span ng-if="!build.success" class="task-failed">Failed</span></div>
