@@ -997,7 +997,8 @@
 
 		{"src": "gnome:gnome-calculator"},
 
-		{"src": "gnome:gnome-weather"},
+		{"src": "gnome:gnome-weather",
+		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:polari"},
 
