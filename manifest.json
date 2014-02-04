@@ -518,9 +518,7 @@
 
 		{"src": "gnome:atk"},
 
-                {"src": "gnome:at-spi2-core",
-		 "tag": "2554a07c0bbee7defef5b2fca3a420d6cf42a770",
-		 "tag-reason": "forgotten git add"},
+		{"src": "gnome:at-spi2-core"},
 
 		{"src": "gnome:at-spi2-atk"},
 
