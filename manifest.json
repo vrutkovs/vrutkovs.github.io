@@ -755,6 +755,10 @@
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-scrollkeeper"]},
 
+		{"src": "gnome:libmediaart",
+		 "config-opts": ["--enable-vala",
+		                 "--disable-gtk-doc"]},
+
 		{"src": "gnome:tracker",
 		 "config-opts": ["--enable-miner-firefox=no",
 				 "--enable-miner-thunderbird=no",
