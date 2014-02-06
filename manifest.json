@@ -107,6 +107,8 @@
 
 		{"src": "gnome:libxslt"},
 
+		{"src": "gnome:libgsystem"},
+
    		{"src": "fd:pixman"},
 
    		{"src": "git:git://git.sv.nongnu.org/freetype/freetype2.git",
