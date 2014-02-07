@@ -837,8 +837,7 @@
 
 		{"src": "git:https://git.gitorious.org/uhttpmock/uhttpmock.git"},
 
-		{"src": "gnome:libgdata",
-         "branch": "LIBGDA_5.2"},
+		{"src": "gnome:libgdata"},
 
                 {"src": "gnome:grilo",
 		 "config-opts": ["--disable-vala"]},
@@ -1026,7 +1025,8 @@
 		{"src": "gnome:totem",
 		 "config-opts": ["--disable-vala"]},
 
-		{"src": "gnome:libgda"},
+		{"src": "gnome:libgda",
+		 "branch": "LIBGDA_5.2"},
 
 		{"src": "gnome:gdl"},
 
