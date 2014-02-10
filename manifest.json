@@ -986,6 +986,8 @@
 		 "config-opts": ["--disable-documentation"],
 		 "component": "devel"},
 
+		{"src": "gnome:nautilus"},
+
 		{"src": "gnome:gedit",
 		 "config-opts": ["--enable-python=no",
 				 "--disable-spell"]},
