@@ -1043,8 +1043,6 @@
 		 "name": "gegl2",
 		 "branch": "gegl-0-2"},
 
-		{"src": "gnome:gnome-photos"},
-
 		{"src": "gnome:d-feet",
 		 "config-opts": ["--disable-tests"]},
 
