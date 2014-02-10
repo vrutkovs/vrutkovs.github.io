@@ -886,7 +886,7 @@
 				 "--disable-vala"]},
 
 		{"src": "gnome:gdm",
-		 "tag": "3.11.4",
+		 "tag": "d74c93a2d2c3e88ec8fc0765edac8722bd57408d",
 		 "tag-reason": "failure bisection",
 		 "config-opts": ["--disable-documentation",
 		                 "--disable-split-authentication",
