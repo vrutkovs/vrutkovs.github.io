@@ -10,7 +10,7 @@
 	<span ng-show="expand">
 	  <pre>{{ modified.diffstat }}</pre>
 	  <div ng-repeat="commit in modified.gitlog | limitTo:commitLimit">
-	    <span>{{ commit.From }} : {{ commit.Subject }}</span>
+	    <span>{{commit.Checksum.substring(0,8)}} {{ commit.From }} : {{ commit.Subject }}</span>
 	  </div>
 	  <div ng-if="modified.gitlog.length > commitLimit">... {{ commitLimit - modified.gitlog.length }} more</div>
 	</span>
