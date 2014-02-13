@@ -138,24 +138,31 @@
 	});
 
 	$http.get(ROOT + '/results/tasks/integrationtest/integrationtest/installed-test-results.json').success(function(data) {
-	    var testname;
+	    var fulltestname;
 	    var total = 0;
-	    var failed = [];
+	    var failedComponents = [];
+	    var failedTestsPerComponent = [];
 	    var successful = [];
 	    var skipped = [];
-	    for (testname in data) {
+	    for (fulltestname in data) {
+	        var component = fulltestname.split('/')[0];
+	        var testname = fulltestname.split('/')[1];
 		total++;
-		var status = data[testname];
+		var status = data[fulltestname];
 		if (status == 'success')
-		    successful.push(testname);
-		else if (status == 'failed')
-		    failed.push(testname);
+		    successful.push(fulltestname);
+		else if (status == 'failed'){
+		    if (failedComponents.indexOf(component) == -1)
+		        failedComponents.push(component);
+		    failedTestsPerComponent.push({name: component, test: testname});
+		}
 		else if (status == 'skipped')
-		    skipped.push(testname);
+		    skipped.push(fulltestname);
 	    }
 	    $scope.installedTestsTotal = total;
 	    $scope.installedTestsSuccessful = successful;
-	    $scope.installedTestsFailed = failed;
+	    $scope.installedTestsFailedComponents = failedComponents;
+	    $scope.installedTestsFailedPerComponent = failedTestsPerComponent;
 	    $scope.installedTestsSkipped = skipped;
 	});
 

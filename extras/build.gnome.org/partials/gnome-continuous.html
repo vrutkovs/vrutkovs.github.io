@@ -42,7 +42,18 @@
     <h3><a href="https://live.gnome.org/Initiatives/GnomeGoals/InstalledTests">InstalledTests</a></h3>
     <div>Version <a href="{{ integrationtest.href }}">{{ integrationtest.version }}</a></div>
     <div> {{ installedTestsSuccessful.length }} successful, {{ installedTestsSkipped.length }} skipped</div>
-    <div>Failed: {{ installedTestsFailed }}</div>
+    <div ng-init="expand = []"> Failed: {{installedTestsFailedPerComponent.length}}</div>
+    <div ng-repeat="component in installedTestsFailedComponents">
+      <span ng-init="expand[$index]=false">{{component}}
+      <span ng-click="expand[$index]=!expand[$index]">
+        <span ng-show="expand[$index]" style="text-decoration: underline" >[Hide]</span><span ng-show="!expand[$index]" style="text-decoration: underline" >[Show]</span>
+      </span>
+      <span ng-show="expand[$index]">
+      <ul ng-repeat="failedTest in installedTestsFailedPerComponent">
+        <li ng-if="failedTest['name'] == component">{{failedTest['test']}}</div>
+      </ul>
+    </span>
+    </div>
   </div>
 
   <div class="app-grid">
