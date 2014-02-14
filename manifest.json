@@ -837,6 +837,8 @@
 
 		{"src": "gnome:libgdata"},
 
+                {"src": "gnome:gmime"},
+
 		{"src": "gnome:totem-pl-parser"},
 
                 {"src": "gnome:grilo",
@@ -847,8 +849,6 @@
                 {"src": "gnome:libgfbgraph"},
 
                 {"src": "gnome:libchamplain"},
-
-                {"src": "gnome:gmime"},
 
 		{"src": "gnome:gnome-online-miners"},
 
