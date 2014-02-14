@@ -837,6 +837,8 @@
 
 		{"src": "gnome:libgdata"},
 
+		{"src": "gnome:totem-pl-parser"},
+
                 {"src": "gnome:grilo",
 		 "config-opts": ["--disable-vala"]},
 
@@ -1018,8 +1020,6 @@
 
 		{"src": "gnome:geary"},
 
-		{"src": "gnome:totem-pl-parser"},
-
 		{"src": "gnome:totem",
 		 "config-opts": ["--disable-vala"]},
 
@@ -1093,7 +1093,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 45,
+    "build-epoch": {"version": 46,
 		    "all": false,
-		    "component-names": ["libchamplain"]}
+		    "component-names": ["grilo"]}
 }
