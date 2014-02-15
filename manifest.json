@@ -697,7 +697,9 @@
 
 		{"src": "gnome:geocode-glib"},
 
-		{"src": "fd:geoclue"},
+		{"src": "fd:geoclue",
+		 "tag": "2.1.2-1-g265d49d0a73906a0ccbf078361295e0e81a2a659",
+		 "tag-reason": "srcdir != builddir issues"},
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
