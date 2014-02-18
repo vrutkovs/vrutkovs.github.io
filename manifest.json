@@ -1095,9 +1095,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 47,
+    "build-epoch": {"version": 48,
 		    "all": false,
-		    "component-names": ["mutter", "mutter-wayland", "gnome-control-center", "gnome-shell",
-				        "epiphany", "gnome-clocks", "gnome-photos",
-					"gnome-session", "evolution"]}
+		    "component-names": ["gnome-settings-daemon"]}
 }
