@@ -243,8 +243,8 @@ function enableAutologin(currentDir, currentEtcDir, username, cancellable) {
     let gdmCustomPath = currentEtcDir.resolve_relative_path('gdm/custom.conf');
     let keyfile = new GLib.KeyFile();
     keyfile.load_from_file(gdmCustomPath.get_path(), GLib.KeyFileFlags.NONE);
-    keyfile.set_string('daemon', 'AutomaticLoginEnable', 'true');
-    keyfile.set_string('daemon', 'AutomaticLogin', username);
+    keyfile.set_string('daemon', 'TimedLoginEnable', 'true');
+    keyfile.set_string('daemon', 'TimedLogin', username);
     gdmCustomPath.replace_contents(keyfile.to_data()[0], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 }
 
