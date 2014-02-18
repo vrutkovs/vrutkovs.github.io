@@ -1095,7 +1095,9 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 46,
+    "build-epoch": {"version": 47,
 		    "all": false,
-		    "component-names": ["grilo"]}
+		    "component-names": ["mutter", "mutter-wayland", "gnome-control-center", "gnome-shell",
+				        "epiphany", "gnome-clocks", "gnome-photos",
+					"gnome-session", "evolution"]}
 }
