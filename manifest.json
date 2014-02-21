@@ -1095,7 +1095,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-    "build-epoch": {"version": 48,
+    "build-epoch": {"version": 49,
 		    "all": false,
-		    "component-names": ["gnome-settings-daemon"]}
+		    "component-names": ["clutter", "mutter", "mutter-wayland", "gnome-shell", "clutter-gst2", "clutter-gst3", "clutter-gtk", "libchamplain"]}
 }
