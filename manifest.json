@@ -844,8 +844,6 @@
 		{"src": "gnome:totem-pl-parser"},
 
                 {"src": "gnome:grilo",
-		 "tag": "71def91bc93da36d1abf7332e899b5fd88dd1cf1",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=724871",
 		 "config-opts": ["--disable-vala"]},
 
 		{"src": "gnome:libzapojit"},
