@@ -288,7 +288,8 @@
 		{"src": "fd:cairo",
 		 "config-opts": ["--disable-interpreter"]},
 
-                {"src": "git:http://bitmath.org/git/mtdev.git"},
+                {"src": "git:http://bitmath.org/git/mtdev.git",
+		 "patches": ["mtdev-builddir.patch"]},
 
         {"src": "fd:libevdev",
          "tag": "cf70d0cd88241cbbcc5f785f21d9eb66518cb45c",

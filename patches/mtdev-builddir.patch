@@ -1,0 +1,40 @@
+From 12a1c0c8825bfc38c0f526118b1b7b58020117ef Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Thu, 27 Feb 2014 08:03:35 -0500
+Subject: [PATCH] build: Fix srcdir != builddir from git
+
+The gnome-continuous build system does this by default.
+---
+ src/Makefile.am  | 2 +-
+ test/Makefile.am | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 317e237..9f30411 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -18,7 +18,7 @@ libmtdev_la_SOURCES = \
+ 
+ AM_CFLAGS = $(CWARNFLAGS) #-DMTDEV_NO_LEGACY_ABI
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include/
++AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(srcdir)
+ 
+ libmtdevincludedir = $(includedir)
+ libmtdevinclude_HEADERS = \
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 2b504bd..c58063c 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -1,7 +1,7 @@
+ noinst_PROGRAMS = mtdev-mapgen mtdev-matching mtdev-kernel
+ bin_PROGRAMS = mtdev-test
+ 
+-AM_CPPFLAGS=-I$(top_srcdir)/include/
++AM_CPPFLAGS=-I$(top_srcdir)/include/ -I$(top_srcdir)
+ 
+ mtdev_mapgen_SOURCES = mtdev-mapgen.c
+ 
+-- 
+1.8.3.1
+
