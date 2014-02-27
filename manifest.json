@@ -292,6 +292,8 @@
          "tag": "cf70d0cd88241cbbcc5f785f21d9eb66518cb45c",
 		 "config-opts": ["--disable-gcov"]},
 
+		{"src": "fd:libinput"},
+
 		{"src": "fd:xorg/util/makedepend",
 		 "component": "devel"},
 
