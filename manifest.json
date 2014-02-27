@@ -978,10 +978,6 @@
                 {"src": "git:git://git.fedorahosted.org/git/dogtail.git",
 		 "patches": ["dogtail-buildsys.patch"]},
 
-		{"src": "git:git://github.com/behave/behave.git",
-		 "tag": "1.2.3",
-		 "patches": ["behave-buildsys.patch"]},
-
 		{"src": "gnome:gnome-terminal",
 		 "config-opts": ["--without-nautilus-extension"]},
 
