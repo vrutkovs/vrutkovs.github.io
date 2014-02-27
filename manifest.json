@@ -288,6 +288,10 @@
 		{"src": "fd:cairo",
 		 "config-opts": ["--disable-interpreter"]},
 
+                {"src": "tarball:http://bitmath.org/code/mtdev/mtdev-1.1.4.tar.gz",
+                 "name": "mtdev",
+                 "checksum": "39005193e9e4dc9253acb74b6698a74f5225f7d645ef36352bf9de0fc9236f8f"},
+
         {"src": "fd:libevdev",
          "tag": "cf70d0cd88241cbbcc5f785f21d9eb66518cb45c",
 		 "config-opts": ["--disable-gcov"]},
