@@ -1023,9 +1023,7 @@
 
 		{"src": "gnome:gucharmap"},
 
-		{"src": "gnome:seahorse",
-		 "tag": "2739f44579d0a7622b9a940d3b120ae83e7dbc27",
-		 "tag-reason": "build fails from vala error "},
+		{"src": "gnome:seahorse"},
 
 		{"src": "gnome:geary"},
 
