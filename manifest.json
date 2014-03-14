@@ -987,8 +987,6 @@
 		{"src": "gnome:gnome-clocks"},
 
 		{"src": "gnome:glade",
-		 "tag": "GLADE_3_15_3-195-gd3a5c344f300ac1bbaac7a07756cc583a2a26eb3",
-		 "tag-reason": "later build is broken",
 		 "config-opts": ["--disable-man-pages"],
 		 "component": "devel"},
 
