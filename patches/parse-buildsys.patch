@@ -1,0 +1,38 @@
+From 44c5a6b5bf64c00c8333240b8e8f36e093b31def Mon Sep 17 00:00:00 2001
+From: Vadim Rutkovsky <vrutkovs@redhat.com>
+Date: Fri, 17 Jan 2014 12:48:32 +0100
+Subject: [PATCH] build-sys: Add configure script and Makefile to implement
+ GNOME Build API
+
+See http://people.gnome.org/~walters/docs/build-api.txt
+---
+ Makefile  |  6 ++++++
+ configure |  4 ++++
+ 2 files changed, 10 insertions(+), 0 deletions(-)
+ create mode 100644 Makefile
+ create mode 100755 configure
+
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 0000000..b41d906
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,6 @@
++# behave *development* Makefile
++all:
++	python setup.py build
++
++install:
++	python setup.py install --root=$(DESTDIR)
+diff --git a/configure b/configure
+new file mode 100755
+index 0000000..fb22862
+--- /dev/null
++++ b/configure
+@@ -0,0 +1,4 @@
++#!/bin/bash
++# http://people.gnome.org/~walters/docs/build-api.txt
++#buildapi-variable-no-builddir
++exec python setup.py build
+-- 
+1.8.5.3

@@ -1,0 +1,136 @@
+From 3d6d595c0772297e2e812c1421415426b87dc217 Mon Sep 17 00:00:00 2001
+From: Vadim Rutkovsky <vrutkovs@redhat.com>
+Date: Fri, 17 Jan 2014 12:48:32 +0100
+Subject: [PATCH] build-sys: Add configure script and Makefile to implement
+ GNOME Build API
+
+See http://people.gnome.org/~walters/docs/build-api.txt
+---
+ Makefile           |  6 ++++++
+ behave/matchers.py | 14 --------------
+ configure          |  4 ++++
+ setup.py           | 27 +++++----------------------
+ 4 files changed, 15 insertions(+), 36 deletions(-)
+ create mode 100644 Makefile
+ create mode 100755 configure
+
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 0000000..b41d906
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,6 @@
++# behave *development* Makefile
++all:
++	python setup.py build
++
++install:
++	python setup.py install --root=$(DESTDIR)
+diff --git a/behave/matchers.py b/behave/matchers.py
+index eedf844..d0d9e88 100644
+--- a/behave/matchers.py
++++ b/behave/matchers.py
+@@ -2,7 +2,6 @@ from __future__ import with_statement
+ 
+ import re
+ import parse
+-from parse_type import cfparse
+ from behave import model
+ 
+ 
+@@ -153,7 +152,6 @@ class RegexMatcher(Matcher):
+ 
+ matcher_mapping = {
+     "parse": ParseMatcher,
+-    "cfparse": CFParseMatcher,
+     "re": RegexMatcher,
+ }
+ current_matcher = ParseMatcher
+@@ -180,18 +178,6 @@ def use_step_matcher(name):
+         Supports type conversions by using type converters
+         (see :func:`~behave.register_type()`).
+ 
+-    **cfparse** (extends: :pypi:`parse`, requires: :pypi:`parse_type`)
+-        Provides an extended parser with "Cardinality Field" (CF) support.
+-        Automatically creates missing type converters for related cardinality
+-        as long as a type converter for cardinality=1 is provided.
+-        Supports parse expressions like:
+-
+-            * ``{values:Type+}`` (cardinality=1..N, many)
+-            * ``{values:Type*}`` (cardinality=0..N, many0)
+-            * ``{value:Type?}``  (cardinality=0..1, optional)
+-
+-        Supports type conversions (as above).
+-
+     **re**
+         This uses full regular expressions to parse the clause text. You will
+         need to use named groups "(?P<name>...)" to define the variables pulled
+diff --git a/configure b/configure
+new file mode 100755
+index 0000000..fb22862
+--- /dev/null
++++ b/configure
+@@ -0,0 +1,4 @@
++#!/bin/bash
++# http://people.gnome.org/~walters/docs/build-api.txt
++#buildapi-variable-no-builddir
++exec python setup.py build
+diff --git a/setup.py b/setup.py
+index 144043f..aebe185 100644
+--- a/setup.py
++++ b/setup.py
+@@ -16,14 +16,13 @@ os.chdir(HERE0)
+ HERE = os.curdir
+ sys.path.insert(0, HERE)
+ 
+-from setuptools import find_packages, setup
+-from setuptools_behave import behave_test
++from distutils.core import setup
+ 
+ # -----------------------------------------------------------------------------
+ # CONFIGURATION:
+ # -----------------------------------------------------------------------------
+ python_version = float("%s.%s" % sys.version_info[:2])
+-requirements = ["parse>=1.6.3", "parse_type>=0.3.4", "six"]
++requirements = ["parse", "six"]
+ if python_version < 2.7 or 3.0 <= python_version <= 3.1:
+     requirements.append("argparse")
+ if python_version < 2.7:
+@@ -63,23 +62,10 @@ setup(
+     author_email="behave-users@googlegroups.com",
+     url="http://github.com/behave/behave",
+     provides = ["behave", "setuptools_behave"],
+-    packages = find_packages_by_root_package(BEHAVE),
++    packages=['behave', 'behave.formatter', 'behave.reporter', 'behave.compat'],
+     py_modules = ["setuptools_behave"],
+-    entry_points={
+-        "console_scripts": [
+-            "behave = behave.__main__:main"
+-        ],
+-        "distutils.commands": [
+-            "behave_test = setuptools_behave:behave_test"
+-        ]
+-    },
+-    install_requires=requirements,
+-    test_suite="nose.collector",
+-    tests_require=["nose>=1.3", "mock>=1.0", "PyHamcrest>=1.8"],
+-    cmdclass = {
+-        "behave_test": behave_test,
+-    },
+-    use_2to3= bool(python_version >= 3.0),
++    scripts=['bin/behave'],
++    requires=requirements,
+     license="BSD",
+     classifiers=[
+         "Development Status :: 4 - Beta",
+@@ -97,7 +83,4 @@ setup(
+         "Topic :: Software Development :: Testing",
+         "License :: OSI Approved :: BSD License",
+     ],
+-    zip_safe = True,
+ )
+-
+-
+-- 
+1.8.5.3
+
