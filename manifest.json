@@ -571,8 +571,6 @@
 		{"src": "gnome:libgnome-keyring"},
 
 		{"src": "gnome:gnome-keyring",
-		 "tag": "02d7fd262a5bff089925029cae85c3586a850986",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=726245",
 		 "config-opts": ["--disable-doc"]},
 
 		{"src": "gnome:json-glib",
