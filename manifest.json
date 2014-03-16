@@ -853,6 +853,8 @@
                 {"src": "gnome:grilo",
 		 "config-opts": ["--disable-vala"]},
 
+                {"src": "gnome:grilo-plugins"},
+
 		{"src": "gnome:libzapojit"},
 
                 {"src": "gnome:libgfbgraph"},
