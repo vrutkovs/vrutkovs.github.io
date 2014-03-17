@@ -1036,8 +1036,6 @@
 
 		{"src": "gnome:seahorse"},
 
-		{"src": "gnome:geary"},
-
 		{"src": "gnome:totem",
 		 "config-opts": ["--disable-vala"]},
 
