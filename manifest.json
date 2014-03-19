@@ -788,6 +788,8 @@
 		{"src": "gnome:mutter",
 		 "name": "mutter-wayland",
 		 "branch": "wayland",
+		 "tag": "48a36356ddd0892202b4cf6ed8100827647681cf",
+		 "tag-reason": "breaks gnome-shell",
 		 "config-opts": ["--enable-compile-warnings=maximum",
 				 "--enable-wayland"],
 		 "setuid": ["/runtime/usr/bin/mutter-launch"]},
