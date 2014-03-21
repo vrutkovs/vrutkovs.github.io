@@ -1010,6 +1010,8 @@
 		 "config-opts": ["--enable-python=no",
 				 "--disable-spell"]},
 
+		{"src": "git:git://github.com/hughsie/appstream-glib.git"},
+
 		{"src": "gnome:gnome-software",
 		 "config-opts": ["--disable-man",
                                  "--disable-offline-appstream-data",
