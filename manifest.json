@@ -1089,7 +1089,8 @@
 		 "config-opts": ["--disable-bogofilter",
 				 "--disable-spamassassin",
 				 "--disable-text-highlight",
-				 "--disable-pst-import"]},
+				 "--disable-pst-import",
+				 "--disable-libcryptui"]},
 
 		{"src": "gnome:evolution-ews",
 		 "irc_room": "evolution",
