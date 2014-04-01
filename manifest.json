@@ -909,7 +909,9 @@
 		 "config-opts": ["--disable-Werror"],
 		 "patches": ["telepathy-logger-autogen.patch"]},
 
-		{"src": "git:git://git.collabora.co.uk/git/libnice.git"},
+		{"src": "git:git://git.collabora.co.uk/git/libnice.git",
+		 "tag": "267a67672169d8586a291583357391533433684f",
+		 "tag-reason": "next commit still references marshaller header"},
 
 		{"src": "fd-telepathy:telepathy-gabble"},
 
