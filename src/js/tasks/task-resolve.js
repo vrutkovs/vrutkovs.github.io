@@ -101,7 +101,14 @@ const TaskResolve = new Lang.Class({
 	for (let i = 0; i < componentNames.length; i++) {
 	    let component = this._snapshot.getComponent(componentNames[i]);
 	    let tagOrBranch = component['tag'] || component['branch'] || 'master';
-            let mirrordir = Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
+            let mirrordir;
+
+	    try {
+		mirrordir = Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
+	    } catch (e) {
+		print("Failed to create mirror for component " + component['name']);
+		throw e;
+	    }
 	    let currentCommit = Vcs.revParse(mirrordir, tagOrBranch, cancellable);
 	    let revision = null;
 	    let cachedEntry = resolveCache[component['name']];
