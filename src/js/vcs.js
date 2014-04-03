@@ -360,6 +360,7 @@ function _ensureVcsMirrorTarball(mirrordir, name, uri, checksum, cancellable, pa
     if (actualChecksum != checksum) {
 	throw new Error("Downloaded " + uri + " expected checksum=" + checksum + " actual=" + actualChecksum);
     }
+    print("Verified checksum: " + checksum);
 
     let decompOpt = null;
     if (JSUtil.stringEndswith(uri, '.xz'))
