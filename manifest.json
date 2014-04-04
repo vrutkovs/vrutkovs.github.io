@@ -34,7 +34,8 @@
                 "savannah": "git:git://git.savannah.gnu.org/",
                 "debian": "git:git://anonscm.debian.org/",
 		"netfilter": "git:git://git.netfilter.org/",
-		"cgwalters": "git:git://github.com/cgwalters/"},
+		"cgwalters": "git:git://github.com/cgwalters/",
+                "anholt": "git:git://github.com/anholt/"},
 
   "patches": {"src": "gnome:gnome-continuous",
               "subdir": "patches"},
@@ -340,8 +341,10 @@
 		                 "--with-xkb-base=/usr/share/X11/xkb"],
 		 "patches": ["xkeyboard-config-autogen.patch"]},
 
+		{"src": "fd:anholt/libepoxy"},
+
 		{"src": "fd:xorg/xserver",
-		 "branch": "xwayland"},
+                 "config-opts": ["--enable-xwayland"]},
 
 		{"src": "fd:xcb/util"},
 
