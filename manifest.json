@@ -341,7 +341,7 @@
 		                 "--with-xkb-base=/usr/share/X11/xkb"],
 		 "patches": ["xkeyboard-config-autogen.patch"]},
 
-		{"src": "fd:anholt/libepoxy"},
+		{"src": "anholt:libepoxy"},
 
 		{"src": "fd:xorg/xserver",
                  "config-opts": ["--enable-xwayland"]},
