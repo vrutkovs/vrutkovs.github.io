@@ -272,7 +272,8 @@
 
 		{"src": "fd:xorg/lib/libFS"},
 
-		{"src": "fd:xorg/lib/libxshmfence"},
+		{"src": "fd:xorg/lib/libxshmfence",
+		 "patches": ["xorg-autogen-merged.patch"]},
 
 		{"src": "fd-dbus:dbus",
 		 "config-opts": ["--with-dbus-user=dbus",
