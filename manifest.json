@@ -34,8 +34,7 @@
                 "savannah": "git:git://git.savannah.gnu.org/",
                 "debian": "git:git://anonscm.debian.org/",
 		"netfilter": "git:git://git.netfilter.org/",
-		"cgwalters": "git:git://github.com/cgwalters/",
-                "anholt": "git:git://github.com/anholt/"},
+		"cgwalters": "git:git://github.com/cgwalters/"},
 
   "patches": {"src": "gnome:gnome-continuous",
               "subdir": "patches"},
@@ -272,9 +271,6 @@
 
 		{"src": "fd:xorg/lib/libFS"},
 
-		{"src": "fd:xorg/lib/libxshmfence",
-		 "patches": ["xorg-autogen-merged.patch"]},
-
 		{"src": "fd-dbus:dbus",
 		 "config-opts": ["--with-dbus-user=dbus",
 		                 "--enable-inotify",
@@ -344,10 +340,8 @@
 		                 "--with-xkb-base=/usr/share/X11/xkb"],
 		 "patches": ["xkeyboard-config-autogen.patch"]},
 
-		{"src": "anholt:libepoxy"},
-
 		{"src": "fd:xorg/xserver",
-                 "config-opts": ["--enable-xwayland"]},
+		 "branch": "xwayland"},
 
 		{"src": "fd:xcb/util"},
 
@@ -360,6 +354,9 @@
 		{"src": "fd:xorg/driver/xf86-video-cirrus"},
 
 		{"src": "fd:xorg/driver/xf86-video-modesetting"},
+
+		{"src": "fd:xorg/driver/xf86-video-wayland",
+		 "patches": ["xorg-autogen-merged.patch"]},
 
                 {"src": "git:git://github.com/xkbcommon/libxkbcommon",
 		 "config-opts": ["--disable-x11"]},
