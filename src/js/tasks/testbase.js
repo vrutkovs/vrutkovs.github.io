@@ -32,7 +32,7 @@ const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
 const JSONUtil = imports.jsonutil;
 
-const TIMEOUT_SECONDS = 10 * 60;
+const TIMEOUT_SECONDS = 30 * 60;
 
 const CommandSocketIface = '<node> \
 <interface name="org.gnome.Continuous.Command"> \
