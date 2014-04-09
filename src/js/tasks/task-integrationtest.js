@@ -82,6 +82,12 @@ const TaskIntegrationTest = new Lang.Class({
         let testsJson = Gio.File.new_for_path('installed-test-results.json');
         JSONUtil.writeJsonFileAtomic(testsJson, this._allTests, null);
 
+        let resultsDesc = this.subworkdir.resolve_relative_path('installed-test-results');
+        if (resultsDesc.query_exists(null))
+            GSystem.shutil_rm_rf(resultsDesc, cancellable);
+        let resultsSrc = mntdir.resolve_relative_path('home/test/installed-tests-results');
+        GSystem.shutil_cp_a(resultsSrc, resultsDesc, cancellable);
+
         if (this._oneTestFailed) {
             throw new Error("Not all tests passed");
         }
@@ -115,7 +121,7 @@ const TaskIntegrationTest = new Lang.Class({
         let desktopFile = '[Desktop Entry]\n\
 Encoding=UTF-8\n\
 Name=GNOME installed tests runner\n\
-Exec=gnome-desktop-testing-runner --parallel 0 --status=yes\n\
+Exec=gnome-desktop-testing-runner --parallel 0 --status=yes --report-directory=/home/test/installed-tests-results\n\
 Terminal=false\n\
 Type=Application\n';
         let dest = deployEtcDir.resolve_relative_path('xdg/autostart/gnome-desktop-testing.desktop');

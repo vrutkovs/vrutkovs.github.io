@@ -618,13 +618,13 @@ const TestBase = new Lang.Class({
         for (let i = 0; i < disksToTest.length; i++) {
             let name = disksToTest[i];
             let workdirName = 'work-' + name.replace(/\.qcow2$/, '');
-            let subworkdir = Gio.File.new_for_path(workdirName);
-            GSystem.file_ensure_directory(subworkdir, true, cancellable);
+            this.subworkdir = Gio.File.new_for_path(workdirName);
+            GSystem.file_ensure_directory(this.subworkdir, true, cancellable);
             let test = new TestOneDisk(this,
                                        this.BaseRequiredMessageIDs.concat(this.RequiredMessageIDs),
                                        this.BaseFailedMessageIDs.concat(this.FailedMessageIDs),
                                        this.StatusMessageID);
-            test.execute(subworkdir, this._buildData, this.repo, currentImages.get_child(name), cancellable);
+            test.execute(this.subworkdir, this._buildData, this.repo, currentImages.get_child(name), cancellable);
         }
 
         let buildData = this._buildData;
