@@ -751,7 +751,9 @@
                 {"src": "fd:exempi",
 		 "tag": "82aa3670838622e6ee645ebecfe2abd93ec56836",
 		 "patches": ["exempi-autogen.patch"]},
-      
+
+		{"src": "gnome:gnome-packagekit"},
+
 		{"src": "gnome:librest"},
 
 		{"src": "fd-telepathy:telepathy-glib",
@@ -1025,6 +1027,8 @@
 
 		{"src": "gnome:polari"},
 
+		{"src": "gnome:baobab"},
+
 		{"src": "gnome:gnome-maps"},
 
 		{"src": "gnome:gnome-sound-recorder"},
@@ -1100,10 +1104,27 @@
 
 		{"src": "gnome:hotssh"},
 
+		{"src": "gnome:file-roller"},
+
 		{"src": "gnome:gnome-desktop-testing",
 		 "component": "testing"},
 
-		{"src": "gnome:gnome-tweak-tool"}
+		{"src": "gnome:gnome-tweak-tool"},
+
+		{"src": "gnome:eog"},
+
+		{"src": "gnome:brasero"},
+
+		{"src": "gnome:devhelp"},
+
+		{"src": "gnome:gnome-dictionary"},
+
+		{"src": "gnome:gnome-screenshot"},
+
+		{"src": "gnome:nautilus-sendto"},
+
+		{"src": "gnome:yelp"}
+
 	],
 
     "installed-tests-components": [],
