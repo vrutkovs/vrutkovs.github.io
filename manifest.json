@@ -977,8 +977,7 @@
 
                 {"src": "git:https://github.com/hughsie/appdata-tools.git"},
 
-                {"src": "git:git://git.fedorahosted.org/git/dogtail.git",
-		 "patches": ["dogtail-buildsys.patch"]},
+                {"src": "git:git://git.fedorahosted.org/git/dogtail.git"},
 
 		{"src": "git:git://github.com/behave/behave.git",
 		"tag": "v1.2.4",
