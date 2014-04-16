@@ -166,8 +166,12 @@ function _listSubmodules(mirrordir, mirror, keytype, uri, branch, cancellable) {
     GSystem.shutil_rm_rf(tmpCheckout, cancellable);
     GSystem.file_ensure_directory(tmpCheckout.get_parent(), true, cancellable);
     ProcUtil.runSync(['git', 'clone', '-q', '--no-checkout', mirror.get_path(), tmpCheckout.get_path()], cancellable);
-    ProcUtil.runSync(['git', 'checkout', '-q', '-f', currentVcsVersion], cancellable,
-		     {cwd: tmpCheckout});
+    try{
+        ProcUtil.runSync(['git', 'checkout', '-q', '-f', currentVcsVersion], cancellable, {cwd: tmpCheckout});
+    } catch (e) {
+        print("Failed to checkout revision "+currentVcsVersion);
+        return [];
+    }
     let submodules = []
     let lines = ProcUtil.runSyncGetOutputLines(['git', 'submodule', 'status'],
 					       cancellable, {cwd: tmpCheckout}); 
