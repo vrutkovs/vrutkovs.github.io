@@ -457,6 +457,7 @@
                 {"src": "git:git://github.com/jpirko/libndp.git"},
 
 		{"src": "fd-NM:NetworkManager",
+                 "tag": "ef770ca450f4d0086eae9bfbe28ce169d57a90ac",
 		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
 				 "--with-crypto=nss",
