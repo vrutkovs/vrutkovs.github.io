@@ -1,4 +1,4 @@
-From a2ac30b3aea5de96fd89626d0a9ae700e6f83c57 Mon Sep 17 00:00:00 2001
+From 74318f76abe60c0382be76a9dadc332c9ba2b1f6 Mon Sep 17 00:00:00 2001
 From: Vadim Rutkovsky <vrutkovs@redhat.com>
 Date: Fri, 11 Apr 2014 11:36:52 +0200
 Subject: [PATCH] build-sys: Add configure script and Makefile to implement
@@ -6,14 +6,30 @@ Subject: [PATCH] build-sys: Add configure script and Makefile to implement
 
 See http://people.gnome.org/~walters/docs/build-api.txt
 ---
+ .travis.yml              |  2 +-
  Makefile                 |  7 +++++++
- behave/formatter/html.py |  2 +-
+ behave/configuration.py  |  2 +-
+ behave/formatter/html.py |  4 ++--
+ behave/matchers.py       |  1 -
  configure                |  5 +++++
  setup.py                 | 12 ++++--------
- 4 files changed, 17 insertions(+), 9 deletions(-)
+ 7 files changed, 20 insertions(+), 13 deletions(-)
  create mode 100644 Makefile
  create mode 100755 configure
 
+diff --git a/.travis.yml b/.travis.yml
+index b91e7c5..b874d85 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -5,7 +5,7 @@ python:
+   - pypy
+ 
+ install:
+-  - pip install --use-mirrors -q mock nose PyHamcrest lxml
++  - pip install --use-mirrors -q mock nose PyHamcrest
+   - python setup.py -q install
+ script:
+   - python --version
 diff --git a/Makefile b/Makefile
 new file mode 100644
 index 0000000..b3f4452
@@ -27,8 +43,21 @@ index 0000000..b3f4452
 +install:
 +	python setup.py install --root=$(DESTDIR)
 +
+diff --git a/behave/configuration.py b/behave/configuration.py
+index 77bc43f..5ff85a9 100644
+--- a/behave/configuration.py
++++ b/behave/configuration.py
+@@ -6,7 +6,7 @@ import sys
+ import argparse
+ import logging
+ import shlex
+-from six.moves import configparser
++import ConfigParser as configparser
+ 
+ from behave.model import FileLocation, ScenarioOutline
+ from behave.reporter.junit import JUnitReporter
 diff --git a/behave/formatter/html.py b/behave/formatter/html.py
-index 7f125da..5990e53 100644
+index 7f125da..1c5a447 100644
 --- a/behave/formatter/html.py
 +++ b/behave/formatter/html.py
 @@ -1,5 +1,5 @@
@@ -38,6 +67,24 @@ index 7f125da..5990e53 100644
  import base64
  import os.path
  from behave.compat.collections import Counter
+@@ -385,4 +385,4 @@ class HTMLFormatter(Formatter):
+ 
+         # Sending the report to stream
+         if len(self.all_features) > 0:
+-            self.stream.write(ET.tostring(self.html, pretty_print = True))
++            self.stream.write(ET.tostring(self.html))
+diff --git a/behave/matchers.py b/behave/matchers.py
+index eedf844..2573eff 100644
+--- a/behave/matchers.py
++++ b/behave/matchers.py
+@@ -2,7 +2,6 @@ from __future__ import with_statement
+ 
+ import re
+ import parse
+-from parse_type import cfparse
+ from behave import model
+ 
+ 
 diff --git a/configure b/configure
 new file mode 100755
 index 0000000..d28a27a
