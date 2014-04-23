@@ -1021,7 +1021,8 @@
 		 "tag": "3.11.2-81-g1227c9732890da40a14e746080792a784b9131bb",
 		 "tag-reason": "webkitgtk needs newer libstdc++"},
 
-		{"src": "gnome:gnome-calculator"},
+		{"src": "gnome:gnome-calculator",
+                 "config-opts":"--enable-installed-tests"},
 
 		{"src": "gnome:gnome-weather",
 		 "config-opts": ["--enable-installed-tests"]},
