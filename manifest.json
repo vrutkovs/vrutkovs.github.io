@@ -1022,7 +1022,7 @@
 		 "tag-reason": "webkitgtk needs newer libstdc++"},
 
 		{"src": "gnome:gnome-calculator",
-                 "config-opts":"--enable-installed-tests"},
+                 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:gnome-weather",
 		 "config-opts": ["--enable-installed-tests"]},
