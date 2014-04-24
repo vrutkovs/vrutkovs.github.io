@@ -453,6 +453,9 @@ const TestOneDisk = new Lang.Class({
             LibQA.injectTestUserCreation(currentDir, currentEtcDir, username, {}, cancellable);
             LibQA.enableAutologin(currentDir, currentEtcDir, username, cancellable);
 
+            if (this.GdmSession)
+                LibQA.setAutologinSession(currentDir, username, this.GdmSession, cancellable);
+
             this._parentTask._prepareDisk(mntdir, this._diskArch, cancellable);
         } finally {
             gfmnt.umount(cancellable);

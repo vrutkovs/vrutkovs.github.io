@@ -248,6 +248,18 @@ function enableAutologin(currentDir, currentEtcDir, username, cancellable) {
     gdmCustomPath.replace_contents(keyfile.to_data()[0], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 }
 
+function setAutologinSession(currentDir, username, session, cancellable) {
+    let usersDir = currentDir.resolve_relative_path('var/lib/AccountsService/users');
+    GSystem.file_ensure_directory(usersDir, true, cancellable);
+    let userFile = usersDir.resolve_relative_path(username);
+    let userFileContents = '[User]\n\
+Language=\n\
+XSession=%s\n\
+SystemAccount=false\n';
+    userFileContents = Format.vprintf(userFileContents, [session]);
+    userFile.replace_contents(userFileContents, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
+}
+
 function _findFirstFileMatching(dir, prefix, cancellable) {
     let d = dir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, cancellable);
     let finfo;
