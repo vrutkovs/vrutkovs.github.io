@@ -1089,7 +1089,9 @@
 
 		{"src": "gnome:evolution",
 		 "irc_room": "evolution",
-		 "config-opts": ["--disable-bogofilter",
+		 "patches": ["evolution-htmltestreport.patch"],
+		 "config-opts": ["--enable-installed-tests",
+		 		 "--disable-bogofilter",
 				 "--disable-spamassassin",
 				 "--disable-text-highlight",
 				 "--disable-pst-import",
