@@ -448,8 +448,10 @@ const TestOneDisk = new Lang.Class({
             let [currentDir, currentEtcDir] = LibQA.getDeployDirs(mntdir, osname);
             
             LibQA.injectExportJournal(currentDir, currentEtcDir, cancellable);
-            LibQA.injectTestUserCreation(currentDir, currentEtcDir, 'testuser', {}, cancellable);
-            LibQA.enableAutologin(currentDir, currentEtcDir, 'testuser', cancellable);
+
+            const username = 'testuser';
+            LibQA.injectTestUserCreation(currentDir, currentEtcDir, username, {}, cancellable);
+            LibQA.enableAutologin(currentDir, currentEtcDir, username, cancellable);
 
             this._parentTask._prepareDisk(mntdir, this._diskArch, cancellable);
         } finally {
