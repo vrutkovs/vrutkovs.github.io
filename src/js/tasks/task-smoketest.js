@@ -32,14 +32,9 @@ const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
 const JSONUtil = imports.jsonutil;
 
-const TaskSmoketest = new Lang.Class({
-    Name: 'TaskSmoketest',
+const SmoketestBase = new Lang.Class({
+    Name: 'SmoketestBase',
     Extends: TestBase.TestBase,
-
-    TaskDef: {
-        TaskName: "smoketest",
-        TaskAfter: ['builddisks'],
-    },
 
     RequiredMessageIDs: ["0ce153587afa4095832d233c17a88001" // gnome-session startup ok
                         ],
@@ -49,4 +44,38 @@ const TaskSmoketest = new Lang.Class({
                       ],
 
     CompletedTag: 'smoketested'
+});
+
+const TaskSmoketest = new Lang.Class({
+    Name: 'TaskSmoketest',
+    Extends: SmoketestBase,
+
+    TaskDef: {
+        TaskName: "smoketest",
+        TaskAfter: ['builddisks'],
+    },
+});
+
+const TaskSmoketestClassic = new Lang.Class({
+    Name: 'TaskSmoketestClassic',
+    Extends: SmoketestBase,
+
+    TaskDef: {
+        TaskName: "smoketest-classic",
+        TaskAfter: ['builddisks'],
+    },
+
+    GdmSession: 'gnome-classic',
+});
+
+const TaskSmoketestWayland = new Lang.Class({
+    Name: 'TaskSmoketestWayland',
+    Extends: SmoketestBase,
+
+    TaskDef: {
+        TaskName: "smoketest-wayland",
+        TaskAfter: ['builddisks'],
+    },
+
+    GdmSession: 'gnome-wayland',
 });
