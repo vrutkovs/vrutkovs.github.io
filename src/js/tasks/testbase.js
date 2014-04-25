@@ -73,11 +73,12 @@ const CommandSocketProxy = new Lang.Class({
 const TestOneDisk = new Lang.Class({
     Name: 'TestOneDisk',
 
-    _init: function(parentTask, testRequiredMessageIds, testFailedMessageIds, testStatusMessageId) {
+    _init: function(parentTask, testRequiredMessageIds, testFailedMessageIds, testStatusMessageId, testGdmSession) {
         this._parentTask = parentTask;
         this._testRequiredMessageIds = testRequiredMessageIds;
         this._testFailedMessageIds = testFailedMessageIds;
         this._statusMessageId = testStatusMessageId;
+        this._gdmSession = testGdmSession;
     },
 
     _fail: function(message) {
@@ -453,8 +454,8 @@ const TestOneDisk = new Lang.Class({
             LibQA.injectTestUserCreation(currentDir, currentEtcDir, username, {}, cancellable);
             LibQA.enableAutologin(currentDir, currentEtcDir, username, cancellable);
 
-            if (this.GdmSession)
-                LibQA.setAutologinSession(currentDir, username, this.GdmSession, cancellable);
+            if (this._gdmSession)
+                LibQA.setAutologinSession(currentDir, username, this._gdmSession, cancellable);
 
             this._parentTask._prepareDisk(mntdir, this._diskArch, cancellable);
         } finally {
@@ -628,7 +629,8 @@ const TestBase = new Lang.Class({
             let test = new TestOneDisk(this,
                                        this.BaseRequiredMessageIDs.concat(this.RequiredMessageIDs),
                                        this.BaseFailedMessageIDs.concat(this.FailedMessageIDs),
-                                       this.StatusMessageID);
+                                       this.StatusMessageID,
+                                       this.GdmSession);
             test.execute(this.subworkdir, this._buildData, this.repo, currentImages.get_child(name), cancellable);
         }
 
