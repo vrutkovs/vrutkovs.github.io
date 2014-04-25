@@ -527,7 +527,8 @@
 		{"src": "gnome:pango",
 		 "config-opts": ["--enable-installed-tests"]},
 
-		{"src": "gnome:atk"},
+		{"src": "gnome:atk",
+                 "tag": "76be0669e9b4000d8a3f1e8bd78d8f89883ba112"},
 
 		{"src": "gnome:at-spi2-core"},
 
