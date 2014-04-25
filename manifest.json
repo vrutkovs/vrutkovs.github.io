@@ -675,7 +675,7 @@
 
 		{"src": "gnome:gnome-themes-standard"},
 
-		{"src": "gnome:gnome-icon-theme",
+		{"src": "gnome:adwaita-icon-theme",
 		 "tag": "f7f1407e9b970bc3d94d6e7335da97f03af4c839"},
 
 		{"src": "gnome:gnome-icon-theme-symbolic"},
