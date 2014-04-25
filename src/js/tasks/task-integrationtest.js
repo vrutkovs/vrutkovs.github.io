@@ -32,6 +32,7 @@ const TestBase = imports.tasks.testbase;
 const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
 const JSONUtil = imports.jsonutil;
+const FileUtil = imports.fileutil;
 
 // From ot-gio-utils.h.
 // XXX: Introspect this.
@@ -84,11 +85,20 @@ const TaskIntegrationTest = new Lang.Class({
         let testsJson = Gio.File.new_for_path('installed-test-results.json');
         JSONUtil.writeJsonFileAtomic(testsJson, this._allTests, null);
 
-        let resultsDesc = this.subworkdir.resolve_relative_path('installed-test-results');
-        if (resultsDesc.query_exists(null))
-            GSystem.shutil_rm_rf(resultsDesc, cancellable);
+        let resultsDest = this.subworkdir.resolve_relative_path('installed-test-results');
+        if (resultsDest.query_exists(null))
+            GSystem.shutil_rm_rf(resultsDest, cancellable);
+        resultsDest.make_directory(cancellable);
         let resultsSrc = mntdir.resolve_relative_path('home/testuser/installed-tests-results');
-        GSystem.shutil_cp_a(resultsSrc, resultsDesc, cancellable);
+        FileUtil.walkDir(resultsSrc, { depth: 1, fileType: Gio.FileType.DIRECTORY },
+            Lang.bind(this, function(filePath, cancellable) {
+                try {
+                    testResultsDest = resultsDest.resolve_relative_path(filePath.get_basename())
+                    GSystem.shutil_cp_a(filePath, testResultsDest, cancellable);
+                } catch (e) {
+                    print(Format.vprintf('Cannot copy %s: %s', [filePath.get_basename(), e]));
+                }
+            }), cancellable);
 
         if (this._oneTestFailed) {
             throw new Error("Not all tests passed");
