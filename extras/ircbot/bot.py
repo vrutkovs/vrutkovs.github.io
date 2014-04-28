@@ -59,7 +59,7 @@ class BuildGnomeOrg(irc.IRCClient):
         self._last_task_state = {}
         tracked_build = 'buildmaster'
         self._flood_tasks = ['build']
-        self._announce_changed_tasks = ['resolve', 'smoketest', 'integrationtest', 'applicationstest']
+        self._announce_changed_tasks = ['resolve', 'smoketest', 'smoketest-classic', 'smoketest-wayland', 'integrationtest', 'applicationstest']
         self._workdir = os.path.expanduser('/srv/ostree/ostbuild/%s/' % (tracked_build, ))
         self._workurl = "http://build.gnome.org/continuous/%s" % (tracked_build, )
         self._loop = task.LoopingCall(self._query_new_tasks)
