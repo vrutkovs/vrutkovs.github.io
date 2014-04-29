@@ -47,6 +47,7 @@ const Autobuilder = new Lang.Class({
 	this.parent();
 
         this.parser.addArgument('--autoupdate-self', { action: 'store' });
+        this.parser.addArgument('--autoupdate-rebuild', { action: 'store' });
 
 	this._buildNeeded = true;
 	this._initialResolveNeeded = true;
@@ -65,6 +66,9 @@ const Autobuilder = new Lang.Class({
 
 	if (args.autoupdate_self)
 	    this._autoupdate_self = Gio.File.new_for_path(args.autoupdate_self);
+
+	if (args._autoupdate_rebuild)
+		this._autoupdate_rebuild = Gio.File.new_for_path(args._autoupdate_rebuild);
 
 	this._ownId = Gio.DBus.session.own_name('org.gnome.OSTreeBuild', Gio.BusNameOwnerFlags.NONE,
 						function(name) {},
@@ -181,9 +185,25 @@ const Autobuilder = new Lang.Class({
 	if (this._taskmaster.isTaskQueued('resolve'))
 	    return;
 
-	if (this._autoupdate_self)
-	    ProcUtil.runSync(['git', 'pull', '-r'], cancellable,
+	if (this._autoupdate_self){
+		ProcUtil.runSync(['git', 'pull', '-r'], cancellable,
 			     { cwd: this._autoupdate_self })
+	}
+	if (this._autoupdate_rebuild){
+		try {
+			ProcUtil.runSync(['jhbuild', 'make'], cancellable,
+			     { cwd: this._autoupdate_self })
+		} catch (e1) {
+			print("selfupdate via jhbuild make failed, falling back to jhbuild build")
+			try {
+				ProcUtil.runSync(['jhbuild', 'buildone', 'gnome-continuous'], cancellable,
+				     { cwd: this._autoupdate_self })
+			} catch(e2) {
+				print("selfupdate failed: " + e2);
+			}
+		}
+	}
+
 
 	let previousVersion = this._buildsDir.currentVersion(cancellable);
         let buildPath = this._buildsDir.allocateNewVersion(cancellable);
