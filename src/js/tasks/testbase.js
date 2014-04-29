@@ -32,8 +32,6 @@ const LibQA = imports.libqa;
 const JSUtil = imports.jsutil;
 const JSONUtil = imports.jsonutil;
 
-const TIMEOUT_SECONDS = 30 * 60;
-
 const CommandSocketIface = '<node> \
 <interface name="org.gnome.Continuous.Command"> \
     <method name="AsyncMessage"> \
@@ -73,12 +71,13 @@ const CommandSocketProxy = new Lang.Class({
 const TestOneDisk = new Lang.Class({
     Name: 'TestOneDisk',
 
-    _init: function(parentTask, testRequiredMessageIds, testFailedMessageIds, testStatusMessageId, testGdmSession) {
+    _init: function(parentTask, testRequiredMessageIds, testFailedMessageIds, testStatusMessageId, testGdmSession, timeout) {
         this._parentTask = parentTask;
         this._testRequiredMessageIds = testRequiredMessageIds;
         this._testFailedMessageIds = testFailedMessageIds;
         this._statusMessageId = testStatusMessageId;
         this._gdmSession = testGdmSession;
+        this._timeout = timeout;
     },
 
     _fail: function(message) {
@@ -499,7 +498,7 @@ const TestOneDisk = new Lang.Class({
 
         let commandConnectAttemptTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
                                                                       Lang.bind(this, this._tryCommandConnection));
-        let timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, TIMEOUT_SECONDS,
+        let timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, this._timeout,
                                                  Lang.bind(this, this._onTimeout));
 
         // Let's only do a screenshot every 3 seconds, I think it's slowing things down...
@@ -547,6 +546,7 @@ const TestBase = new Lang.Class({
 
     TestTrees: ['-runtime'],
     CompleteIdleWaitSeconds: 10,
+    Timeout: 5 * 60,
 
     BaseRequiredMessageIDs: ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
                              "f77379a8490b408bbe5f6940505a777b",  // systemd-journald
@@ -630,7 +630,8 @@ const TestBase = new Lang.Class({
                                        this.BaseRequiredMessageIDs.concat(this.RequiredMessageIDs),
                                        this.BaseFailedMessageIDs.concat(this.FailedMessageIDs),
                                        this.StatusMessageID,
-                                       this.GdmSession);
+                                       this.GdmSession,
+                                       this.Timeout);
             test.execute(this.subworkdir, this._buildData, this.repo, currentImages.get_child(name), cancellable);
         }
 
