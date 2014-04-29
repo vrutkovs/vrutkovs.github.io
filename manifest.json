@@ -1115,7 +1115,8 @@
 
 		{"src": "gnome:gnome-tweak-tool"},
 
-		{"src": "gnome:eog"},
+		{"src": "gnome:eog",
+		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:brasero"},
 
