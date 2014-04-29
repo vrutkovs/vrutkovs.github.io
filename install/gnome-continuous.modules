@@ -35,7 +35,7 @@
     </dependencies>
   </autotools>
   <autotools id="gjs" autogenargs="--without-cairo">
-    <branch revision="gnome-3-12"/>
+    <branch revision="gnome-3-10"/>
     <dependencies>
       <dep package="gobject-introspection"/>
       <dep package="gnome-common"/>
