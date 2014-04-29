@@ -36,7 +36,8 @@ const SmoketestBase = new Lang.Class({
     Name: 'SmoketestBase',
     Extends: TestBase.TestBase,
 
-    RequiredMessageIDs: ["0ce153587afa4095832d233c17a88001" // gnome-session startup ok
+    RequiredMessageIDs: ["0ce153587afa4095832d233c17a88001", // gnome-session startup ok
+                         "f3ea493c22934e26811cd62abe8e203a" // gnome-shell startup finished
                         ],
 
     FailedMessageIDs: ["fc2e22bc6ee647b6b90729ab34a250b1", // coredump
