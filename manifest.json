@@ -357,8 +357,6 @@
 
 		{"src": "fd:xorg/driver/xf86-input-evdev"},
 
-		{"src": "fd:xorg/driver/xf86-video-cirrus"},
-
 		{"src": "fd:xorg/driver/xf86-video-modesetting"},
 
                 {"src": "git:git://github.com/xkbcommon/libxkbcommon",
@@ -379,8 +377,6 @@
 
                 {"src": "fd:xorg/driver/xf86-video-qxl",
 		 "patches": ["xorg-autogen-merged.patch"]},
-
-		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
 		{"src": "fd:startup-notification",
 		 "tag": "bc7c6d2d285509c7fcd1899c866838bd278fab58",
@@ -1138,10 +1134,6 @@
     "initramfs-build-epoch": {"version": 0},
     
 	"build-epoch": {"version": 50,
-		    "all": false,
-		    "component-names": [
-		        "xorg-xserver", "xorg-driver-xf86-input-keyboard",
-		        "xorg-driver-xf86-input-mouse", "xorg-driver-xf86-input-evdev",
-		        "xorg-driver-xf86-video-cirrus", "xorg-driver-xf86-video-modesetting",
-		        "xorg-driver-xf86-video-qxl", "xorg-driver-xf86-video-vesa"]}
+		        "all": false,
+		        "component-names": []}
 }
