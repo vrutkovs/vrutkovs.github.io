@@ -245,6 +245,7 @@ function enableAutologin(currentDir, currentEtcDir, username, cancellable) {
     keyfile.load_from_file(gdmCustomPath.get_path(), GLib.KeyFileFlags.NONE);
     keyfile.set_string('daemon', 'TimedLoginEnable', 'true');
     keyfile.set_string('daemon', 'TimedLogin', username);
+    keyfile.set_string('debug', 'Enable', 'true');
     gdmCustomPath.replace_contents(keyfile.to_data()[0], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 }
 
