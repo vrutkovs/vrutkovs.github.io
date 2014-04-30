@@ -378,6 +378,8 @@
                 {"src": "fd:xorg/driver/xf86-video-qxl",
 		 "patches": ["xorg-autogen-merged.patch"]},
 
+		{"src": "fd:xorg/driver/xf86-video-vesa"},
+
 		{"src": "fd:startup-notification",
 		 "tag": "bc7c6d2d285509c7fcd1899c866838bd278fab58",
 		 "tag-reason": "no suseconds_t",
