@@ -976,6 +976,9 @@
 		{"src": "gnome:gnome-shell-extensions",
 		 "config-opts": ["--enable-extensions=classic-mode"]},
 
+
+		{"src": "git:git://github.com/hughsie/appstream-glib.git"},
+
                 {"src": "git:https://github.com/hughsie/appdata-tools.git"},
 
                 {"src": "git:git://git.fedorahosted.org/git/dogtail.git"},
@@ -1008,8 +1011,6 @@
 		{"src": "gnome:gedit",
 		 "config-opts": ["--enable-python=no",
 				 "--disable-spell"]},
-
-		{"src": "git:git://github.com/hughsie/appstream-glib.git"},
 
 		{"src": "gnome:gnome-software",
 		 "config-opts": ["--disable-man",
