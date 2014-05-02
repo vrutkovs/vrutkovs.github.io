@@ -450,11 +450,8 @@ const TestOneDisk = new Lang.Class({
             LibQA.injectExportJournal(currentDir, currentEtcDir, cancellable);
 
             const username = 'testuser';
-            LibQA.injectTestUserCreation(currentDir, currentEtcDir, username, {}, cancellable);
+            LibQA.injectTestUserCreation(currentDir, currentEtcDir, username, {session: this._gdmSession}, cancellable);
             LibQA.enableAutologin(currentDir, currentEtcDir, username, cancellable);
-
-            if (this._gdmSession)
-                LibQA.setAutologinSession(currentDir, username, this._gdmSession, cancellable);
 
             this._parentTask._prepareDisk(mntdir, this._diskArch, cancellable);
         } finally {

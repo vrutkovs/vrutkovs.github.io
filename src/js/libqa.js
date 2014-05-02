@@ -218,15 +218,22 @@ RateLimitInterval=0\n', null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, ca
 }
 
 function injectTestUserCreation(currentDir, currentEtcDir, username, params, cancellable) {
-    params = Params.parse(params, { password: null });
-    let execLine;
+    params = Params.parse(params, { password: null, session: null });
+    let execLine, passwordCommand, setSessionCommand;
+    let commandTemplate = '/usr/bin/dbus-send --system --type=method_call --print-reply' +
+        ' --dest=org.freedesktop.Accounts /org/freedesktop/Accounts%s org.freedesktop.Accounts.%s %s'
+
+    let addUserCommand = Format.vprintf(commandTemplate, ['', 'CreateUser', 'string:' + username + ' string: int32:0'])
     if (params.password === null) {
-	execLine = Format.vprintf('/bin/sh -c "/usr/sbin/useradd %s; passwd -d %s"',
-				  [username, username]);
+        passwordCommand = Format.vprintf(commandTemplate, ['/User1000', 'User.SetPassword', 'string: string:'])
     } else {
-	execLine = Format.vprintf('/bin/sh -c "/usr/sbin/useradd %s; echo %s | passwd --stdin %s',
-				  [username, params.password, username]);
+        // AccountService requires passing a crypt, so using passwd would be easier
+        passwordCommand = Format.vprintf("echo %s | passwd --stdin %s", [params.password, username]);
     }
+    if (params.session != null) {
+        setSessionCommand = Format.vprintf(commandTemplate, ['/User1000', 'User.SetXSession', 'string:' + params.session])
+    }
+    execLine = Format.vprintf('/bin/sh -c "%s"; /bin/sh -c "%s"; /bin/sh -c "%s"', [addUserCommand, passwordCommand, setSessionCommand])
     let addUserService = '[Unit]\n\
 Description=Add user %s\n\
 Before=multi-user.target\n\
@@ -247,18 +254,6 @@ function enableAutologin(currentDir, currentEtcDir, username, cancellable) {
     keyfile.set_string('daemon', 'TimedLogin', username);
     keyfile.set_string('debug', 'Enable', 'true');
     gdmCustomPath.replace_contents(keyfile.to_data()[0], null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
-}
-
-function setAutologinSession(currentDir, username, session, cancellable) {
-    let usersDir = currentDir.resolve_relative_path('var/lib/AccountsService/users');
-    GSystem.file_ensure_directory(usersDir, true, cancellable);
-    let userFile = usersDir.resolve_relative_path(username);
-    let userFileContents = '[User]\n\
-Language=\n\
-XSession=%s\n\
-SystemAccount=false\n';
-    userFileContents = Format.vprintf(userFileContents, [session]);
-    userFile.replace_contents(userFileContents, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 }
 
 function _findFirstFileMatching(dir, prefix, cancellable) {
