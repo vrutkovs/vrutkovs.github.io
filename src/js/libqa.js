@@ -236,7 +236,7 @@ function injectTestUserCreation(currentDir, currentEtcDir, username, params, can
     execLine = Format.vprintf('/bin/sh -c "%s"; /bin/sh -c "%s"; /bin/sh -c "%s"', [addUserCommand, passwordCommand, setSessionCommand])
     let addUserService = '[Unit]\n\
 Description=Add user %s\n\
-Before=multi-user.target\n\
+Before=gdm.service\n\
 [Service]\n\
 ExecStart=%s\n\
 Type=oneshot\n';
