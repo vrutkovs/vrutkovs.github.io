@@ -673,7 +673,9 @@
 
 		{"src": "gnome:gnome-themes-standard"},
 
-		{"src": "gnome:adwaita-icon-theme"},
+		{"src": "gnome:adwaita-icon-theme",
+		 "tag": "d59efb8fa989e168360f3ec85841a18a964944f4",
+		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=729587"},
 
 		{"src": "gnome:gnome-icon-theme-symbolic"},
 
