@@ -1,0 +1,166 @@
+<article>
+  <h2>Build {{ buildVersion }}</h2>
+  <div class="tasks">
+
+    <div ng-repeat="task in tasks">
+      <div ng-if="task.name == 'resolve'">
+        <span>
+            <span ng-if='task.complete'>
+              <span ng-if='task.success'>
+                <span class='task-succeded'>Resolve</span><span> completed in {{ task.elapsed }}s</span>
+              </span>
+              <span ng-if='!task.success'>
+                <span class='task-failed'>Resolve failed</span>
+              </span>
+            </span>
+            <span ng-if='!task.complete'>
+              <span class='task-running'>Resolve</span><span> in progress</span>
+            </span>
+        </span>
+      </div>
+
+      <div ng-if="task.name == 'bdiff' && task.started">
+        Changes:
+        <div ng-if="task.bdiff.added.length > 0">
+          New components:
+        </div>
+        <div ng-if="task.bdiff.removed.length > 0">
+          Removed components:
+        </div>
+        <div ng-if="task.bdiff.modified.length > 0">
+          <div ng-repeat="modified in task.bdiff.modified">
+            <span class='changed-component'>{{ modified.previous.name }}: {{ modified.gitlog.length }} commits
+            <span style="text-decoration: underline" ng-init="expand=false" ng-click="expand=!expand">
+                <span ng-show="expand">[Hide]</span><span ng-show="!expand">[Show]</span>
+            </span>
+            <span ng-show="expand">
+              <ul ng-repeat="commit in modified.gitlog">
+                <li class='commit'>{{commit.Checksum.substring(0,8)}} {{ commit.Subject }}</li>
+              </ul>
+            </span>
+          </div>
+        </div>
+        <br/>
+      </div>
+
+      <div ng-if="task.name == 'build' && task.started">
+          <span>
+            <span ng-if='task.complete'>
+              <span ng-if='task.success'>
+                <span class='task-succeded'>Build</span><span> completed in {{ task.elapsed }}s</span>
+              </span>
+              <span ng-if='!task.success'>
+                <span class='task-failed'>Build</span><span> failed. <br>Broken components:
+                  <span ng-repeat="failed in task.build.failed">
+                    <span> <a href='{{ buildRoot }}build/log-{{ failed }}.txt'>{{ failed }}</a></span>
+                  </span>
+                </span>
+              </span>
+            </span>
+            <span ng-if='!task.complete'>
+              <span class='task-running'>Build</span><span> in progress</span>
+            </span>
+          </span>
+      </div>
+
+  </div>
+  <br>
+  <!-- show smoketests as table -->
+  <div class="tasks">
+    <table border=0>
+      <tr>
+        <td ng-repeat="task in tasks" ng-if="task.name.indexOf('smoketest') == 0 && task.started">
+            <span ng-if='task.complete'>
+              <span ng-if='task.success'>
+                <span class='task-succeded'>{{ task.name }}</span><br> completed in {{ task.elapsed }}s
+              </span>
+              <span ng-if='!task.success'>
+                <span class='task-failed'>{{ task.name }}</span>
+              </span>
+            </span>
+            <span ng-if='!task.complete'>
+              <span class='task-running'>{{ task.name }}</span><br> in progress
+            </span>
+        </td>
+      </tr>
+      <tr>
+        <td ng-repeat="task in tasks" ng-if="task.name.indexOf('smoketest') == 0 && task.started">
+            <div>
+              <span ng-if='task.complete'>
+                <span ng-if='task.success'>
+                  <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">
+                    <img width="320" height="240" src="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">
+                  </a>
+                </span>
+                <div ng-if='!task.success'>
+                  <span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/journal.txt">Failed</a></span>
+                </div>
+              </span>
+              <span ng-if='!task.complete'>running</span>
+            </div>
+        </td>
+      </tr>
+    </table>
+    <br/><br/>
+  </div>
+
+
+  <!-- go on with integration test -->
+  <div class="tasks">
+    <div ng-repeat="task in tasks">
+      <div ng-if="task.name == 'integrationtest' && task.started">
+        <span>
+            <span ng-if='task.complete'>
+              <span ng-if='task.success'>
+                <span class='task-succeded'>Integration test</span> completed in {{ task.elapsed }}s
+              </span>
+              <span ng-if='!task.success'>
+                <span class='task-failed'>Integration test</span> failed in {{ task.elapsed }}s
+                <div ng-init="expand = []"> {{ task.integrationtest.successful.length }} successful, {{ task.integrationtest.skipped.length }} skipped</div>
+                <div> Failed: {{task.integrationtest.failedPerComponent.length}}</div>
+                <div ng-repeat="component in task.integrationtest.failedComponents">
+                  <span ng-init="expand[$index]=false">{{component}}
+                  <span ng-click="expand[$index]=!expand[$index]">
+                    <span ng-show="expand[$index]" style="text-decoration: underline" >[Hide]</span><span ng-show="!expand[$index]" style="text-decoration: underline" >[Show]</span>
+                  </span>
+                  <span ng-show="expand[$index]">
+                    <ul ng-repeat="failedTest in task.integrationtest.failedPerComponent">
+                      <li ng-if="failedTest['name'] == component">{{failedTest['test']}}</li>
+                    </ul>
+                  </span>
+                </div>
+              </span>
+            </span>
+            <span ng-if='!task.complete'>
+              <span class='task-running'>Integration test</span><span> in progress</span>
+            </span>
+        </span>
+        <br/>
+      </div>
+
+      <div ng-if="task.name == 'applicationstest' && task.started">
+        <span ng-if='task.complete'>
+          <span ng-if='task.success'>
+            <span class='task-succeded'>Application test</span> completed in {{ task.elapsed }}s
+            <div class="app-grid">
+              <a ng-repeat="app in task.apps" class="app" ng-class="app.status" title="{{ app.name }}" href="{{ app.screenshot }}">
+                <div class="icon">
+                  <img src="{{ app.icon }}">
+                  <div class="emblem"></div>
+                </div>
+              </a>
+            </div>
+          </span>
+          <span ng-if='!task.success'>
+            <span class='task-failed'>Application test</span> <a href="{{ buildRoot+task.name }}/output.txt">failed</a>
+          </span>
+        </span>
+        <span ng-if='!task.complete'>
+          <span class='task-running'>Application test</span><span> in progress</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  
+</article>

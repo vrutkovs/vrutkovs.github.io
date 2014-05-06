@@ -1,0 +1,35 @@
+<!doctype html>
+<html ng-app="build.gnome.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="app.css" rel="stylesheet">
+  <script src="angular.min.js"></script>
+  <script src="angular-route.min.js"></script>
+  <script src="app.js"></script>
+  <script src="controllers.js"></script>
+</head>
+<body>
+  <div id='header'>
+    <h1><a href="https://wiki.gnome.org/Projects/GnomeContinuous">GNOME-Continuous</a></h1>
+  </div>
+
+  <div id='content'>
+    <div ng-controller="ContinuousHomeCtrl" id="sidebar">
+      <div ng-repeat="build in builds" class='build-status' ng-class="{
+        'build-failed-build': !build['failed'].indexOf('build'),
+        'build-failed-smoketest': !build['failed'].indexOf('smoketest'),
+        'build-failed-apps': !build['failed'].indexOf('applicationstest')}"
+        >
+        <a href="#/build/{{build.name}}">Build {{build['name']}}</a>
+      </div>
+    </div>
+
+    <div ng-view id="main-content"></div>
+  </div>
+
+  <footer>
+    This site is maintained in the <a href="http://git.gnome.org/browse/gnome-continuous">gnome-continuous</a> git module.
+  </footer>
+</body>
+</html>
