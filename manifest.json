@@ -1099,6 +1099,7 @@
 		 "config-opts": ["--with-internal-lzx"]},
 
 		{"src": "git:git://git.libssh.org/projects/libssh.git",
+		 "tag": "c520d97dd9d58a11284cbd28c9d1fef026d94f45",
 		 "patches": ["libssh-cmake-buildapi.patch"]},
 
 		{"src": "gnome:libgssh"},
