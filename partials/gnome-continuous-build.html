@@ -95,7 +95,7 @@
                   </a>
                 </span>
                 <div ng-if='!task.success'>
-                  <span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/journal.txt">Failed</a></span>
+                  <span> <a href="{{ buildRoot+task.name }}">Failed</a></span>
                 </div>
               </span>
               <span ng-if='!task.complete'>running</span>
@@ -117,7 +117,7 @@
                 <span class='task-succeded'>Integration test</span> completed in {{ task.elapsed }}s
               </span>
               <span ng-if='!task.success'>
-                <span class='task-failed'>Integration test</span> failed in {{ task.elapsed }}s
+                <span class='task-failed'>Integration test</span> <a href="{{ buildRoot+task.name }}">failed</a> in {{ task.elapsed }}s
                 <div ng-init="expand = []"> {{ task.integrationtest.successful.length }} successful, {{ task.integrationtest.skipped.length }} skipped</div>
                 <div> Failed: {{task.integrationtest.failedPerComponent.length}}</div>
                 <div ng-repeat="component in task.integrationtest.failedComponents">
@@ -154,7 +154,7 @@
             </div>
           </span>
           <span ng-if='!task.success'>
-            <span class='task-failed'>Application test</span> <a href="{{ buildRoot+task.name }}/output.txt">failed</a>
+            <span class='task-failed'>Application test</span> <a href="{{ buildRoot+task.name }}">failed</a>
           </span>
         </span>
         <span ng-if='!task.complete'>

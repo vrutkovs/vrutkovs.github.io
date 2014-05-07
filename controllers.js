@@ -99,7 +99,6 @@
                             for (var component in bdiffdata[change]){
                                 var commitUrlTemplate = null;
                                 var src = bdiffdata[change][component]['latest']['src'];
-                                console.log(src);
                                 Object.keys(srcmap).forEach(function(element){
                                     if (src.indexOf(element) == 0) {
                                         commitUrlTemplate = src.replace(element, srcmap[element][0]) + srcmap[element][1]
