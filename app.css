@@ -29,7 +29,10 @@ h1 {
 #sidebar {
     max-width: 170px;
     float: left;
-    padding: 0 0 0 15px;
+    padding: 5px 5px 5px 5px;
+    height: 100%;
+    position:fixed;
+    overflow: scroll;
 }
 
 #header {
@@ -44,11 +47,13 @@ footer {
     text-align: center;
     background-color: lightgray;
     font-size: smaller;
+    position:fixed;
+    bottom:0;
 }
 
 .build-status {
     padding: 5px 0 5px 5px;
-    background-color: lightgreen;
+    background-color: lightgray;
 }
 
 .build-failed-build {

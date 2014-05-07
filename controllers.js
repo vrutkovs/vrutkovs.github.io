@@ -9,6 +9,12 @@
 
     var YMD_SERIAL_VERSION_RE = /^(\d+)(\d\d)(\d\d)\.(\d+)$/;
 
+    function formatDigits(x) {
+        if (x < 10)
+        return "0" + x;
+        return "" + x;
+    }
+
     function relpathToVersion(relpath) {
         var parts = relpath.split('/');
         parts.shift(); // Remove builds/
@@ -139,29 +145,28 @@
 
     bgoControllers.controller('ContinuousHomeCtrl', function($scope, $http, $sce) {
         $scope.builds = [];
-        var year = '2014';
-        /*$http.get(ROOT + 'builds/2014/index.json').success(function(monthdata) {
-            var months = monthdata['subdirs'].sort(reversedOrder);
-            months.forEach(function(month) {
-                $http.get(ROOT + 'builds/' + year + '/' + month + '/index.json').success(function(daydata) {
-                    var days = daydata['subdirs'].sort(reversedOrder);
-                    days.forEach(function(day) {
-                        $http.get(ROOT + 'builds/' + year + '/' + month + '/' + day + '/index.json').success(function(builddata) {
-                            var builds = builddata['subdirs'].sort(reversedOrder);
-                            builds.forEach(function(buildID) {
-                                $scope.builds.push(year + month + day + '.' + buildID)
-                            });
-                        });
+        var now = new Date();
+        var year = now.getUTCFullYear();
+        var month = formatDigits(now.getUTCMonth()+1);
+        var day = formatDigits(now.getUTCDate());
+        var buildURL = year + "/" + month + '/' + day;
+        $http.get(ROOT + 'builds/' + buildURL + '/index.json').success(function(builddata) {
+            var builds = builddata['subdirs'].sort(reversedOrder);
+            builds.forEach(function(buildID) {
+                var build = {}
+                build.name = year + month + day + '.' + buildID
+                build.failed = []
+                taskNames.forEach(function(task){
+                    var url = ROOT + 'builds/' + buildURL + '/' + buildID + '/' + task + '/meta.json'
+                    $http.get(url).success(function(taskresult) {
+                        if (taskresult['complete'] && !taskresult['success']){
+                            build.failed.push(task)
+                        }
                     });
-                });
+                })
+                $scope.builds.push(build)
             });
-        });*/
-        $scope.builds.push({'name':"20140101.1", 'failed': ['integrationtest','applicationstest']})
-        $scope.builds.push({'name':"20140102.30", 'failed': ['integrationtest']})
-        $scope.builds.push({'name':"20140102.71", 'failed': ['build']})
-        $scope.builds.push({'name':"20140506.30", 'failed': ['smoketest', 'smoketest-wayland', 'smoketest-classic', 'integrationtest', 'applicationstest']})
-        $scope.builds.push({'name':"20140506.40", 'failed': ['smoketest-wayland', 'smoketest-classic', 'integrationtest','applicationstest']})
-        $scope.builds.push({'name':"20140506.41", 'failed': ['smoketest', 'smoketest-wayland', 'smoketest-classic','integrationtest','applicationstest']})
+        });
     });
 
 })(window);
