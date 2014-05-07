@@ -35,7 +35,9 @@
             </span>
             <span ng-show="expand">
               <ul ng-repeat="commit in modified.gitlog">
-                <li class='commit'>{{commit.Checksum.substring(0,8)}} {{ commit.Subject }}</li>
+                <li class='commit'>
+                  <a href='{{commit.url}}'>{{commit.Checksum.substring(0,8)}}</a>&nbsp;{{ commit.Subject }}
+                </li>
               </ul>
             </span>
           </div>

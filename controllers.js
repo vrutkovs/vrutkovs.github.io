@@ -62,6 +62,16 @@
     }
 
     bgoControllers.controller('ContinuousBuildViewCtrl', function($scope, $http, $routeParams) {
+        var srcmap = {
+            'git:git://git.kernel.org/pub/scm/': ['https://git.kernel.org/cgit/', '/commit/?id='],
+            'git:git://anongit.freedesktop.org/': ['http://cgit.freedesktop.org/', '/commit/?id='],
+            // FIXME: un ugly hack, we'd better uniform all sources in manifest,json
+            'git:git://anongit.freedesktop.org/git/': ['http://cgit.freedesktop.org/', '/commit/?id='],
+            'git:git://git.gnome.org/': ['https://git.gnome.org/browse/', '/commit/?id='],
+            'git:git://github.com': ['https://github.com/', '/commit/']
+        };
+
+
         var buildVersion = $routeParams.buildVersion;
         if (buildVersion === undefined) {
             return
@@ -85,7 +95,23 @@
                 if (taskName == 'bdiff') {
                     $http.get(buildRoot + '/bdiff.json').success(function(bdiffdata) {
                         data['bdiff'] = bdiffdata
-                    })
+                        for (var change in bdiffdata) {
+                            for (var component in bdiffdata[change]){
+                                var commitUrlTemplate = null;
+                                var src = bdiffdata[change][component]['latest']['src'];
+                                console.log(src);
+                                Object.keys(srcmap).forEach(function(element){
+                                    if (src.indexOf(element) == 0) {
+                                        commitUrlTemplate = src.replace(element, srcmap[element][0]) + srcmap[element][1]
+                                    }
+                                })
+                                for (var commitIndex in bdiffdata[change][component]['gitlog']) {
+                                    var commit = bdiffdata[change][component]['gitlog'][commitIndex]
+                                    commit['url'] = commitUrlTemplate + commit['Checksum']
+                                }
+                            }
+                        }
+                    });
                 }
                 if (taskName == 'build') {
                     $http.get(buildRoot + taskName + '/build.json').success(function(bdiffdata) {
