@@ -94,7 +94,7 @@ const TaskIntegrationTest = new Lang.Class({
             Lang.bind(this, function(filePath, cancellable) {
                 try {
                     testResultsDest = resultsDest.resolve_relative_path(filePath.get_basename())
-                    GSystem.shutil_cp_a(filePath, testResultsDest, cancellable);
+                    GSystem.shutil_cp_al_or_fallback(filePath, testResultsDest, cancellable);
                 } catch (e) {
                     print(Format.vprintf('Cannot copy %s: %s', [filePath.get_basename(), e]));
                 }
