@@ -2,9 +2,8 @@
   <h2>Build {{ buildVersion }}</h2>
   <div class="tasks">
 
-    <div ng-repeat="task in tasks">
-      <div ng-if="task.name == 'resolve'">
-        <span>
+      <div ng-if="tasks.get('resolve').length > 0" ng-init='task = tasks.get("resolve")[0]'>
+        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Resolve</span><span> completed in {{ task.elapsed }}s</span>
@@ -19,34 +18,38 @@
         </span>
       </div>
 
-      <div ng-if="task.name == 'bdiff' && task.started">
-        Changes:
-        <div ng-if="task.bdiff.added.length > 0">
-          New components:
-        </div>
-        <div ng-if="task.bdiff.removed.length > 0">
-          Removed components:
-        </div>
-        <div ng-if="task.bdiff.modified.length > 0">
-          <div ng-repeat="modified in task.bdiff.modified">
-            <span class='changed-component'>{{ modified.previous.name }}: {{ modified.gitlog.length }} commits
-            <span style="text-decoration: underline" ng-init="expand=false" ng-click="expand=!expand">
-                <span ng-show="expand">[Hide]</span><span ng-show="!expand">[Show]</span>
-            </span>
-            <span ng-show="expand">
-              <ul ng-repeat="commit in modified.gitlog">
-                <li class='commit'>
-                  <a href='{{commit.url}}'>{{commit.Checksum.substring(0,8)}}</a>&nbsp;{{ commit.Subject }}
-                </li>
-              </ul>
-            </span>
+      <div ng-if="tasks.get('bdiff').length > 0"
+           ng-init='task = tasks.get("bdiff")[0]'>
+        <span ng-if='task.started'>
+          Changes:
+          <div ng-if="task.bdiff.added.length > 0">
+            New components:
           </div>
-        </div>
+          <div ng-if="task.bdiff.removed.length > 0">
+            Removed components:
+          </div>
+          <div ng-if="task.bdiff.modified.length > 0">
+            <div ng-repeat="modified in task.bdiff.modified">
+              <span class='changed-component'>{{ modified.previous.name }}: {{ modified.gitlog.length }} commits
+              <span style="text-decoration: underline" ng-init="expand=false" ng-click="expand=!expand">
+                  <span ng-show="expand">[Hide]</span><span ng-show="!expand">[Show]</span>
+              </span>
+              <span ng-show="expand">
+                <ul ng-repeat="commit in modified.gitlog">
+                  <li class='commit'>
+                    <a href='{{commit.url}}'>{{commit.Checksum.substring(0,8)}}</a>&nbsp;{{ commit.Subject }}
+                  </li>
+                </ul>
+              </span>
+            </div>
+          </div>
+        </span>
         <br/>
       </div>
 
-      <div ng-if="task.name == 'build' && task.started">
-          <span>
+      <div ng-if="tasks.get('build').length > 0"
+           ng-init='task = tasks.get("build")[0]'>
+        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Build</span><span> completed in {{ task.elapsed }}s</span>
@@ -65,53 +68,64 @@
           </span>
       </div>
 
-  </div>
-  <br>
-  <!-- show smoketests as table -->
-  <div class="tasks">
-    <table border=0>
-      <tr>
-        <td ng-repeat="task in tasks" ng-if="task.name.indexOf('smoketest') == 0 && task.started">
+      <div ng-if="tasks.get('smoketest').length > 0"
+           ng-init='task = tasks.get("smoketest")[0]'>
+        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
-                <span class='task-succeded'>{{ task.name }}</span><br> completed in {{ task.elapsed }}s
+                <span class='task-succeded'>Smoketest</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
               </span>
               <span ng-if='!task.success'>
-                <span class='task-failed'>{{ task.name }}</span>
+                <span class='task-failed'>Smoketest</span><span> <a href="{{ buildRoot+task.name }}">failed</a></span>
+                </span>
               </span>
             </span>
             <span ng-if='!task.complete'>
-              <span class='task-running'>{{ task.name }}</span><br> in progress
+              <span class='task-running'>Smoketest</span><span> in progress</span>
             </span>
-        </td>
-      </tr>
-      <tr>
-        <td ng-repeat="task in tasks" ng-if="task.name.indexOf('smoketest') == 0 && task.started">
-            <div>
-              <span ng-if='task.complete'>
-                <span ng-if='task.success'>
-                  <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">
-                    <img width="320" height="240" src="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">
-                  </a>
-                </span>
-                <div ng-if='!task.success'>
-                  <span> <a href="{{ buildRoot+task.name }}">Failed</a></span>
-                </div>
-              </span>
-              <span ng-if='!task.complete'>running</span>
-            </div>
-        </td>
-      </tr>
-    </table>
-    <br/><br/>
-  </div>
+          </span>
+      </div>
 
+      <div ng-if="tasks.get('smoketest-classic').length > 0"
+           ng-init='task = tasks.get("smoketest-classic")[0]'>
+        <span ng-if='task.started'>
+            <span ng-if='task.complete'>
+              <span ng-if='task.success'>
+                <span class='task-succeded'>Smoketest Classic</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
+              </span>
+              <span ng-if='!task.success'>
+                <span class='task-failed'>Smoketest Classic</span><span> <a href="{{ buildRoot+task.name }}">failed</a></span>
+                </span>
+              </span>
+            </span>
+            <span ng-if='!task.complete'>
+              <span class='task-running'>Smoketest Classic</span><span> in progress</span>
+            </span>
+          </span>
+      </div>
+
+      <div ng-if="tasks.get('smoketest-wayland').length > 0"
+           ng-init='task = tasks.get("smoketest-wayland")[0]'>
+        <span ng-if='task.started'>
+            <span ng-if='task.complete'>
+              <span ng-if='task.success'>
+                <span class='task-succeded'>Smoketest Wayland</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
+              </span>
+              <span ng-if='!task.success'>
+                <span class='task-failed'>Smoketest Wayland</span><span> <a href="{{ buildRoot+task.name }}">failed</a></span>
+                </span>
+              </span>
+            </span>
+            <span ng-if='!task.complete'>
+              <span class='task-running'>Smoketest Wayland</span><span> in progress</span>
+            </span>
+          </span>
+      </div>
 
   <!-- go on with integration test -->
-  <div class="tasks">
-    <div ng-repeat="task in tasks">
-      <div ng-if="task.name == 'integrationtest' && task.started">
-        <span>
+      <div ng-if="tasks.get('integrationtest').length > 0"
+           ng-init='task = tasks.get("integrationtest")[0]'>
+        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Integration test</span> completed in {{ task.elapsed }}s
@@ -140,29 +154,28 @@
         <br/>
       </div>
 
-      <div ng-if="task.name == 'applicationstest' && task.started">
-        <span ng-if='task.complete'>
-          <span ng-if='task.success'>
-            <span class='task-succeded'>Application test</span> completed in {{ task.elapsed }}s
-            <div class="app-grid">
-              <a ng-repeat="app in task.apps" class="app" ng-class="app.status" title="{{ app.name }}" href="{{ app.screenshot }}">
-                <div class="icon">
-                  <img src="{{ app.icon }}">
-                  <div class="emblem"></div>
-                </div>
-              </a>
-            </div>
+      <div ng-if="tasks.get('integrationtest').length > 0"
+           ng-init='task = tasks.get("integrationtest")[0]'>
+        <span ng-if='task.started'>
+          <span ng-if='task.complete'>
+            <span ng-if='task.success'>
+              <span class='task-succeded'>Application test</span> completed in {{ task.elapsed }}s
+              <div class="app-grid">
+                <a ng-repeat="app in task.apps" class="app" ng-class="app.status" title="{{ app.name }}" href="{{ app.screenshot }}">
+                  <div class="icon">
+                    <img src="{{ app.icon }}">
+                    <div class="emblem"></div>
+                  </div>
+                </a>
+              </div>
+            </span>
+            <span ng-if='!task.success'>
+              <span class='task-failed'>Application test</span> <a href="{{ buildRoot+task.name }}">failed</a>
+            </span>
           </span>
-          <span ng-if='!task.success'>
-            <span class='task-failed'>Application test</span> <a href="{{ buildRoot+task.name }}">failed</a>
+          <span ng-if='!task.complete'>
+            <span class='task-running'>Application test</span><span> in progress</span>
           </span>
-        </span>
-        <span ng-if='!task.complete'>
-          <span class='task-running'>Application test</span><span> in progress</span>
         </span>
       </div>
-    </div>
-  </div>
-
-  
 </article>

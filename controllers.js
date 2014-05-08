@@ -163,6 +163,9 @@
                 tasks.push(data);
             });
         });
+        tasks.get = function(name) {
+            return tasks.filter(function(item){ return item.name == name })
+        };
         $scope.tasks = tasks;
     });
 
