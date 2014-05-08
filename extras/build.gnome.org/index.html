@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="bootstrap-theme.min.css" rel="stylesheet">
+  <link href="bootstrap.min.css" rel="stylesheet">
   <link href="app.css" rel="stylesheet">
   <script src="angular.min.js"></script>
   <script src="angular-route.min.js"></script>
@@ -10,10 +12,27 @@
   <script src="controllers.js"></script>
 </head>
 <body>
-  <div ng-view class="content"></div>
+  <div class='navbar-header container-fluid navbar navbar-inverse navbar-fixed-top'>
+    <h1><a class="navbar-brand" href="https://wiki.gnome.org/Projects/GnomeContinuous">GNOME-Continuous</a></h1>
+  </div>
 
-  <footer>
-    This site is maintained in the <a href="http://git.gnome.org/browse/gnome-continuous">gnome-continuous</a> git module.
-  </footer>
+  <div class='container-fluid'>
+    <div ng-controller="ContinuousHomeCtrl" id="sidebar" class="sidebar row col-sm-3 col-md-2" role="navigation">
+      <ul class="nav nav-sidebar">
+      <li ng-repeat="build in builds" ng-class="{
+        'alert-danger': build.failed.indexOf('build') > -1,
+        'alert-danger': build.failed.indexOf('smoketest') > -1,
+        'alert-warning': build.failed.indexOf('integrationstest') > -1,
+        'alert-warning': build.failed.indexOf('applicationstest') > -1,
+        'alert-success': build.failed.length == 0}"
+        >
+        <a href="#/build/{{build.name}}">Build {{build['name']}}</a>
+      </li>
+      </ul>
+    </div>
+
+    <div ng-view class="content"></div>
+  </div>
+
 </body>
 </html>

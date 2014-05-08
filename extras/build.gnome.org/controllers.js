@@ -3,22 +3,28 @@
 
     var bgoControllers = angular.module('bgoControllers', []);
 
-    var taskNames = ['resolve', 'build', 'smoketest', 'integrationtest', 'applicationstest'];
+    var taskNames = ['resolve', 'bdiff', 'build', 'smoketest', 'smoketest-classic', 'smoketest-wayland', 'integrationtest','applicationstest', ];
 
     var ROOT = '/continuous/buildmaster/';
 
     var YMD_SERIAL_VERSION_RE = /^(\d+)(\d\d)(\d\d)\.(\d+)$/;
 
+    function formatDigits(x) {
+        if (x < 10)
+        return "0" + x;
+        return "" + x;
+    }
+
     function relpathToVersion(relpath) {
-	var parts = relpath.split('/');
-	parts.shift(); // Remove builds/
-	return parts[0] + parts[1] + parts[2] + '.' + parts[3];
+        var parts = relpath.split('/');
+        parts.shift(); // Remove builds/
+        return parts[0] + parts[1] + parts[2] + '.' + parts[3];
     };
 
     function versionToRelpath(version) {
-	var match = YMD_SERIAL_VERSION_RE.exec(version);
-	return match[1] + '/' + match[2] + '/' +
-	    match[3] + '/' + match[4];
+        var match = YMD_SERIAL_VERSION_RE.exec(version);
+        return match[1] + '/' + match[2] + '/' +
+        match[3] + '/' + match[4];
     };
 
     bgoControllers.controller('ContinuousStatusCtrl', function($scope, $http) {
@@ -29,7 +35,7 @@
     });
 
     function renderApps($http, path, callback) {
-        $http.get(ROOT + path + '/applicationstest/apps.json').success(function(data) {
+        $http.get(path + '/apps.json').success(function(data) {
             var apps = data['apps'];
 
             // Older builds use a different scheme for the
@@ -51,156 +57,144 @@
 
                 app.screenshot = ROOT + app.screenshot;
             });
-	    callback(apps);
+            callback(apps);
         });
     }
 
     bgoControllers.controller('ContinuousBuildViewCtrl', function($scope, $http, $routeParams) {
+        var srcmap = {
+            'git:git://git.kernel.org/pub/scm/': ['https://git.kernel.org/cgit/', '/commit/?id='],
+            'git:git://anongit.freedesktop.org/': ['http://cgit.freedesktop.org/', '/commit/?id='],
+            // FIXME: un ugly hack, we'd better uniform all sources in manifest,json
+            'git:git://anongit.freedesktop.org/git/': ['http://cgit.freedesktop.org/', '/commit/?id='],
+            'git:git://git.gnome.org/': ['https://git.gnome.org/browse/', '/commit/?id='],
+            'git:git://github.com': ['https://github.com/', '/commit/']
+        };
+
+
         var buildVersion = $routeParams.buildVersion;
+        if (buildVersion === undefined) {
+            return
+        } 
         $scope.buildVersion = buildVersion;
 
-	var buildPath = versionToRelpath(buildVersion);
+        var buildPath = versionToRelpath(buildVersion);
         var buildRoot = ROOT + 'builds/' + buildPath + '/';
+        $scope.buildRoot = buildRoot;
 
+        var stages = [];
         var tasks = [];
         taskNames.forEach(function(taskName) {
+
             $http.get(buildRoot + taskName + '/meta.json').success(function(data) {
                 // Mangle the data a bit so we can render it better
                 data['name'] = taskName;
-		data['version'] = relpathToVersion(data['buildPath']);
+                data['started'] = true;
+                data['version'] = relpathToVersion(data['buildPath']);
+                data['elapsed'] = Math.round(data['elapsedMillis'] / 1000);
+                if (taskName == 'bdiff') {
+                    $http.get(buildRoot + '/bdiff.json').success(function(bdiffdata) {
+                        data['bdiff'] = bdiffdata
+                        for (var change in bdiffdata) {
+                            for (var component in bdiffdata[change]){
+                                var commitUrlTemplate = null;
+                                var src = bdiffdata[change][component]['latest']['src'];
+                                Object.keys(srcmap).forEach(function(element){
+                                    if (src.indexOf(element) == 0) {
+                                        commitUrlTemplate = src.replace(element, srcmap[element][0]) + srcmap[element][1]
+                                    }
+                                })
+                                for (var commitIndex in bdiffdata[change][component]['gitlog']) {
+                                    var commit = bdiffdata[change][component]['gitlog'][commitIndex]
+                                    commit['url'] = commitUrlTemplate + commit['Checksum']
+                                }
+                            }
+                        }
+                    });
+                }
+                if (taskName == 'build') {
+                    $http.get(buildRoot + taskName + '/build.json').success(function(bdiffdata) {
+                        data['build'] = bdiffdata
+                    })
+                }
+                if (taskName == 'integrationtest') {
+                    $http.get(buildRoot + taskName + '/installed-test-results.json').success(function(testdata) {
+                        var fulltestname;
+                        var total = 0;
+                        var failedComponents = [];
+                        var failedTestsPerComponent = [];
+                        var successful = [];
+                        var skipped = [];
+                        for (fulltestname in testdata) {
+                            var component = fulltestname.split('/')[0];
+                            var testname = fulltestname.split('/')[1];
+                            total++;
+                            var status = testdata[fulltestname];
+                            if (status == 'success')
+                                successful.push(fulltestname);
+                            else if (status == 'failed'){
+                                if (failedComponents.indexOf(component) == -1)
+                                    failedComponents.push(component);
+                                failedTestsPerComponent.push({name: component, test: testname});
+                          }
+                          else if (status == 'skipped')
+                              skipped.push(fulltestname);
+                       }
+                       data['integrationtest'] = {};
+                       data['integrationtest'].total = total;
+                       data['integrationtest'].successful = successful;
+                       data['integrationtest'].skipped = skipped;
+                       data['integrationtest'].failedComponents = failedComponents;
+                       data['integrationtest'].failedPerComponent = failedTestsPerComponent;
+                    });
+                }
+                if (taskName == 'applicationstest') {
+                    //data['applicationstest'] = buildRoot + taskName;
+                    renderApps($http, buildRoot + taskName, function(apps) {
+                        data['apps'] = apps;
+                    });
+                }
                 tasks.push(data);
             }).error(function(data, status, headers, config) {
-		data = {};
-		data['name'] = taskName;
-		data['status'] = '(not found for this build)';
-                tasks.push(data);
-	    });
-        });
-        $scope.tasks = tasks;
-
-	renderApps($http, 'builds/' + buildPath, function(apps) {
-            $scope.apps = apps;
-	});
-    });
-
-    function compareTaskData(a, b) {
-	var ai = taskNames.indexOf(a['name']);
-	var bi = taskNames.indexOf(b['name']);
-	return ai - bi;
-    }
-
-    bgoControllers.controller('ContinuousHomeCtrl', function($scope, $http) {
-        var builds = [];
-
-        $http.get(ROOT + 'autobuilder-status.json').success(function(status) {
-            var text;
-            if (status.running.length > 0)
-                text = 'Running: ' + status.running.join(' ') + '; load=' + status.systemLoad[0];
-            else
-                text = 'Idle, awaiting commits';
-
-            $scope.runningState = text;
-        });
-
-	function formatDigits(x) {
-	    if (x < 10)
-		return "0" + x;
-	    return "" + x;
-	}
-
-	var now = new Date();
-	$scope.pushLogHref = "#/gnome-continuous/log/" + now.getUTCFullYear() + "/" +
-	    (formatDigits(now.getUTCMonth()+1)) + "/" + formatDigits(now.getUTCDate());
-
-        var completedTasks = [];
-        taskNames.forEach(function(taskName) {
-	    var href = ROOT + 'results/tasks/' + taskName + '/' + taskName;
-            $http.get(href + '/meta.json').success(function(data) {
-                // Mangle the data a bit so we can render it better
+                data = {};
                 data['name'] = taskName;
-		data['version'] = relpathToVersion(data['buildPath']);
-		data['href'] = ROOT + data['path'];
-                completedTasks.push(data);
-		completedTasks.sort(compareTaskData);
-		$scope[taskName] = data;
-            }).error(function(data, status, headers, config) {
-		data = {};
-		data['name'] = taskName;
-		data['status'] = '(none completed)';
-                completedTasks.push(data);
-		completedTasks.sort(compareTaskData);
-	    });
+                data['started'] = false;
+                data['status'] = '(not found for this build)';
+                tasks.push(data);
+            });
         });
-        $scope.completedTasks = completedTasks;
-
-	$http.get(ROOT + '/results/tasks/build/build/build.json').success(function(data) {
-	    $scope.buildData = data;
-	});
-
-	$http.get(ROOT + '/results/tasks/integrationtest/integrationtest/installed-test-results.json').success(function(data) {
-	    var fulltestname;
-	    var total = 0;
-	    var failedComponents = [];
-	    var failedTestsPerComponent = [];
-	    var successful = [];
-	    var skipped = [];
-	    for (fulltestname in data) {
-	        var component = fulltestname.split('/')[0];
-	        var testname = fulltestname.split('/')[1];
-		total++;
-		var status = data[fulltestname];
-		if (status == 'success')
-		    successful.push(fulltestname);
-		else if (status == 'failed'){
-		    if (failedComponents.indexOf(component) == -1)
-		        failedComponents.push(component);
-		    failedTestsPerComponent.push({name: component, test: testname});
-		}
-		else if (status == 'skipped')
-		    skipped.push(fulltestname);
-	    }
-	    $scope.installedTestsTotal = total;
-	    $scope.installedTestsSuccessful = successful;
-	    $scope.installedTestsFailedComponents = failedComponents;
-	    $scope.installedTestsFailedPerComponent = failedTestsPerComponent;
-	    $scope.installedTestsSkipped = skipped;
-	});
-
-	renderApps($http, 'results/tasks/applicationstest', function(apps) {
-            $scope.apps = apps;
-	});
+        tasks.get = function(name) {
+            return tasks.filter(function(item){ return item.name == name })
+        };
+        $scope.tasks = tasks;
     });
 
-    bgoControllers.controller('ContinuousLogCtrl', function($scope, $http, $routeParams) {
-        var year = $routeParams.year;
-        var month = $routeParams.month;
-        var day = $routeParams.day;
-	var dayBaseUrl = ROOT + 'builds/' + year + '/' + month + '/' + day + '/';
-	var indexPath =  dayBaseUrl + 'index.json';
-	var snapshots = [];
-	$scope.snapshots = snapshots;
-	$scope.commitLimit = 10;
-        $http.get(indexPath).success(function(data) {
-	    if (data.length == 0)
-		return;
-	    var children = data['subdirs'];
-	    children.sort(function(a,b) { return parseInt(a) - parseInt(b) });
-	    for (var i = 0; i < children.length; i++) {
-		var baseHref = dayBaseUrl + children[i];
-		var version = relpathToVersion('builds/' + year + '/' + month + '/' + day + '/' + children[i]);
-		snapshots[i] = {'version': version,
-			        'href': baseHref,
-			        'bdiff': null,
-				'loading': true};
-		var bindData = {'snapshots': snapshots, 'i': i};
-		$http.get(baseHref + '/bdiff.json').success(function(data) {
-		    this.snapshots[this.i].bdiff = data;
-		    this.snapshots[this.i].loading = false;
-		}.bind(bindData)).error(function() {
-		    this.snapshots[this.i].loading = false;
-		}.bind(bindData));
-	    }
-	});
+    function reversedOrder(a, b) {return parseInt(b)-parseInt(a)}
+
+    bgoControllers.controller('ContinuousHomeCtrl', function($scope, $http, $sce) {
+        $scope.builds = [];
+        var now = new Date();
+        var year = now.getUTCFullYear();
+        var month = formatDigits(now.getUTCMonth()+1);
+        var day = formatDigits(now.getUTCDate());
+        var buildURL = year + "/" + month + '/' + day;
+        $http.get(ROOT + 'builds/' + buildURL + '/index.json').success(function(builddata) {
+            var builds = builddata['subdirs'].sort(reversedOrder);
+            builds.forEach(function(buildID) {
+                var build = {}
+                build.name = year + month + day + '.' + buildID
+                build.failed = []
+                taskNames.forEach(function(task){
+                    var url = ROOT + 'builds/' + buildURL + '/' + buildID + '/' + task + '/meta.json'
+                    $http.get(url).success(function(taskresult) {
+                        if (taskresult['complete'] && !taskresult['success']){
+                            build.failed.push(task)
+                        }
+                    });
+                })
+                $scope.builds.push(build)
+            });
+        });
     });
 
 })(window);
