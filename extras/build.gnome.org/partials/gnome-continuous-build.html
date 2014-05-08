@@ -119,11 +119,10 @@
         </span>
       </div>
 
-    </li>
   <!-- go on with integration test -->
       <div ng-if="tasks.get('integrationtest').length > 0"
            ng-init='task = tasks.get("integrationtest")[0]'>
-        <li class='list-group-item ng-scope' ng-if='task.started'>
+        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Integration test</span> completed in {{ task.elapsed }}s
@@ -148,12 +147,11 @@
             <span ng-if='!task.complete'>
               <span class='task-running'>Integration test</span><span> in progress</span>
             </span>
-        </li>
       </div>
 
-      <div ng-if="tasks.get('integrationtest').length > 0"
-          ng-init='task = tasks.get("integrationtest")[0]'>
-        <li  class='list-group-item ng-scope' ng-if='task.started'>
+      <div ng-if="tasks.get('applicationstest').length > 0"
+          ng-init='task = tasks.get("applicationstest")[0]'>
+        <span ng-if='task.started'>
           <span ng-if='task.complete'>
             <span ng-if='task.success'>
               <span class='task-succeded'>Application test</span> completed in {{ task.elapsed }}s
@@ -173,7 +171,8 @@
           <span ng-if='!task.complete'>
             <span class='task-running'>Application test</span><span> in progress</span>
           </span>
-        </li>
-    </div>
+        </span>
+      </div>
+    </li>
   </ul>
 </article>
