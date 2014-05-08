@@ -70,7 +70,6 @@
   <li class='list-group-item ng-scope'>
       <div ng-if="tasks.get('smoketest').length > 0"
            ng-init='task = tasks.get("smoketest")[0]'>
-        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Smoketest</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
@@ -82,12 +81,10 @@
             <span ng-if='!task.complete'>
               <span class='task-running'>Smoketest</span><span> in progress</span>
             </span>
-        </span>
       </div>
 
       <div ng-if="tasks.get('smoketest-classic').length > 0"
            ng-init='task = tasks.get("smoketest-classic")[0]'>
-          <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Smoketest Classic</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
@@ -99,12 +96,10 @@
             <span ng-if='!task.complete'>
               <span class='task-running'>Smoketest Classic</span><span> in progress</span>
             </span>
-          </span>
       </div>
 
       <div ng-if="tasks.get('smoketest-wayland').length > 0"
            ng-init='task = tasks.get("smoketest-wayland")[0]'>
-        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Smoketest Wayland</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
@@ -116,13 +111,11 @@
             <span ng-if='!task.complete'>
               <span class='task-running'>Smoketest Wayland</span><span> in progress</span>
             </span>
-        </span>
       </div>
 
   <!-- go on with integration test -->
       <div ng-if="tasks.get('integrationtest').length > 0"
            ng-init='task = tasks.get("integrationtest")[0]'>
-        <span ng-if='task.started'>
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Integration test</span> completed in {{ task.elapsed }}s
@@ -151,7 +144,6 @@
 
       <div ng-if="tasks.get('applicationstest').length > 0"
           ng-init='task = tasks.get("applicationstest")[0]'>
-        <span ng-if='task.started'>
           <span ng-if='task.complete'>
             <span ng-if='task.success'>
               <span class='task-succeded'>Application test</span> completed in {{ task.elapsed }}s
@@ -171,7 +163,6 @@
           <span ng-if='!task.complete'>
             <span class='task-running'>Application test</span><span> in progress</span>
           </span>
-        </span>
       </div>
     </li>
   </ul>
