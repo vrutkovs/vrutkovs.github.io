@@ -921,8 +921,6 @@
 				 "--disable-upower"]},
 
 		{"src": "gnome:gnome-session",
-		 "tag": "b5a73657f883ac2e2461f0063e1d36e301f9124a",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=729575",
 		 "config-opts": ["--disable-docbook-docs",
 				 "--disable-man"]},
 
