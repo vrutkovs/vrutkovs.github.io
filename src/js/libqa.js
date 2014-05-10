@@ -220,7 +220,7 @@ RateLimitInterval=0\n', null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, ca
 function injectTestUserCreation(currentDir, currentEtcDir, username, params, cancellable) {
     params = Params.parse(params, { password: null, session: null });
     let execLine, passwordCommand, setSessionCommand;
-    let commandTemplate = '/usr/bin/dbus-send --system --type=method_call --print-reply' +
+    let commandTemplate = '/usr/bin/dbus-send --print-reply --reply-timeout=60000 --system --type=method_call --print-reply' +
         ' --dest=org.freedesktop.Accounts /org/freedesktop/Accounts%s org.freedesktop.Accounts.%s %s'
 
     let addUserCommand = Format.vprintf(commandTemplate, ['', 'CreateUser', 'string:' + username + ' string: int32:0'])
