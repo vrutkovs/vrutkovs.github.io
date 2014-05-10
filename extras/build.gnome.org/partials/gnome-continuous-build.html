@@ -68,6 +68,23 @@
             </span>
         </span>
       </div>
+
+      <div ng-if="tasks.get('builddisks').length > 0"
+           ng-init='task = tasks.get("builddisks")[0]'>
+        <span ng-if='task.started'>
+            <span ng-if='task.complete'>
+              <span ng-if='task.success'>
+                <span class='task-succeded'>Image building</span><span> completed in {{ task.elapsed }}s</span>
+              </span>
+              <span ng-if='!task.success'>
+                <span class='task-failed'>Image building</span><span> failed</span>
+              </span>
+            </span>
+            <span ng-if='!task.complete'>
+              <span class='task-running'>Image building</span><span> in progress</span>
+            </span>
+        </span>
+      </div>
     </li>
 
     <li class='list-group-item ng-scope'

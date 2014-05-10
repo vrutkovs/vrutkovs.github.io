@@ -3,7 +3,7 @@
 
     var bgoControllers = angular.module('bgoControllers', []);
 
-    var taskNames = ['resolve', 'bdiff', 'build', 'smoketest', 'smoketest-classic', 'smoketest-wayland', 'integrationtest','applicationstest', ];
+    var taskNames = ['resolve', 'bdiff', 'build', 'builddisks', 'smoketest', 'smoketest-classic', 'smoketest-wayland', 'integrationtest','applicationstest', ];
 
     var ROOT = '/continuous/buildmaster/';
 
