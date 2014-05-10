@@ -230,10 +230,11 @@ function injectTestUserCreation(currentDir, currentEtcDir, username, params, can
         // AccountService requires passing a crypt, so using passwd would be easier
         passwordCommand = Format.vprintf("echo %s | passwd --stdin %s", [params.password, username]);
     }
-    if (params.session != null) {
+    execLine = Format.vprintf('/bin/sh -c "%s"; /bin/sh -c "%s"', [addUserCommand, passwordCommand])
+    if (params.session) {
         setSessionCommand = Format.vprintf(commandTemplate, ['/User1000', 'User.SetXSession', 'string:' + params.session])
+        execLine += Format.vprintf('; /bin/sh -c "%s"', [setSessionCommand])
     }
-    execLine = Format.vprintf('/bin/sh -c "%s"; /bin/sh -c "%s"; /bin/sh -c "%s"', [addUserCommand, passwordCommand, setSessionCommand])
     let addUserService = '[Unit]\n\
 Description=Add user %s\n\
 Before=gdm.service\n\
