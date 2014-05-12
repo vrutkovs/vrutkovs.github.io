@@ -93,8 +93,8 @@ const TaskIntegrationTest = new Lang.Class({
         FileUtil.walkDir(resultsSrc, { depth: 1, fileType: Gio.FileType.DIRECTORY },
             Lang.bind(this, function(filePath, cancellable) {
                 try {
-                    testResultsDest = resultsDest.resolve_relative_path(filePath.get_basename())
-                    GSystem.shutil_cp_al_or_fallback(filePath, testResultsDest, cancellable);
+                    var testResultsDest = resultsDest.resolve_relative_path(filePath.get_basename());
+                    ProcUtil.runSync(['cp', '-r', filePath.get_path(), testResultsDest.get_path()], cancellable);
                 } catch (e) {
                     print(Format.vprintf('Cannot copy %s: %s', [filePath.get_basename(), e]));
                 }
