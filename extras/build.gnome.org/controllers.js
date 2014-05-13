@@ -182,6 +182,7 @@
             var builds = builddata['subdirs'].sort(reversedOrder);
             builds.forEach(function(buildID) {
                 var build = {}
+                var emptyBuild = false
                 build.name = year + month + day + '.' + buildID
                 build.failed = []
                 taskNames.forEach(function(task){
@@ -190,9 +191,15 @@
                         if (taskresult['complete'] && !taskresult['success']){
                             build.failed.push(task)
                         }
+                    }).error(function(data, status, headers, config) {
+                        if (taskName == 'resolve'){
+                            emptyBuild = true
+                        }
                     });
                 })
-                $scope.builds.push(build)
+                if (!emptyBuild) {
+                    $scope.builds.push(build)
+                }
             });
         });
     });
