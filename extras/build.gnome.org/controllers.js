@@ -185,11 +185,15 @@
                 var emptyBuild = false
                 build.name = year + month + day + '.' + buildID
                 build.failed = []
+                build.inprogress = []
                 taskNames.forEach(function(task){
                     var url = ROOT + 'builds/' + buildURL + '/' + buildID + '/' + task + '/meta.json'
                     $http.get(url).success(function(taskresult) {
                         if (taskresult['complete'] && !taskresult['success']){
                             build.failed.push(task)
+                        }
+                        if (!taskresult['complete']){
+                            build.inprogress.push(task)
                         }
                     }).error(function(data, status, headers, config) {
                         if (task == 'resolve'){

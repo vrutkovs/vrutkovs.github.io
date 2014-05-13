@@ -26,7 +26,8 @@
         'list-group-item-warning': build.failed.indexOf('smoketest-classic') > -1}"
         >
         <a href="#/build/{{build.name}}">Build {{build['name']}}</a>
-        <span class='badge' ng-if='build.failed.length > 0'>!</span>
+        <span class='badge btn-warning' ng-if='build.failed.length > 0 && build.inprogress.length == 0'>!</span>
+        <span class='badge btn-info' ng-if='build.inprogress.length > 0'>{{ build.inprogress.join(' ') }}</span>
       </li>
       </ul>
     </div>
