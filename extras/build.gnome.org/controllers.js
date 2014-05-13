@@ -182,7 +182,6 @@
             var builds = builddata['subdirs'].sort(reversedOrder);
             builds.forEach(function(buildID) {
                 var build = {}
-                var emptyBuild = false
                 build.name = year + month + day + '.' + buildID
                 build.failed = []
                 build.inprogress = []
@@ -197,14 +196,11 @@
                         }
                     }).error(function(data, status, headers, config) {
                         if (task == 'resolve'){
-                            emptyBuild = true
+                            $scope.builds.splice(build, 1);
                         }
                     });
                 })
-                // Set build status here
-                if (!emptyBuild) {
-                    $scope.builds.push(build)
-                }
+                $scope.builds.push(build)
             });
         });
     });
