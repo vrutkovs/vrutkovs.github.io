@@ -192,7 +192,7 @@
                             build.failed.push(task)
                         }
                     }).error(function(data, status, headers, config) {
-                        if (taskName == 'resolve'){
+                        if (task == 'resolve'){
                             emptyBuild = true
                         }
                     });
