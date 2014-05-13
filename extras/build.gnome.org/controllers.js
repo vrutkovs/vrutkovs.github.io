@@ -197,6 +197,7 @@
                         }
                     });
                 })
+                // Set build status here
                 if (!emptyBuild) {
                     $scope.builds.push(build)
                 }
