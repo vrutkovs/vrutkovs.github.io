@@ -29,7 +29,9 @@
             <div>Build {{build['name']}}
               <span class='badge btn-warning pull-right' ng-if='build.failed.length > 0 && build.inprogress.length == 0'>!</span>
             </div>
-            <div class='badge btn-info' ng-if='build.inprogress.length > 0'>{{ build.inprogress.join(' ') }}</div>
+            <span ng-repeat="inprogress in build.inprogress">
+              <div class='badge btn-info'>{{ inprogress }}</div>
+            </span>
           </a>
         </div>
       </div>
