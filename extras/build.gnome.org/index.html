@@ -18,18 +18,21 @@
 
   <div class='container-fluid'>
     <div ng-controller="ContinuousHomeCtrl" id="sidebar" class="nav nav-sidebar row col-sm-3 col-md-2" role="navigation">
-      <ul class="list-group">
-      <li ng-repeat="build in builds" class='list-group-item list-group-item-success' ng-class="{
-        'list-group-item-danger': build.failed.indexOf('resolve') > -1,
-        'list-group-item-danger': build.failed.indexOf('build') > -1,
-        'list-group-item-warning': build.failed.indexOf('smoketest') > -1,
-        'list-group-item-warning': build.failed.indexOf('smoketest-classic') > -1}"
-        >
-        <a href="#/build/{{build.name}}">Build {{build['name']}}</a>
-        <span class='badge btn-warning' ng-if='build.failed.length > 0 && build.inprogress.length == 0'>!</span>
-        <span class='badge btn-info' ng-if='build.inprogress.length > 0'>{{ build.inprogress.join(' ') }}</span>
-      </li>
-      </ul>
+      <div class="list-group">
+        <div ng-repeat="build in builds" class='list-group-item list-group-item-success' ng-class="{
+          'list-group-item-danger': build.failed.indexOf('resolve') > -1,
+          'list-group-item-danger': build.failed.indexOf('build') > -1,
+          'list-group-item-warning': build.failed.indexOf('smoketest') > -1,
+          'list-group-item-warning': build.failed.indexOf('smoketest-classic') > -1}"
+          >
+          <a href="#/build/{{build.name}}">
+            <div>Build {{build['name']}}
+              <span class='badge btn-warning pull-right' ng-if='build.failed.length > 0 && build.inprogress.length == 0'>!</span>
+            </div>
+            <div class='badge btn-info' ng-if='build.inprogress.length > 0'>{{ build.inprogress.join(' ') }}</div>
+          </a>
+        </div>
+      </div>
     </div>
 
     <div ng-view class="content"></div>
