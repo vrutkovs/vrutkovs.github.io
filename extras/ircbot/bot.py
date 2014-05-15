@@ -92,22 +92,23 @@ class BuildGnomeOrg(irc.IRCClient):
     def _get_task_state(self, taskname):
         current_task_path = os.path.join(self._workdir, 'results/tasks/%s/%s/' % (taskname, taskname))
         meta_path = os.path.join(current_task_path, 'meta.json')
-        if not os.path.exists(meta_path):
-            return None, ""
-
-        f = open(meta_path)
-        metadata = json.load(f)
-        f.close()
-
-        status_path = os.path.join(current_task_path, 'status.txt')
-        if os.path.exists(status_path):
-            f = open(status_path)
-            status_msg = f.read().strip()
+        try:
+            f = open(meta_path)
+            metadata = json.load(f)
             f.close()
-        else:
-            status_msg = ''
 
-        return metadata, status_msg
+            status_path = os.path.join(current_task_path, 'status.txt')
+            if os.path.exists(status_path):
+                f = open(status_path)
+                status_msg = f.read().strip()
+                f.close()
+            else:
+                status_msg = ''
+
+            return metadata, status_msg
+        except Exception as e:
+            print("Error occurred in _get_task_state(%s): %s" % (taskname, e.message))
+            return None, ""
 
     def _update_task_state(self, taskname):
         metadata, status_msg = self._get_task_state(taskname)
