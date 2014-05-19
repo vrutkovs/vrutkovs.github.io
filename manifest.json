@@ -6,8 +6,8 @@
   "architectures": ["x86_64"],
   "base": {
             "name": "yocto",
-	    "src": "cgwalters:poky",
-            "branch": "gnomeostree-3.10-dylan"
+	    "src": "vrutkovs:poky",
+            "branch": "gnomeostree-3.14-daisy"
           },
 
   "config-opts": ["--disable-static", "--disable-silent-rules"],
@@ -35,6 +35,7 @@
                 "debian": "git:git://anonscm.debian.org/",
 		"netfilter": "git:git://git.netfilter.org/",
 		"cgwalters": "git:git://github.com/cgwalters/",
+		"vrutkovs": "git:git://github.com/vrutkovs/",
                 "anholt": "git:git://github.com/anholt/"},
 
   "patches": {"src": "gnome:gnome-continuous",
@@ -91,8 +92,7 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "c9ccc19f9eb0599109094c57b7a2f668d708f0c1",
-		 "tag-reason": "Depends on gcc 4.8",
+		 "tag": "v212",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
@@ -113,7 +113,7 @@
    		{"src": "fd:pixman"},
 
    		{"src": "git:git://git.sv.nongnu.org/freetype/freetype2.git",
-		 "tag": "VER-2-4-8",
+		 "tag": "VER-2-5-3",
 		 "patches": ["freetype-autogen.patch"]},
 
    		{"src": "fd:fontconfig",
@@ -295,7 +295,6 @@
                 {"src": "git:http://bitmath.org/git/mtdev.git"},
 
         {"src": "fd:libevdev",
-         "tag": "cf70d0cd88241cbbcc5f785f21d9eb66518cb45c",
 		 "config-opts": ["--disable-gcov"]},
 
 		{"src": "fd:wayland/libinput"},
@@ -1136,9 +1135,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 51,
-		        "all": false,
-		        "component-names": [
-                    "xorg-driver-xf86-video-modesetting",
-                    "xorg-driver-xf86-video-qxl", "xorg-driver-xf86-video-vesa"]}
+	"build-epoch": {"version": 52,
+		        "all": true,
+		        "component-names": []}
 }
