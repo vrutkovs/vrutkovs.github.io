@@ -99,7 +99,7 @@
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
 
-   		{"src": "git:git://sourceware.org/git/lvm2.git"},
+   		{"src": "git:git://git.fedorahosted.org/git/lvm2.git"},
 
    		{"src": "gnome:linux-user-chroot",
 		 "setuid": ["/runtime/usr/bin/linux-user-chroot"]},
