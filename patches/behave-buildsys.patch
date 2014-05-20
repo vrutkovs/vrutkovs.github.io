@@ -1,4 +1,4 @@
-From 74318f76abe60c0382be76a9dadc332c9ba2b1f6 Mon Sep 17 00:00:00 2001
+From 01eed3043c0ff4c1c122b849c601fdc65829e3bb Mon Sep 17 00:00:00 2001
 From: Vadim Rutkovsky <vrutkovs@redhat.com>
 Date: Fri, 11 Apr 2014 11:36:52 +0200
 Subject: [PATCH] build-sys: Add configure script and Makefile to implement
@@ -6,30 +6,15 @@ Subject: [PATCH] build-sys: Add configure script and Makefile to implement
 
 See http://people.gnome.org/~walters/docs/build-api.txt
 ---
- .travis.yml              |  2 +-
- Makefile                 |  7 +++++++
- behave/configuration.py  |  2 +-
- behave/formatter/html.py |  4 ++--
- behave/matchers.py       |  1 -
- configure                |  5 +++++
- setup.py                 | 12 ++++--------
- 7 files changed, 20 insertions(+), 13 deletions(-)
+ Makefile                |  7 +++++++
+ behave/configuration.py |  2 +-
+ behave/matchers.py      |  1 -
+ configure               |  5 +++++
+ setup.py                | 12 ++++--------
+ 5 files changed, 17 insertions(+), 10 deletions(-)
  create mode 100644 Makefile
  create mode 100755 configure
 
-diff --git a/.travis.yml b/.travis.yml
-index b91e7c5..b874d85 100644
---- a/.travis.yml
-+++ b/.travis.yml
-@@ -5,7 +5,7 @@ python:
-   - pypy
- 
- install:
--  - pip install --use-mirrors -q mock nose PyHamcrest lxml
-+  - pip install --use-mirrors -q mock nose PyHamcrest
-   - python setup.py -q install
- script:
-   - python --version
 diff --git a/Makefile b/Makefile
 new file mode 100644
 index 0000000..b3f4452
@@ -56,23 +41,6 @@ index 77bc43f..5ff85a9 100644
  
  from behave.model import FileLocation, ScenarioOutline
  from behave.reporter.junit import JUnitReporter
-diff --git a/behave/formatter/html.py b/behave/formatter/html.py
-index 7f125da..1c5a447 100644
---- a/behave/formatter/html.py
-+++ b/behave/formatter/html.py
-@@ -1,5 +1,5 @@
- from behave.formatter.base import Formatter
--import lxml.etree as ET
-+import xml.etree.ElementTree as ET
- import base64
- import os.path
- from behave.compat.collections import Counter
-@@ -385,4 +385,4 @@ class HTMLFormatter(Formatter):
- 
-         # Sending the report to stream
-         if len(self.all_features) > 0:
--            self.stream.write(ET.tostring(self.html, pretty_print = True))
-+            self.stream.write(ET.tostring(self.html))
 diff --git a/behave/matchers.py b/behave/matchers.py
 index eedf844..2573eff 100644
 --- a/behave/matchers.py
