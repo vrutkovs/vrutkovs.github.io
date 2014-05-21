@@ -230,7 +230,8 @@ function injectTestUserCreation(currentDir, currentEtcDir, username, params, can
         // AccountService requires passing a crypt, so using passwd would be easier
         passwordCommand = Format.vprintf("echo %s | passwd --stdin %s", [params.password, username]);
     }
-    execLine = Format.vprintf('/bin/sh -c "%s"; /bin/sh -c "%s"', [addUserCommand, passwordCommand])
+    let cacheUserCommand = Format.vprintf(commandTemplate, ['', 'CacheUser', 'string:' + username])
+    execLine = Format.vprintf('/bin/sh -c "%s"; /bin/sh -c "%s"; /bin/sh -c "%s"', [addUserCommand, passwordCommand, cacheUserCommand])
     if (params.session) {
         setSessionCommand = Format.vprintf(commandTemplate, ['/User1000', 'User.SetXSession', 'string:' + params.session])
         execLine += Format.vprintf('; /bin/sh -c "%s"', [setSessionCommand])
