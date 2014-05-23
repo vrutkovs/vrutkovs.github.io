@@ -675,10 +675,6 @@
 
 		{"src": "gnome:adwaita-icon-theme"},
 
-		{"src": "gnome:gnome-icon-theme-symbolic"},
-
-		{"src": "gnome:gnome-icon-theme-extras"},
-
 		{"src": "gnome:gvfs",
 		 "config-opts": ["--disable-gphoto2",
 				 "--disable-documentation"]},
