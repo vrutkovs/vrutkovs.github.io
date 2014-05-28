@@ -673,7 +673,8 @@
 
 		{"src": "gnome:gnome-themes-standard"},
 
-		{"src": "gnome:adwaita-icon-theme"},
+		{"src": "gnome:adwaita-icon-theme",
+		 "config-opts": ["--disable-icon-mapping"]},
 
 		{"src": "gnome:gvfs",
 		 "config-opts": ["--disable-gphoto2",
