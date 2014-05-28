@@ -825,7 +825,9 @@
                  "branch": "clutter-gst-2.0"},
 
 		{"src": "gnome:clutter-gst",
-                 "name": "clutter-gst3"},
+                 "name": "clutter-gst3",
+		 "tag": "ae29e6d0dd897b235b8f254b9deca36a3e61f4c2",
+		 "tag-reason": "http://build.gnome.org/continuous/buildmaster/builds/2014/05/28/10/build/log-clutter-gst3.txt"},
 
 		{"src": "gnome:clutter-gtk"},
 
