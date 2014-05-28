@@ -982,6 +982,7 @@
 
 		{"src": "git:git://github.com/vrutkovs/behave.git",
 		"branch": "html_formatter",
+		"tag": "044f3bc27634beac049de546a7cb9d25973d002c",
 		"patches": ["behave-buildsys.patch"]},
 
 		{"src": "gnome:gnome-terminal",
