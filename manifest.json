@@ -91,8 +91,7 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "c9ccc19f9eb0599109094c57b7a2f668d708f0c1",
-		 "tag-reason": "Depends on gcc 4.8",
+		 "tag": "v208",
 		 "initramfs-depends": true,
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
@@ -287,7 +286,7 @@
 		 "setuid": ["/runtime/usr/libexec/dbus-daemon-launch-helper"]},
 
 		{"src": "git:git://libpng.git.sourceforge.net/gitroot/libpng/libpng",
-		 "tag": "v1.5.7"},
+		 "tag": "v1.5.18"},
 
 		{"src": "fd:cairo",
 		 "config-opts": ["--disable-interpreter"]},
@@ -295,7 +294,6 @@
                 {"src": "git:http://bitmath.org/git/mtdev.git"},
 
         {"src": "fd:libevdev",
-         "tag": "cf70d0cd88241cbbcc5f785f21d9eb66518cb45c",
 		 "config-opts": ["--disable-gcov"]},
 
 		{"src": "fd:wayland/libinput"},
@@ -381,8 +379,6 @@
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
 		{"src": "fd:startup-notification",
-		 "tag": "bc7c6d2d285509c7fcd1899c866838bd278fab58",
-		 "tag-reason": "no suseconds_t",
 		 "patches": ["startup-notification-autogen.patch"]},
 
 		{"src": "fd-dbus:dbus-glib",
@@ -455,7 +451,6 @@
                 {"src": "git:git://github.com/jpirko/libndp.git"},
 
 		{"src": "fd-NM:NetworkManager",
-                 "tag": "ef770ca450f4d0086eae9bfbe28ce169d57a90ac",
 		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
 				 "--with-crypto=nss",
@@ -519,8 +514,7 @@
 		 "patches": ["ragel-gcc-4.7.patch"],
 		 "tag": "0b17ee79bf5237ffdc3a2a7480023a7d61063788"},
 
-                {"src": "git:git://anongit.freedesktop.org/harfbuzz",
-		 "tag": "7d395c2a255a44fd0d65365ea9b525dba70c062c"},
+                {"src": "git:git://anongit.freedesktop.org/harfbuzz"},
 
 		{"src": "gnome:pango",
 		 "config-opts": ["--enable-installed-tests"]},
@@ -709,9 +703,9 @@
       
                 {"src": "git:http://git.chromium.org/webm/libwebp.git"},
 
-		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.3.3.tar.xz",
+		{"src": "tarball:http://www.webkitgtk.org/releases/webkitgtk-2.4.3.tar.xz",
 		 "name": "webkitgtk",
-		 "checksum": "43b779d0c30a1d7af6fb62fcf4e0ed13871edd302317c6acaba7beb9c8157b1e",
+		 "checksum": "9862c3eac1d12cc6e52cc39060a1284163950b304d534529a0dbcc5958a8ceac",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
 				 "--disable-geolocation",
@@ -876,8 +870,6 @@
 		 "config-opts": ["--disable-documentation"],
 		 "patches": ["xdg-user-dirs-autostart.patch"]},
 
-		{"src": "gnome:xdg-user-dirs-gtk"},
-
 		{"src": "fd-xdg:shared-mime-info",
 		 "config-opts": ["--disable-default-make-check"]},
 
@@ -1012,9 +1004,7 @@
                                  "--disable-offline-appstream-data",
                                  "--enable-installed-tests"]},
 
-		{"src": "gnome:epiphany",
-		 "tag": "3.11.2-81-g1227c9732890da40a14e746080792a784b9131bb",
-		 "tag-reason": "webkitgtk needs newer libstdc++"},
+		{"src": "gnome:epiphany"},
 
 		{"src": "gnome:gnome-calculator",
                  "config-opts": ["--enable-installed-tests"]},
@@ -1133,9 +1123,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 51,
-		        "all": false,
-		        "component-names": [
-                    "xorg-driver-xf86-video-modesetting",
-                    "xorg-driver-xf86-video-qxl", "xorg-driver-xf86-video-vesa"]}
+	"build-epoch": {"version": 52,
+		        "all": true,
+		        "component-names": []}
 }
