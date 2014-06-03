@@ -399,8 +399,7 @@ const TaskBuild = new Lang.Class({
 
 	// Python .co files contain timestamps
 	// .la files are generally evil
-	let DELETE_PATTERNS = [{ nameRegex: /\.(py[co])|(la)$/ },
-			       { nameRegex: /\.la$/,
+	let DELETE_PATTERNS = [{ nameRegex: /\.(py[co])|(la)$/,
 				 fileType: Gio.FileType.REGULAR }];
 			       
 	for (let i = 0; i < DELETE_PATTERNS.length; i++) {
