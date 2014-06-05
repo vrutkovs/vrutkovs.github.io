@@ -58,8 +58,12 @@ const Make = new Lang.Class({
         GSystem.file_ensure_directory(buildPath, false, cancellable);
 	taskmaster.pushTask(buildPath, args.taskname, params);
 	loop.run();
-	if (!this._failed)
+	if (this._failed) {
+            return false;
+        } else {
 	    print("Success!")
+	    return true;
+        }
     },
 
     _parseParameters: function(paramStrings) {

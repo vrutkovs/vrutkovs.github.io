@@ -74,5 +74,7 @@ const GitMirror = new Lang.Class({
 			    timeoutSec: args.timeout_sec });
 	    }
 	}));
+
+	return true;
     }
 });

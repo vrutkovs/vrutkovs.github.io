@@ -79,8 +79,8 @@ function main() {
 		          function() {
 			      ecode = 1;
 			      try {
-			          instance.main(argv, loop, cancellable);
-			          ecode = 0;
+			          if (instance.main(argv, loop, cancellable))
+                                      ecode = 0;
 			      } finally {
 			          loop.quit();
 			      }

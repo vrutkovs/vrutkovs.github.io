@@ -139,5 +139,7 @@ const Checkout = new Lang.Class({
 					overwrite: args.overwrite });
 	    }
 	}
+
+	return true;
     }
 });

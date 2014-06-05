@@ -92,6 +92,8 @@ const Autobuilder = new Lang.Class({
 	this._updateStatus();
 
 	loop.run();
+
+	return true;
     },
 
     _onTaskExecuting: function(taskmaster, task) {

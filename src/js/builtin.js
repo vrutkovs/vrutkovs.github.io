@@ -62,6 +62,6 @@ const Builtin = new Lang.Class({
 
     main: function(argv, loop, cancellable) {
 	let args = this.parser.parse(argv);
-	this.execute(args, loop, cancellable);
+	return this.execute(args, loop, cancellable);
     }
 });

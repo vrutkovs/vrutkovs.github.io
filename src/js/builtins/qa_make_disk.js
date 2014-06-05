@@ -49,5 +49,7 @@ const QaMakeDisk = new Lang.Class({
         LibQA.createDisk(tmppath, cancellable);
         GSystem.file_rename(tmppath, path, cancellable);
         print("Created: " + path.get_path());
+
+        return true;
     }
 });

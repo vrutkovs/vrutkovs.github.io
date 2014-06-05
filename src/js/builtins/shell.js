@@ -27,5 +27,7 @@ const Shell = new Lang.Class({
 
     execute: function(args, loop, cancellable) {
 	imports.console.interact();
+
+	return true;
     }
 });

@@ -38,5 +38,7 @@ const RunTask = new Lang.Class({
 	let params = JSON.parse(args.parameters);
 	let instance = new taskDef(params);
 	instance.execute(cancellable);
+
+	return true;
     }
 });
