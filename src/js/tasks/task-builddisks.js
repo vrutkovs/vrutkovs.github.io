@@ -48,6 +48,8 @@ const TaskBuildDisks = new Lang.Class({
     _inheritPreviousDisk: true,
     _onlyTreeSuffixes: ['-runtime', '-devel-debug'],
 
+    DefaultParameters: {targets: null},
+
     execute: function(cancellable) {
         let isLocal = this._buildName == 'local';
 	      let baseImageDir = this.workdir.resolve_relative_path(this._imageSubdir);
@@ -74,14 +76,24 @@ const TaskBuildDisks = new Lang.Class({
         GSystem.file_linkcopy(buildDataPath, destPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
 
         let targets = buildData['targets'];
+        let targetsToBuild = Object.keys(targets);
+        if (this.parameters.targets != null)
+            targetsToBuild = targetsToBuild.filter(function(targetName) {
+                for (let i = 0; i < this.parameters.targets.length; i++) {
+                    if (JSUtil.stringEndswith(targetName, '/' + this.parameters.targets[i]))
+                        return true;
+                }
+                return false;
+            }.bind(this));
 
         let osname = buildData['snapshot']['osname'];
         let originRepoUrl = buildData['snapshot']['repo'];
 
-        for (let targetName in targets) {
+        for (let i = 0; i < targetsToBuild.length; i++) {
+            let targetName = targetsToBuild[i];
             let matched = false;
-            for (let i = 0; i < this._onlyTreeSuffixes.length; i++) {
-                if (JSUtil.stringEndswith(targetName, this._onlyTreeSuffixes[i])) {
+            for (let j = 0; j < this._onlyTreeSuffixes.length; j++) {
+                if (JSUtil.stringEndswith(targetName, this._onlyTreeSuffixes[j])) {
                     matched = true;
                     break;
                 }
