@@ -1,0 +1,60 @@
+From 4c1af8ce60501a3b4f1affd755eb80d10b589fd3 Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Mon, 14 Apr 2014 18:15:28 -0700
+Subject: [PATCH] Disable ISO generation
+
+Building ISO's requires genisofs, which we don't currently have in
+gnome-continuous. Since we don't need ISO's, just disable generation.
+---
+ Makefile                      | 1 -
+ src/Makefile                  | 2 +-
+ src/arch/i386/Makefile.pcbios | 8 ++++----
+ 3 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 167bcdf..e8819f5 100644
+--- a/Makefile
++++ b/Makefile
+@@ -2,7 +2,6 @@ include config.mk
+ 
+ BOOT_IMAGES = 		  \
+ 	src/bin/ipxe.dsk  \
+-	src/bin/ipxe.iso  \
+ 	src/bin/ipxe.lkrn \
+ 	src/bin/ipxe.pxe  \
+ 	src/bin/ipxe.usb  \
+diff --git a/src/Makefile b/src/Makefile
+index ea987b8..777d848 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -108,7 +108,7 @@ INCDIRS		+= include .
+ # Default build target: build the most common targets and print out a
+ # helpfully suggestive message
+ #
+-ALL		:= bin/blib.a bin/ipxe.dsk bin/ipxe.lkrn bin/ipxe.iso \
++ALL		:= bin/blib.a bin/ipxe.dsk bin/ipxe.lkrn \
+ 		   bin/ipxe.usb bin/ipxe.pxe bin/undionly.kpxe bin/rtl8139.rom \
+ 		   bin/8086100e.mrom bin/80861209.rom bin/10500940.rom \
+ 		   bin/10222000.rom bin/10ec8139.rom bin/1af41000.rom \
+diff --git a/src/arch/i386/Makefile.pcbios b/src/arch/i386/Makefile.pcbios
+index 50e9314..192c84c 100644
+--- a/src/arch/i386/Makefile.pcbios
++++ b/src/arch/i386/Makefile.pcbios
+@@ -46,10 +46,10 @@ LIST_NAME_rom := ROMS
+ LIST_NAME_mrom := ROMS
+ 
+ # rule to make a non-emulation ISO boot image
+-NON_AUTO_MEDIA	+= iso
+-%iso:	%lkrn util/geniso
+-	$(QM)$(ECHO) "  [GENISO] $@"
+-	$(Q)ISOLINUX_BIN=$(ISOLINUX_BIN) VERSION="$(VERSION)" bash util/geniso -o $@ $<
++#NON_AUTO_MEDIA	+= iso
++#%iso:	%lkrn util/geniso
++#	$(QM)$(ECHO) "  [GENISO] $@"
++#	$(Q)ISOLINUX_BIN=$(ISOLINUX_BIN) VERSION="$(VERSION)" bash util/geniso -o $@ $<
+ 
+ # rule to make a floppy emulation ISO boot image
+ NON_AUTO_MEDIA	+= liso
+-- 
+1.9.0
+

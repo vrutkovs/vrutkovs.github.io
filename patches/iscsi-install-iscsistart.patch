@@ -1,0 +1,25 @@
+From 654b8cd5ee4a1561961cf98c4dba6c17b61a285a Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Mon, 21 Apr 2014 17:46:47 -0400
+Subject: [PATCH] Install iscsistart
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 64a2f78..634c9ed 100644
+--- a/Makefile
++++ b/Makefile
+@@ -17,7 +17,7 @@ etcdir ?= /etc
+ initddir = $(etcdir)/init.d
+ 
+ MANPAGES = doc/iscsid.8 doc/iscsiadm.8 doc/iscsi_discovery.8 # iscsiuio/docs/iscsiuio.8
+-PROGRAMS = usr/iscsid usr/iscsiadm utils/iscsi_discovery utils/iscsi-iname # iscsiuio/src/unix/iscsiuio
++PROGRAMS = usr/iscsid usr/iscsiadm usr/iscsistart utils/iscsi_discovery utils/iscsi-iname # iscsiuio/src/unix/iscsiuio
+ INSTALL = install
+ ETCFILES = etc/iscsid.conf
+ IFACEFILES = etc/iface.example
+-- 
+1.9.0
+

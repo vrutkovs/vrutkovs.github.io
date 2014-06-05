@@ -1,0 +1,64 @@
+From 6b6601ac72df9d6a9cd489b0c231123df9448800 Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Sat, 19 Apr 2014 02:02:32 -0400
+Subject: [PATCH 2/4] Don't build iscsiuio
+
+For gnome-continuous, we don't need a user-space network driver
+for certain Broadcom cards.
+---
+ Makefile | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 79bad84..e7dbe1d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -14,8 +14,8 @@ mandir = $(prefix)/share/man
+ etcdir = /etc
+ initddir = $(etcdir)/init.d
+ 
+-MANPAGES = doc/iscsid.8 doc/iscsiadm.8 doc/iscsi_discovery.8 iscsiuio/docs/iscsiuio.8
+-PROGRAMS = usr/iscsid usr/iscsiadm utils/iscsi_discovery utils/iscsi-iname iscsiuio/src/unix/iscsiuio
++MANPAGES = doc/iscsid.8 doc/iscsiadm.8 doc/iscsi_discovery.8 # iscsiuio/docs/iscsiuio.8
++PROGRAMS = usr/iscsid usr/iscsiadm utils/iscsi_discovery utils/iscsi-iname # iscsiuio/src/unix/iscsiuio
+ INSTALL = install
+ ETCFILES = etc/iscsid.conf
+ IFACEFILES = etc/iface.example
+@@ -26,20 +26,20 @@ IFACEFILES = etc/iface.example
+ 
+ all: user
+ 
+-user: utils/open-isns/Makefile iscsiuio/Makefile
++user: utils/open-isns/Makefile # iscsiuio/Makefile
+ 	$(MAKE) -C utils/open-isns
+ 	$(MAKE) -C utils/sysdeps
+ 	$(MAKE) -C utils/fwparam_ibft
+ 	$(MAKE) -C usr
+ 	$(MAKE) -C utils
+-	$(MAKE) -C iscsiuio
++#	$(MAKE) -C iscsiuio
+ 	@echo
+ 	@echo "Compilation complete                 Output file"
+ 	@echo "-----------------------------------  ----------------"
+ 	@echo "Built iSCSI daemon:                  usr/iscsid"
+ 	@echo "Built management application:        usr/iscsiadm"
+ 	@echo "Built boot tool:                     usr/iscsistart"
+-	@echo "Built iscsiuio daemon:               iscsiuio/src/unix/iscsiuio"
++#	@echo "Built iscsiuio daemon:               iscsiuio/src/unix/iscsiuio"
+ 	@echo
+ 	@echo "Read README file for detailed information."
+ 
+@@ -68,8 +68,8 @@ clean:
+ 	$(MAKE) -C utils/fwparam_ibft clean
+ 	$(MAKE) -C utils clean
+ 	$(MAKE) -C usr clean
+-	$(MAKE) -C kernel clean
+-	$(MAKE) -C iscsiuio clean
++#	$(MAKE) -C kernel clean
++#	$(MAKE) -C iscsiuio clean
+ 	$(MAKE) -C utils/open-isns clean
+ 	$(MAKE) -C utils/open-isns distclean
+ 
+-- 
+1.9.0
+

@@ -1,0 +1,49 @@
+From 63524630fa58fc2475de6ad9a2fcd24ddb53adfc Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Tue, 22 Apr 2014 21:07:00 -0400
+Subject: [PATCH 1/2] Disable man page generation and installation
+
+---
+ Makefile.in | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index 88af935..104bf24 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -73,7 +73,7 @@ HFILES = sycls.h sslcls.h error.h dalan.h procan.h filan.h hostan.h sysincludes.
+ 	xio-ascii.h xiolockfile.h xio-tcpwrap.h xio-ext2.h xio-tun.h
+ 
+ 
+-DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/socat.1 doc/socat.html doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html doc/socat-genericsocket.html
++DOCFILES = README README.FIPS CHANGES FILES EXAMPLES PORTING SECURITY DEVELOPMENT doc/socat.yo doc/xio.help FAQ BUGREPORTS COPYING COPYING.OpenSSL doc/dest-unreach.css doc/socat-openssltunnel.html doc/socat-multicast.html doc/socat-tun.html doc/socat-genericsocket.html
+ SHFILES = daemon.sh mail.sh ftp.sh readline.sh \
+ 	socat_buildscript_for_android.sh
+ TESTFILES = test.sh socks4echo.sh proxyecho.sh gatherinfo.sh readline-test.sh \
+@@ -95,7 +95,7 @@ scmclean: gitclean
+ gitclean: distclean docclean
+ 	rm -f Makefile.bak configure
+ 
+-doc: doc/socat.1 doc/socat.html
++doc:
+ 
+ docclean:
+ 	rm -f doc/socat.1 doc/socat.html
+@@ -131,13 +131,12 @@ doc: doc/xio.help
+ strip: progs
+ 	strip $(PROGS)
+ 
+-install: progs $(srcdir)/doc/socat.1
++install: progs
+ 	mkdir -p $(DESTDIR)$(BINDEST)
+ 	$(INSTALL) -m 755 socat $(DESTDIR)$(BINDEST)
+ 	$(INSTALL) -m 755 procan $(DESTDIR)$(BINDEST)
+ 	$(INSTALL) -m 755 filan $(DESTDIR)$(BINDEST)
+ 	mkdir -p $(DESTDIR)$(MANDEST)/man1
+-	$(INSTALL) -m 644 $(srcdir)/doc/socat.1 $(DESTDIR)$(MANDEST)/man1/
+ 
+ uninstall:
+ 	rm -f $(DESTDIR)$(BINDEST)/socat
+-- 
+1.9.0
+

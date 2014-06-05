@@ -35,8 +35,14 @@
                 "savannah": "git:git://git.savannah.gnu.org/",
                 "debian": "git:git://anonscm.debian.org/",
 		"netfilter": "git:git://git.netfilter.org/",
+                "lighttpd": "git:git://git.lighttpd.net/",
+                "dnsmasq": "git:git://thekelleys.org.uk/",
+                "ipxe": "git:git://git.ipxe.org/",
+                "socat": "git:git://repo.or.cz/",
 		"cgwalters": "git:git://github.com/cgwalters/",
-                "anholt": "git:git://github.com/anholt/"},
+                "anholt": "git:git://github.com/anholt/",
+                "fujita": "git:git://github.com/fujita/",
+                "mikechristie" : "git:git://github.com/mikechristie/"},
 
   "patches": {"src": "gnome:gnome-continuous",
               "subdir": "patches"},
@@ -812,6 +818,11 @@
 				 "--disable-intl-api"]},
 
 		{"src": "gnome:gjs",
+                 "name": "gjs-minimal",
+                 "component": "hwtest",
+		 "config-opts": ["--without-cairo", "--without-gtk"]},
+
+		{"src": "gnome:gjs",
 		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:ostree",
@@ -820,6 +831,55 @@
 		 "config-opts": ["--with-soup-gnome",
 		                 "--with-dracut",
 				 "--enable-installed-tests"]},
+
+		{"src": "gnome:gnome-hwtest",
+                 "component": "minimal",
+                 "initramfs-depends": true},
+
+		{"src": "mikechristie:open-iscsi",
+                 "component": "minimal",
+		 "initramfs-depends": true,
+		 "patches": ["iscsi-no-iscsiuio.patch",
+                             "iscsi-no-static-build.patch",
+                             "iscsi-assume-netlink-number.patch",
+                             "iscsi-install-iscsistart.patch",
+                             "iscsi-buildsys.patch"]},
+
+                {"src": "socat:socat.git",
+                 "component": "minimal",
+		 "patches": ["socat-disable-man-pages.patch",
+                             "socat-buildsys.patch"]},
+
+                {"src": "dnsmasq:dnsmasq.git",
+                 "component": "hwtest",
+		 "patches": ["dnsmasq-buildsys.patch"]},
+
+                {"src": "ipxe:ipxe.git",
+                 "component": "hwtest",
+		 "patches": ["ipxe-buildsys.patch",
+                             "ipxe-disable-isos.patch"]},
+
+		{"src": "savannah:grub.git",
+                 "component": "hwtest",
+                 "cflags": { "x86_64": "" },
+                 "config-opts": ["--with-platform=pc",
+                                 "--disable-grub-mkfont",
+                                 "--enable-liblzma=no",
+                                 "--enable-device-mapper=no",
+                                 "--enable-libzfs=no"]},
+
+		{"src": "fujita:tgt",
+                 "component": "hwtest",
+		 "patches": ["tgt-cflags.patch",
+                             "tgt-buildsys.patch",
+                             "tgt-disable-man.patch"],
+                 "config-opts": ["--disable-man"]},
+
+		{"src": "lighttpd:lighttpd/lighttpd-1.x",
+                 "name": "lighttpd",
+                 "tag": "lighttpd-1.4.x",
+                 "component": "hwtest",
+		 "config-opts": ["--without-pcre"]},
 
                 {"src": "ibus:ibus.git",
 		 "patches": ["ibus-builddir.patch",

@@ -1,0 +1,213 @@
+From 8203bc712637ddeb393b3c4b5dffa40d6c7289e2 Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Mon, 14 Apr 2014 07:18:19 -0700
+Subject: [PATCH] Add a configure script to provide a standard build API
+
+Even though tgt doesn't need checks at configure time, a
+configure script with standard options provides useful compatibility
+with automated build systems. Add such a script that generates a
+config.mk that the makefiles include. Passing options directly
+to make without running configure is still supported.
+
+Operation of CFLAGS is improved so defines/includes still work
+correctly if you run 'make CFLAGS=-O1'
+---
+ .gitignore       |   3 ++
+ Makefile         |   2 ++
+ conf/Makefile    |   2 ++
+ configure        | 107 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ doc/Makefile     |   7 ++--
+ scripts/Makefile |   2 ++
+ usr/Makefile     |   5 ++-
+ 7 files changed, 125 insertions(+), 3 deletions(-)
+ create mode 100755 configure
+
+diff --git a/.gitignore b/.gitignore
+index 8c28cb7..8b9bef1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -33,3 +33,6 @@ usr/tgtimg
+ 
+ # cscope files
+ cscope.*
++
++# generate by configure
++config.mk
+diff --git a/Makefile b/Makefile
+index 15f2834..281ee8b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -3,6 +3,8 @@ VERSION ?= 1.0.48
+ CHECK_CC = cgcc
+ CHECK_CC_FLAGS = '$(CHECK_CC) -Wbitwise -Wno-return-void -no-compile $(ARCH)'
+ 
++-include config.mk
++
+ # Define a common prefix where binaries and docs install
+ PREFIX ?= /usr
+ 
+diff --git a/conf/Makefile b/conf/Makefile
+index bff222f..9a6ed0e 100644
+--- a/conf/Makefile
++++ b/conf/Makefile
+@@ -1,3 +1,5 @@
++-include ../config.mk
++
+ sysconfdir ?= /etc
+ 
+ EXAMPLES = targets.conf.example targets.conf.vtl.L700 targets.conf.vtl.MSL2024
+diff --git a/configure b/configure
+new file mode 100755
+index 0000000..817ae5a
+--- /dev/null
++++ b/configure
+@@ -0,0 +1,107 @@
++#!/bin/sh
++
++# This script provides basic compatibility with automake configure scripts
++# for use in automated build systems. See:
++#
++# https://people.gnome.org/~walters/docs/build-api.txt
++
++# Declares that this project only works when srcdir == builddir.
++#buildapi-variable-no-builddir
++
++print_help() {
++    echo "--prefix=DIR		Install files in DIR (default /usr)"
++    echo "--libdir=DIR		Install library files in DIR/tgt (default PREFIX/lib)"
++    echo "--sysconfdir=DIR	Install configuration files in DIR (default /etc)"
++    echo "--datadir=DIR		Install data files in DIR (default $PREFIX/share)"
++    echo "--mandir=DIR		Install configuration files in DIR (default DATADIR/man)"
++    echo "--docdir=DIR		Install documentation files in DIR (default DATADIR/doc/tgt)"
++    echo "--sbindir=DIR		Install binaries in DIR (default DATADIR/sbin)"
++    echo "--with-ceph		Enable support for the Ceph distributed file system"
++    echo "--with-glfs		Enable support for GlusterFS"
++}
++
++while [ $# '>' 0 ] ; do
++    option=`expr "$1" : '\([^=]*\)='`
++    optarg=
++    consume_next=false
++    if [ x$option != x ]; then
++        optarg=`expr "$1" : '[^=]*=\(.*\)'`
++        shift
++    else
++        option=$1
++        shift
++        if expr "$option" : '-' > /dev/null ; then
++            consume_next=true
++            optarg=$1
++        fi
++    fi
++
++    case $option in
++        --prefix)
++            prefix=$optarg
++            ;;
++        --libdir)
++            # Compatibility - 'make libdir=/usr/lib/tgt' was already supported
++            _libdir=$optarg
++            ;;
++        --sysconfdir)
++            sysconfdir=$optarg
++            ;;
++        --mandir)
++            mandir=$optarg
++            ;;
++        --datadir)
++            docdir=$optarg
++            ;;
++        --docdir)
++            docdir=$optarg
++            ;;
++        --sbindir)
++            mandir=$optarg
++            ;;
++        CFLAGS)
++            CFLAGS=$optarg
++            ;;
++        --with-ceph)
++            CEPH_RBD=true
++            consume_next=false
++            ;;
++        --with-glfs)
++            GLFS_BD=true
++            consume_next=false
++            ;;
++        --with-*|--without-*|--enable-*|--disable-*)
++            consume_next=false
++            ;;
++        --help)
++            print_help
++            exit
++            ;;
++    esac
++
++    if $consume_next ; then
++        shift
++    fi
++done
++
++output_var() {
++    if [ x"$2" != x"" ] ; then
++        echo $1 ?= $2
++    fi
++}
++
++(
++    output_var PREFIX $prefix
++    output_var _libdir $_libdir
++    output_var sysconfdir $sysconfdir
++    output_var mandir $mandir
++    output_var datadir $datadir
++    output_var docdir $docdir
++    output_var sbindir $sbindir
++    # support empty CFLAGS
++    if [ x${CFLAGS+set} = xset ] ; then
++        echo CFLAGS ?= $CFLAGS
++    fi
++    output_var CEPH_RBD $CEPH_RBD
++    output_var GLFS_BD $GLFS_BD
++) > config.mk
+diff --git a/doc/Makefile b/doc/Makefile
+index 0516dc8..fc34ee3 100644
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -1,5 +1,8 @@
+-mandir ?= $(PREFIX)/share/man
+-docdir ?= $(PREFIX)/share/doc/tgt
++-include ../config.mk
++
++datadir ?= $(PREFIX)/share
++mandir ?= $(datadir)/man
++docdir ?= $(datadir)/doc/tgt
+ 
+ MANPAGES = manpages/tgtadm.8 manpages/tgt-admin.8 manpages/tgtimg.8 \
+ 		manpages/tgt-setup-lun.8 manpages/tgtd.8
+diff --git a/scripts/Makefile b/scripts/Makefile
+index db88911..7bce519 100644
+--- a/scripts/Makefile
++++ b/scripts/Makefile
+@@ -1,3 +1,5 @@
++-include ../config.mk
++
+ sbindir ?= $(PREFIX)/sbin
+ 
+ SCRIPTS += tgt-setup-lun tgt-admin
+diff --git a/usr/Makefile b/usr/Makefile
+index a2d2b32..f5ae6c8 100644
+--- a/usr/Makefile
++++ b/usr/Makefile
+@@ -1,5 +1,8 @@
++-include ../config.mk
++
+ sbindir ?= $(PREFIX)/sbin
+-libdir ?= $(PREFIX)/lib/tgt
++_libdir ?= $(PREFIX)/lib
++libdir ?= $(_libdir)/tgt
+ 
+ ifneq ($(DEBUG),)
+ CFLAGS += -g -O0 -ggdb -rdynamic
+-- 
+1.9.3
+

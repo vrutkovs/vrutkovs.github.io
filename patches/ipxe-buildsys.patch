@@ -1,0 +1,140 @@
+From e17a50783d45ba298b009d223134176a205be96f Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Mon, 14 Apr 2014 12:13:55 -0700
+Subject: [PATCH] Add a simple configure script for gnome-continuous
+ integration
+
+Add a configure script that follows the gnome-continuous build
+API and a makefile to install the generated boot images into
+/usr/share/ipxe.
+---
+ .gitignore |  1 +
+ Makefile   | 34 ++++++++++++++++++++++++++++++++
+ configure  | 66 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 101 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 Makefile
+ create mode 100755 configure
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..aee2e4c
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1 @@
++config.mk
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 0000000..167bcdf
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,34 @@
++include config.mk
++
++BOOT_IMAGES = 		  \
++	src/bin/ipxe.dsk  \
++	src/bin/ipxe.iso  \
++	src/bin/ipxe.lkrn \
++	src/bin/ipxe.pxe  \
++	src/bin/ipxe.usb  \
++	src/bin/undionly.kpxe
++
++DOC_FILES = 		\
++	COPYING 	\
++	COPYRIGHTS 	\
++	README
++
++all: build
++
++build:
++	$(MAKE) -C src
++
++clean:
++	$(MAKE) -C src clean
++
++install: build
++	install -m 0755 -d $(DESTDIR)$(PKGDATADIR)
++	for i in $(BOOT_IMAGES) ; do                         \
++		install -m 0644 $$i $(DESTDIR)$(PKGDATADIR); \
++	done
++	install -m 0755 -d $(DESTDIR)$(DOCDIR)
++	for i in $(DOC_FILES) ; do			 \
++		install -m 0644 $$i $(DESTDIR)$(DOCDIR); \
++	done
++
++.PHONY: all build clean install
+diff --git a/configure b/configure
+new file mode 100755
+index 0000000..d34cbfa
+--- /dev/null
++++ b/configure
+@@ -0,0 +1,66 @@
++#!/bin/sh
++
++# This script provides basic compatibility with automake configure scripts
++# for use in automated build systems. See:
++#
++# https://people.gnome.org/~walters/docs/build-api.txt
++
++# Declares that this project only works when srcdir == builddir.
++#buildapi-variable-no-builddir
++
++print_help() {
++    echo "--prefix=DIR		Install files in DIR (default /usr)"
++    echo "--datadir=DIR		Install data files in DIR (default PREFIX/share)"
++    echo "--docdir=DIR		Install documentation files in DIR (default DATADIR/doc/ipxe)"
++}
++
++prefix=/usr
++datadir='$(PREFIX)/share'
++docdir='$(DIRDIR)/doc/ipxe'
++
++while [ $# '>' 0 ] ; do
++    option=`expr "$1" : '\([^=]*\)='`
++    optarg=
++    consume_next=false
++    if [ x$option != x ]; then
++        optarg=`expr "$1" : '[^=]*=\(.*\)'`
++        shift
++    else
++        option=$1
++        shift
++        if expr "$option" : '-' > /dev/null ; then
++            consume_next=true
++            optarg=$1
++        fi
++    fi
++
++    case $option in
++        --prefix)
++            prefix=$optarg
++            ;;
++        --datadir)
++            datadir=$optarg
++            ;;
++        --docdir)
++            docdir=$optarg
++            ;;
++        --with-*|--without-*|--enable-*|--disable-*)
++            consume_next=false
++            ;;
++        --help)
++            print_help
++            exit
++            ;;
++    esac
++
++    if $consume_next ; then
++        shift
++    fi
++done
++
++cat > config.mk <<EOF
++PREFIX=$prefix
++DATADIR=$datadir
++PKGDATADIR=$datadir/ipxe
++DOCDIR=$docdir
++EOF
+-- 
+1.9.0
+

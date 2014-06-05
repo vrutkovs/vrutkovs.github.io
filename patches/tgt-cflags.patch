@@ -1,0 +1,78 @@
+From fe8cad69c38582f4292ed8d80b5288eca4f45430 Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Mon, 14 Apr 2014 08:21:30 -0700
+Subject: [PATCH] Improve handling of CFLAGS
+
+Previously if CFLAGS was specified in the environment, all builtin
+CFLAGS were appended to it, including options like -O2 that might conflict with
+specified options.
+
+If CFLAGS was specified on the make command line, it completely overrode
+the builtin CFLAGS, including essential options like defines.
+
+Improve the handling so that core options (-g/-O) are overriden by
+user-specified values, then include directories and defines are added on.
+---
+ usr/Makefile | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/usr/Makefile b/usr/Makefile
+index 6234f3f..9418be2 100644
+--- a/usr/Makefile
++++ b/usr/Makefile
+@@ -1,12 +1,19 @@
+ sbindir ?= $(PREFIX)/sbin
+ libdir ?= $(PREFIX)/lib/tgt
+ 
++ifneq ($(DEBUG),)
++CFLAGS += -g -O0 -ggdb -rdynamic
++else
++CFLAGS ?= -g -O2
++override CFLAGS += -fno-strict-aliasing
++endif
++
+ ifneq ($(shell test -e /usr/include/linux/signalfd.h && echo 1),)
+-CFLAGS += -DUSE_SIGNALFD
++override CFLAGS += -DUSE_SIGNALFD
+ endif
+ 
+ ifneq ($(shell test -e /usr/include/sys/timerfd.h && echo 1),)
+-CFLAGS += -DUSE_TIMERFD
++override CFLAGS += -DUSE_TIMERFD
+ endif
+ 
+ TGTD_OBJS += $(addprefix iscsi/, conn.o param.o session.o \
+@@ -22,7 +29,7 @@ MODULES += bs_glfs.so
+ endif
+ 
+ ifneq ($(shell test -e /usr/include/sys/eventfd.h && test -e /usr/include/libaio.h && echo 1),)
+-CFLAGS += -DUSE_EVENTFD
++override CFLAGS += -DUSE_EVENTFD
+ TGTD_OBJS += bs_aio.o
+ LIBS += -laio
+ endif
+@@ -34,16 +41,11 @@ endif
+ 
+ INCLUDES += -I.
+ 
+-CFLAGS += -D_GNU_SOURCE
+-CFLAGS += $(INCLUDES)
+-ifneq ($(DEBUG),)
+-CFLAGS += -g -O0 -ggdb -rdynamic
+-else
+-CFLAGS += -g -O2 -fno-strict-aliasing
+-endif
+-CFLAGS += -Wall -Wstrict-prototypes -fPIC
+-CFLAGS += -DTGT_VERSION=\"$(VERSION)$(EXTRAVERSION)\"
+-CFLAGS += -DBSDIR=\"$(DESTDIR)$(libdir)/backing-store\"
++override CFLAGS += -D_GNU_SOURCE
++override CFLAGS += $(INCLUDES)
++override CFLAGS += -Wall -Wstrict-prototypes -fPIC
++override CFLAGS += -DTGT_VERSION=\"$(VERSION)$(EXTRAVERSION)\"
++override CFLAGS += -DBSDIR=\"$(DESTDIR)$(libdir)/backing-store\"
+ 
+ LIBS += -lpthread -ldl
+ 
+-- 
+1.9.0
+

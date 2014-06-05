@@ -1,0 +1,111 @@
+From 7266a6c9a4a31dbf7ac6a561a579331ee58403d8 Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Mon, 14 Apr 2014 08:11:09 -0700
+Subject: [PATCH] Add the ability to disable manual page generation
+
+In some circumstances it's useful to build tgt even if the XSL
+manual pages can't be built because of the need for xlstproc
+and stylesheets. Add a DISABLE_MAN make variable and a corresponding
+--disable-man configure variable.
+---
+ configure    |  6 ++++++
+ doc/Makefile | 30 ++++++++++++++++++++++--------
+ 2 files changed, 28 insertions(+), 8 deletions(-)
+
+diff --git a/configure b/configure
+index 817ae5a..9cc5265 100755
+--- a/configure
++++ b/configure
+@@ -18,6 +18,7 @@ print_help() {
+     echo "--sbindir=DIR		Install binaries in DIR (default DATADIR/sbin)"
+     echo "--with-ceph		Enable support for the Ceph distributed file system"
+     echo "--with-glfs		Enable support for GlusterFS"
++    echo "--disable-man         Disable building and installing man pages"
+ }
+ 
+ while [ $# '>' 0 ] ; do
+@@ -70,6 +71,10 @@ while [ $# '>' 0 ] ; do
+             GLFS_BD=true
+             consume_next=false
+             ;;
++        --disable-man)
++            DISABLE_MAN=true
++            consume_next=false
++            ;;
+         --with-*|--without-*|--enable-*|--disable-*)
+             consume_next=false
+             ;;
+@@ -104,4 +109,5 @@ output_var() {
+     fi
+     output_var CEPH_RBD $CEPH_RBD
+     output_var GLFS_BD $GLFS_BD
++    output_var DISABLE_MAN $DISABLE_MAN
+ ) > config.mk
+diff --git a/doc/Makefile b/doc/Makefile
+index fc34ee3..611fec5 100644
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -4,13 +4,25 @@ datadir ?= $(PREFIX)/share
+ mandir ?= $(datadir)/man
+ docdir ?= $(datadir)/doc/tgt
+ 
+-MANPAGES = manpages/tgtadm.8 manpages/tgt-admin.8 manpages/tgtimg.8 \
+-		manpages/tgt-setup-lun.8 manpages/tgtd.8
+-
+ DOCS = README.iscsi README.iser \
+ 	    README.lu_configuration README.mmc tmf.txt \
+ 	    README.rbd
+ 
++.PHONY:all install clean
++all:
++install:
++clean:
++
++.PHONY: install-docs
++install: install-docs
++install-docs: $(DOCS)
++	install -d -m 755 $(DESTDIR)$(docdir)
++	install -m 644 $(DOCS) $(DESTDIR)$(docdir)
++
++ifeq ($(DISABLE_MAN),)
++MANPAGES = manpages/tgtadm.8 manpages/tgt-admin.8 manpages/tgtimg.8 \
++		manpages/tgt-setup-lun.8 manpages/tgtd.8
++
+ XSLTPROC = /usr/bin/xsltproc
+ XMLMAN = manpages/tgtd.8 manpages/tgtadm.8 manpages/tgtimg.8 \
+ 		manpages/tgt-admin.8 manpages/targets.conf.5 \
+@@ -19,11 +31,11 @@ XMLHTML = htmlpages/tgtd.8.html htmlpages/tgtadm.8.html \
+ 		htmlpages/tgtimg.8.html htmlpages/tgt-admin.8.html \
+ 		htmlpages/targets.conf.5.html htmlpages/tgt-setup-lun.8.html
+ 
+-.PHONY:all
+ all: xmlman xmlhtml
+ 
+-.PHONY: install
+-install: $(MANPAGES) $(DOCS)
++.PHONY: install-man
++install: install-man
++install-man: $(MANPAGES) $(DOCS)
+ 	install -d -m 755 $(DESTDIR)$(mandir)/man8
+ 	install -m 644 $(MANPAGES) $(DESTDIR)$(mandir)/man8
+ 	install -d -m 755 $(DESTDIR)$(docdir)
+@@ -31,8 +43,9 @@ install: $(MANPAGES) $(DOCS)
+ 	install -d -m 755 $(DESTDIR)$(docdir)/html
+ 	install -m 644 $(XMLHTML) $(DESTDIR)$(docdir)/html
+ 
+-.PHONY: clean
+-clean:
++.PHONY: clean-man
++clean: clean-man
++clean-man:
+ 	rm -f $(XMLMAN) $(XMLHTML)
+ 	-rm -f manpages htmlpages
+ 
+@@ -76,3 +89,4 @@ xmlman: $(XMLMAN)
+ 
+ xmlhtml: $(XMLHTML)
+ 
++endif
+-- 
+1.9.0
+

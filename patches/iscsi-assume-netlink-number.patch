@@ -1,0 +1,44 @@
+From 20daea0e06a3ae27fde748898413d48c153ee5bb Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Sat, 19 Apr 2014 02:07:27 -0400
+Subject: [PATCH 3/4] Remove obsolete checks for the correct netlink number
+
+The netlink number for iSCSI was fixed in 2005 to 8 - there's
+no reason to try and find the kernel sources to auto-detect it.
+---
+ usr/Makefile | 18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
+
+diff --git a/usr/Makefile b/usr/Makefile
+index 48c77b3..84dc4c8 100644
+--- a/usr/Makefile
++++ b/usr/Makefile
+@@ -2,24 +2,8 @@
+ 
+ OSNAME=$(shell uname -s)
+ 
+-# allow users to override these
+-# eg to compile for a kernel that you aren't currently running
+-KERNELRELEASE ?= $(shell uname -r)
+-KSRC ?= /lib/modules/$(KERNELRELEASE)/build
+-
+-KSUBLEVEL=$(shell cat $(KSRC)/Makefile | awk -F= '/^SUBLEVEL =/ {print $$2}' | \
+-			sed 's/^[ \t]*//;s/[ \t]*$$//')
+-
+ ifeq ($(OSNAME),Linux)
+-	ifeq ($(KSUBLEVEL),11)
+-		IPC_CFLAGS=-DNETLINK_ISCSI=12 -D_GNU_SOURCE
+-	else
+-	ifeq ($(KSUBLEVEL),12)
+-		IPC_CFLAGS=-DNETLINK_ISCSI=12 -D_GNU_SOURCE
+-	else
+-		IPC_CFLAGS=-DNETLINK_ISCSI=8 -D_GNU_SOURCE
+-	endif
+-	endif
++IPC_CFLAGS=-DNETLINK_ISCSI=8 -D_GNU_SOURCE
+ IPC_OBJ=netlink.o
+ else
+ ifeq ($(OSNAME),FreeBSD)
+-- 
+1.9.0
+

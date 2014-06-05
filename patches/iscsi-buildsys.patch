@@ -1,0 +1,160 @@
+From 39fae3fddd1651b3f988175180e61e45215c5278 Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Sat, 19 Apr 2014 02:23:40 -0400
+Subject: [PATCH] Add a configure script to provide a standard build API
+
+Even though open-iscsi doesn't need checks at configure time, a
+configure script with standard options provides useful compatibility
+with automated build systems. Add such a script that generates a
+config.mk that the makefiles include. Passing options directly
+to make without running configure is still supported.
+---
+ Makefile       | 14 +++++----
+ configure      | 96 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ utils/Makefile |  3 +-
+ 3 files changed, 106 insertions(+), 7 deletions(-)
+ create mode 100755 configure
+
+diff --git a/Makefile b/Makefile
+index e7dbe1d..64a2f78 100644
+--- a/Makefile
++++ b/Makefile
+@@ -6,12 +6,14 @@
+ # that you want everything installed into.
+ DESTDIR ?= 
+ 
+-prefix = /usr
+-exec_prefix = /
+-sbindir = $(exec_prefix)/sbin
+-bindir = $(exec_prefix)/bin
+-mandir = $(prefix)/share/man
+-etcdir = /etc
++-include config.mk
++
++prefix ?= /usr
++exec_prefix ?= /
++sbindir ?= $(exec_prefix)/sbin
++bindir ?= $(exec_prefix)/bin
++mandir ?= $(prefix)/share/man
++etcdir ?= /etc
+ initddir = $(etcdir)/init.d
+ 
+ MANPAGES = doc/iscsid.8 doc/iscsiadm.8 doc/iscsi_discovery.8 # iscsiuio/docs/iscsiuio.8
+diff --git a/configure b/configure
+new file mode 100755
+index 0000000..3681672
+--- /dev/null
++++ b/configure
+@@ -0,0 +1,96 @@
++#!/bin/sh
++
++# This script provides basic compatibility with automake configure scripts
++# for use in automated build systems. See:
++#
++# https://people.gnome.org/~walters/docs/build-api.txt
++
++# Declares that this project only works when srcdir == builddir.
++#buildapi-variable-no-builddir
++
++print_help() {
++    echo "--prefix=DIR		Install files in DIR (default /usr)"
++    echo "--libdir=DIR		Install library files in DIR/tgt (default PREFIX/lib)"
++    echo "--sysconfdir=DIR	Install configuration files in DIR (default /etc)"
++    echo "--datadir=DIR		Install data files in DIR (default $PREFIX/share)"
++    echo "--mandir=DIR		Install configuration files in DIR (default DATADIR/man)"
++    echo "--docdir=DIR		Install documentation files in DIR (default DATADIR/doc/tgt)"
++    echo "--sbindir=DIR		Install binaries in DIR (default DATADIR/sbin)"
++    echo "--with-ceph		Enable support for the Ceph distributed file system"
++    echo "--with-glfs		Enable support for GlusterFS"
++    echo "--disable-man         Disable building and installing man pages"
++}
++
++prefix=/usr
++exec_prefix='$(prefix)'
++bindir='$(prefix)/bin'
++sbindir='$(exec_prefix)/sbin'
++datadir='$(prefix)/share'
++mandir='$(datadir)/man'
++sysconfdir='$(prefix)/etc'
++CFLAGS='-O2 -g'
++
++while [ $# '>' 0 ] ; do
++    option=`expr "$1" : '\([^=]*\)='`
++    optarg=
++    consume_next=false
++    if [ x$option != x ]; then
++        optarg=`expr "$1" : '[^=]*=\(.*\)'`
++        shift
++    else
++        option=$1
++        shift
++        if expr "$option" : '-' > /dev/null ; then
++            consume_next=true
++            optarg=$1
++        fi
++    fi
++
++    case $option in
++        --prefix)
++            prefix=$optarg
++            ;;
++        --exec_prefix)
++            exec_prefix=$optarg
++            ;;
++        --sysconfdir)
++            sysconfdir=$optarg
++            ;;
++        --mandir)
++            mandir=$optarg
++            ;;
++        --datadir)
++            docdir=$optarg
++            ;;
++        --sbindir)
++            mandir=$optarg
++            ;;
++        CFLAGS)
++            CFLAGS=$optarg
++            ;;
++        --with-*|--without-*|--enable-*|--disable-*)
++            consume_next=false
++            ;;
++        --help)
++            print_help
++            exit
++            ;;
++    esac
++
++    if $consume_next ; then
++        shift
++    fi
++done
++
++cat > config.mk <<EOF
++prefix = $prefix
++exec_prefix = $exec_prefix
++sbindir = $sbindir
++bindir = $bindir
++mandir = $mandir
++etcdir = $sysconfdir
++OPTFLAGS = $CFLAGS
++export OPTFLAGS
++EOF
++
++make utils/open-isns/Makefile
+diff --git a/utils/Makefile b/utils/Makefile
+index 2c7e891..3e4ff6b 100644
+--- a/utils/Makefile
++++ b/utils/Makefile
+@@ -1,6 +1,7 @@
+ # This Makefile will work only with GNU make.
+ 
+-CFLAGS += $(OPTFLAGS) -O2 -fno-inline -Wall -Wstrict-prototypes -g
++OPTFLAGS ?= -O2 -g
++CFLAGS += $(OPTFLAGS) -fno-inline -Wall -Wstrict-prototypes
+ PROGRAMS = iscsi-iname
+ 
+ all: $(PROGRAMS)
+-- 
+1.9.0
+
