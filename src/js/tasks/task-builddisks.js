@@ -46,7 +46,7 @@ const TaskBuildDisks = new Lang.Class({
 
     _imageSubdir: 'images',
     _inheritPreviousDisk: true,
-    _onlyTreeSuffixes: ['-runtime', '-devel-debug'],
+    _onlyTreeSuffixes: ['-runtime', '-hwtest', '-devel-debug'],
 
     DefaultParameters: {targets: null},
 

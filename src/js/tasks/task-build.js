@@ -1294,6 +1294,7 @@ const TaskBuild = new Lang.Class({
         let componentToArches = {};
 
         let runtimeComponents = [];
+        let hwtestComponents = [];
         let develComponents = [];
         let testingComponents = [];
 
@@ -1301,15 +1302,25 @@ const TaskBuild = new Lang.Class({
 	    let component = components[i];
             let name = component['name']
 
-            let isRuntime = (component['component'] || 'runtime') == 'runtime';
-            let isTesting = (component['component'] || 'runtime') == 'testing';
+            let resolved = component['component'] || 'runtime';
+            let isMinimal = resolved == 'minimal';
+            let isHWTest = resolved == 'minimal' || resolved == 'hwtest';
+            let isHWTestOnly = resolved == 'hwtest';
+            let isRuntime = resolved == 'minimal' || resolved == 'runtime';
+            let isTesting = resolved == 'testing';
 
             if (isRuntime) {
                 runtimeComponents.push(component);
 	    } else if (isTesting) {
 		testingComponents.push(component);
 	    }
-	    develComponents.push(component);
+            if (isHWTest) {
+                hwtestComponents.push(component);
+            }
+
+            if (!isHWTestOnly) {
+	        develComponents.push(component);
+            }
 
 	    let isNoarch = component['noarch'] || false;
 	    let componentArches;
@@ -1370,7 +1381,7 @@ const TaskBuild = new Lang.Class({
 	}
 
         let targetsList = [];
-	let componentTypes = ['runtime', 'devel-debug'];
+	let componentTypes = ['runtime', 'hwtest', 'devel-debug'];
         for (let i = 0; i < componentTypes.length; i++) {
 	    let targetComponentType = componentTypes[i];
             for (let i = 0; i < architectures.length; i++) {
@@ -1382,7 +1393,7 @@ const TaskBuild = new Lang.Class({
                 let baseRuntimeRef = baseName + '/' + architecture + '-runtime';
                 let buildrootRef = baseName + '/' + architecture + '-devel';
 		let baseRef;
-                if (targetComponentType == 'runtime') {
+                if (targetComponentType == 'runtime' || targetComponentType == 'hwtest') {
                     baseRef = baseRuntimeRef;
                 } else {
                     baseRef = buildrootRef;
@@ -1394,10 +1405,13 @@ const TaskBuild = new Lang.Class({
 		let targetComponents;
                 if (targetComponentType == 'runtime') {
                     targetComponents = runtimeComponents;
+                } else if (targetComponentType == 'hwtest') {
+                    targetComponents = hwtestComponents;
                 } else {
+                    targetComponents = runtimeComponents;
                     targetComponents = develComponents;
 		}
-                    
+
                 let contents = [];
                 for (let i = 0; i < targetComponents.length; i++) {
 		    let component = targetComponents[i];
@@ -1410,7 +1424,7 @@ const TaskBuild = new Lang.Class({
 		    }
                     let binaryName = component['name'] + '/' + architecture;
                     let componentRef = {'name': binaryName};
-                    if (targetComponentType == 'runtime') {
+                    if (targetComponentType == 'runtime' || targetComponentType == 'hwtest') {
                         componentRef['trees'] = ['/runtime'];
 		    } else if (targetComponentType == 'devel-debug') {
                         componentRef['trees'] = ['/runtime', '/devel', '/tests', '/doc', '/debug'];
@@ -1482,6 +1496,7 @@ const TaskBuild = new Lang.Class({
 		}));
 		let kernelInitramfsData = archInitramfsImages[architecture];
 		this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
+
 		this._cleanupGarbage(composeRootdir, cancellable);
 		let [treename, ostreeRev] = this._commitComposedTree(runtimeTargetName, composeRootdir, cancellable);
 		BuildUtil.timeSubtask("cleanup " + runtimeTargetName, Lang.bind(this, function() {
