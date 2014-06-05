@@ -1110,6 +1110,16 @@ const TaskBuild = new Lang.Class({
 	GSystem.file_linkcopy(kernelInitramfsData.initramfsPath, targetInitramfsPath, Gio.FileCopyFlags.ALL_METADATA, cancellable);
     },
 
+    _setHWTestTarget: function(composeRootdir, cancellable) {
+        let targetDirectory = composeRootdir.get_child('usr/etc/systemd/system');
+        if (!targetDirectory.query_exists(cancellable))
+            targetDirectory.make_directory_with_parents(cancellable);
+        let defaultTarget = targetDirectory.get_child('default.target');
+        if (defaultTarget.query_exists(cancellable))
+            defaultTarget.delete(cancellable);
+        defaultTarget.make_symbolic_link('/usr/lib/systemd/system/gnome-hwtest.target', cancellable);
+    },
+
     /* Build the Yocto base system. */
     _buildBase: function(architecture, cancellable) {
         let basemeta = this._snapshot.getExpanded(this._snapshot.data['base']['name']);
@@ -1496,6 +1506,9 @@ const TaskBuild = new Lang.Class({
 		}));
 		let kernelInitramfsData = archInitramfsImages[architecture];
 		this._installKernelAndInitramfs(kernelInitramfsData, composeRootdir, cancellable);
+
+                if (target == 'hwtest')
+                    this._setHWTestTarget(composeRootdir, cancellable);
 
 		this._cleanupGarbage(composeRootdir, cancellable);
 		let [treename, ostreeRev] = this._commitComposedTree(runtimeTargetName, composeRootdir, cancellable);
