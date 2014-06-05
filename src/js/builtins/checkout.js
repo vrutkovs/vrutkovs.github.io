@@ -28,7 +28,7 @@ const Params = imports.params;
 const BuildUtil = imports.buildutil;
 const Vcs = imports.vcs;
 
-function _checkoutOneComponent(mirrordir, patchdir, component, cancellable, params) {
+function _checkoutOneComponent(workdir, mirrordir, patchdir, component, cancellable, params) {
     params = Params.parse(params, { checkoutdir: null,
 				    clean: false,
 				    patchesPath: null,
@@ -123,7 +123,7 @@ const Checkout = new Lang.Class({
 		component = this._snapshot.getExpanded(componentName);
 	    }
 
-	    _checkoutOneComponent(this.mirrordir, this.patchdir, component, cancellable,
+	    _checkoutOneComponent(this.workdir, this.mirrordir, this.patchdir, component, cancellable,
 				  { checkoutdir: args.checkoutdir,
 				    clean: args.clean,
 				    patchesPath: args.patches_path,
@@ -132,7 +132,7 @@ const Checkout = new Lang.Class({
 	    let all = this._snapshot.getAllComponentNames();
 	    for (let i = 0; i < all.length; i++) {
 		let component = this._snapshot.getExpanded(all[i]);
-		_checkoutOneComponent(this.mirrordir, this.patchdir, component, cancellable,
+		_checkoutOneComponent(this.workdir, this.mirrordir, this.patchdir, component, cancellable,
 				      { checkoutdir: args.checkoutdir,
 					clean: args.clean,
 					patchesPath: args.patches_path,

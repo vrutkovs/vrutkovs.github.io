@@ -137,7 +137,11 @@ function parseSrcKey(srckey) {
     return [keytype, uri];
 }
     
-function checkoutPatches(mirrordir, patchdir, component, cancellable) {
+function checkoutPatches(workdir, mirrordir, patchdir, component, cancellable) {
+    let overridePath = workdir.resolve_relative_path('overrides/patches');
+    if (overridePath.query_exists(null))
+        return overridePath;
+
     let patches = component['patches'];
 
     let [patchesKeytype, patchesUri] = parseSrcKey(patches['src']);

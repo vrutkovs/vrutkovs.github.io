@@ -604,7 +604,8 @@ const TaskBuild = new Lang.Class({
             if (this._cachedPatchdirRevision == patchesRevision) {
                 patchdir = this.patchdir;
             } else {
-                patchdir = Vcs.checkoutPatches(this.mirrordir,
+                patchdir = Vcs.checkoutPatches(this.workdir,
+                                               this.mirrordir,
                                                this.patchdir,
                                                expandedComponent,
 					       cancellable);
