@@ -47,6 +47,7 @@
 		 "noarch": true},
 
 		{"src": "gnome:glib",
+		 "component": "minimal",
                  "requires": {"pkgconfig": ["libffi >= 3.0.10"]},
                  "config-opts": ["--disable-modular-tests",
 				 "--enable-installed-tests"]},
@@ -78,9 +79,11 @@
 		 "patches": ["usbutils-autogen.patch"]},
 
                 {"src": "git:git://git.kernel.org/pub/scm/utils/kernel/kmod/kmod.git",
+		 "component": "minimal",
 		 "config-opts": ["--disable-manpages"]},
 
                 {"src": "gnome:gobject-introspection",
+                 "component": "minimal",
 		 "config-opts": ["--disable-tests"]},
 
 		{"src": "gnome:vala-bootstrap",
@@ -92,6 +95,7 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
+		 "component": "minimal",
 		 "initramfs-depends": true,
 		 "cflags": {
 		     "x86_64": "-O0 -g -m64 -mtune=generic",
@@ -109,11 +113,13 @@
    		{"src": "gnome:linux-user-chroot",
 		 "setuid": ["/runtime/usr/bin/linux-user-chroot"]},
 
-		{"src": "gnome:libxml2"},
+		{"src": "gnome:libxml2",
+		 "component": "minimal"},
 
 		{"src": "gnome:libxslt"},
 
-		{"src": "gnome:libgsystem"},
+		{"src": "gnome:libgsystem",
+		 "component": "minimal"},
 
    		{"src": "fd:pixman"},
 
@@ -279,6 +285,7 @@
 		{"src": "fd:xorg/lib/libxshmfence"},
 
 		{"src": "fd-dbus:dbus",
+		 "component": "minimal",
 		 "config-opts": ["--with-dbus-user=dbus",
 		                 "--enable-inotify",
 				 "--enable-verbose-mode",
@@ -421,6 +428,7 @@
                  "checksum": "913fc974433238ffd4e0549ce11ba2a3360d1d159cf5c3b988d72a77acb74d04"},
 
                 {"src": "git:https://github.com/libarchive/libarchive.git",
+		 "component": "minimal",
 		 "config-opts": ["--without-lzo2"],
 		 "tag": "v3.1.2",
 		 "patches": ["libarchive-autogen.patch"]},
@@ -558,9 +566,11 @@
 
 		{"src": "git:git://pkgs.fedoraproject.org/ca-certificates.git",
 		 "tag": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
+                 "component": "minimal",
 		 "patches": ["ca-certs-build.patch"]},
 
-		{"src": "fd-p11:p11-kit"},
+		{"src": "fd-p11:p11-kit",
+                 "component": "minimal"},
 
 		{"src": "gnome:gcr",
 		 "config-opts": ["--disable-valgrind"]},
@@ -651,7 +661,8 @@
 
 		{"src": "gnome:yelp-tools"},
 
-		{"src": "gnome:gsettings-desktop-schemas"},
+		{"src": "gnome:gsettings-desktop-schemas",
+                 "component": "minimal"},
 
 		{"src": "gnome:gnome-desktop",
 		 "config-opts": ["--disable-desktop-docs"]},
@@ -679,12 +690,15 @@
 		{"src": "gnome:gnome-menus"},
 
                 {"src": "gnome:glib-networking",
+		 "component": "minimal",
 		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:libsoup",
+		 "component": "minimal",
 		 "config-args": ["--disable-tls-check"]},
 
-		{"src": "gnome:gnome-ostree-integration"},
+		{"src": "gnome:gnome-ostree-integration",
+                 "component": "minimal"},
 
 		{"src": "fd-gstreamer:gst-plugins-good",
 		 "config-opts": ["--with-gtk=3.0",
@@ -786,6 +800,7 @@
 
                 {"src": "tarball:https://ftp.mozilla.org/pub/mozilla.org/js/mozjs-24.2.0.tar.bz2",
 		 "name": "js24",
+                 "component": "minimal",
 		 "checksum": "e62f3f331ddd90df1e238c09d61a505c516fe9fd8c5c95336611d191d18437d8",
 		 "patches": ["js24-buildapi.patch", "js24-virtualenv.patch"],
 		 "config-opts": ["--enable-threadsafe",
@@ -800,6 +815,7 @@
 		 "config-opts": ["--enable-installed-tests"]},
 
 		{"src": "gnome:ostree",
+                 "component": "minimal",
 		 "initramfs-depends": true,
 		 "config-opts": ["--with-soup-gnome",
 		                 "--with-dracut",
