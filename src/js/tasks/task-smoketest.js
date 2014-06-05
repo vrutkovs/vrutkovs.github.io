@@ -44,7 +44,6 @@ const SmoketestBase = new Lang.Class({
                        "10dd2dc188b54a5e98970f56499d1f73" // gnome-session required component failed
                       ],
 
-    CompletedTag: 'smoketested'
 });
 
 const TaskSmoketest = new Lang.Class({
@@ -55,6 +54,8 @@ const TaskSmoketest = new Lang.Class({
         TaskName: "smoketest",
         TaskAfter: ['builddisks'],
     },
+
+    CompletedTag: 'smoketested'
 });
 
 const TaskSmoketestClassic = new Lang.Class({
