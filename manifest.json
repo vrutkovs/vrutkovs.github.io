@@ -343,9 +343,9 @@
 		     "--enable-shared-glapi",
 		     "--enable-gbm",
 		     "--enable-xa",
-		     "--with-gallium-drivers=svga,swrast",
+                     "--with-gallium-drivers=svga,r300,r600,nouveau,swrast",
 		     "--enable-gallium-llvm",
-		     "--with-dri-drivers=swrast"
+                     "--with-dri-drivers=nouveau,radeon,r200,i915,i965,swrast"
 		     ]},
 
 		{"src": "fd:xorg/app/xkbcomp"},
@@ -392,6 +392,15 @@
 
                 {"src": "fd:xorg/driver/xf86-video-qxl",
 		 "patches": ["xorg-autogen-merged.patch"]},
+
+                {"src": "fd:xorg/driver/glamor",
+                 "name": "glamor"},
+
+		{"src": "fd:xorg/driver/xf86-video-ati"},
+
+		{"src": "fd:xorg/driver/xf86-video-intel"},
+
+		{"src": "fd:nouveau/xf86-video-nouveau"},
 
 		{"src": "fd:xorg/driver/xf86-video-vesa"},
 
