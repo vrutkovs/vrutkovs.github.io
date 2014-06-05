@@ -224,7 +224,7 @@ const TaskBuild = new Lang.Class({
     },
 
     _needsRebuild: function(previousMetadata, newMetadata) {
-        let buildKeys = ['config-opts', 'src', 'revision', 'setuid'];
+        let buildKeys = ['config-opts', 'src', 'revision', 'setuid', 'cflags'];
         for (let i = 0; i < buildKeys.length; i++) {
 	    let k = buildKeys[i];
             if (previousMetadata[k] && !newMetadata[k]) {
@@ -712,8 +712,16 @@ const TaskBuild = new Lang.Class({
 	let envCopy = {};
 	Lang.copyProperties(BuildUtil.BUILD_ENV, envCopy);
         envCopy['PWD'] = chrootSourcedir.get_path();
-        envCopy['CFLAGS'] = OPT_COMMON_CFLAGS[architecture];
-        envCopy['CXXFLAGS'] = OPT_COMMON_CFLAGS[architecture];
+
+        let cflags = OPT_COMMON_CFLAGS[architecture];
+
+        if (expandedComponent['cflags'] != null &&
+            expandedComponent['cflags'][architecture] != null) {
+            cflags = expandedComponent['cflags'][architecture];
+        }
+
+        envCopy['CFLAGS'] = cflags;
+        envCopy['CXXFLAGS'] = cflags;
 
 	let context = new GSystem.SubprocessContext({ argv: childArgs });
 	context.set_stdout_disposition(GSystem.SubprocessStreamDisposition.PIPE);
