@@ -1118,7 +1118,7 @@ const TaskBuild = new Lang.Class({
         let builddir = this.workdir.get_child(builddirName);
 	let buildname = 'bases/' + basename + '-' + architecture;
 
-        let forceRebuild = false; // (this.forceBuildComponents[basename] ||
+        let forceRebuild = this.forceBuildComponents[basename];
                                   // basemeta['src'].indexOf('local:') == 0);
 
         let previousBuild = this._componentBuildCache[buildname];
