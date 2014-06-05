@@ -262,8 +262,7 @@
 
 		{"src": "fd:xorg/lib/libXdamage"},
 
-		{"src": "fd:xorg/lib/libXcursor",
-		 "patches": ["xorg-autogen-merged.patch"]},
+		{"src": "fd:xorg/lib/libXcursor"},
 
 		{"src": "fd:xorg/lib/libXcomposite"},
 
