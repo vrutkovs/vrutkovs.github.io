@@ -948,7 +948,8 @@
 		{"src": "git:git://git.cairographics.org/git/py2cairo",
 		 "patches": ["py2cairo-autogen.patch"]},
 
-		{"src": "gnome:pygobject"},
+		{"src": "gnome:pygobject",
+		 "config-opts": ["--with-python=python2"]},
 
 		{"src": "gnome:pyatspi2"},
 
