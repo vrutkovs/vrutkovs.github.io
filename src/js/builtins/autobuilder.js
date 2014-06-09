@@ -116,7 +116,7 @@ const Autobuilder = new Lang.Class({
 	    print("Task " + task.name + " complete: " + task.buildName);
             resultsPath = this._resultsDir.get_child('successful');
 	} else {
-	    print("Task " + task.name + " failed: " + task.buildName);
+	    print("Task " + task.name + "; failed: " + task.buildName);
             resultsPath = this._resultsDir.get_child('failed');
 	}
 

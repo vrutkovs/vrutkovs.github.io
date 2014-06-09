@@ -93,7 +93,7 @@ const Make = new Lang.Class({
 	    print("Task " + task.name + " complete: " + task.buildName);
 	} else {
 	    this._failed = true;
-	    print("Task " + task.name + " failed: " + task.buildName);
+	    print("Task " + task.name + "; failed: " + task.buildName);
 	}
     },
 
