@@ -295,9 +295,7 @@
         {"src": "fd:libevdev",
 		 "config-opts": ["--disable-gcov"]},
 
-		{"src": "fd:wayland/libinput",
-		 "tag": "14a1d189ff5261066d9797abc95c74e9f2491ba8",
-		 "tag-reason": "breaks clutter"},
+		{"src": "fd:wayland/libinput"},
 
 		{"src": "fd:xorg/util/makedepend",
 		 "component": "devel"},
