@@ -978,6 +978,8 @@
 		"patches": ["behave-buildsys.patch"]},
 
 		{"src": "gnome:gnome-terminal",
+		 "tag": "f65261a0b5d03658be3acb439976fd8af6fa28ea",
+		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=730532",
 		 "config-opts": ["--without-nautilus-extension"]},
 
 		{"src": "gnome:gnome-clocks"},
