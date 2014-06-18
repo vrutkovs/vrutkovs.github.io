@@ -1127,7 +1127,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 52,
-		        "all": true,
-		        "component-names": []}
+	"build-epoch": {"version": 53,
+		        "all": false,
+		        "component-names": ["evolution-ews"]}
 }
