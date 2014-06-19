@@ -28,6 +28,7 @@
                 "fd-wayland": "git:git://anongit.freedesktop.org/wayland/",
                 "fd-telepathy": "git:git://anongit.freedesktop.org/telepathy/",
                 "fd-nice": "git:git://anongit.freedesktop.org/libnice/",
+                "kernel": "git:git://git.kernel.org/pub/scm/linux/kernel/git/",
                 "0pointer": "git:git://git.0pointer.de/",
                 "ibus": "git:git://github.com/ibus/",
                 "linuxwacom": "git:git://linuxwacom.git.sourceforge.net/gitroot/linuxwacom/",
@@ -48,6 +49,14 @@
               "subdir": "patches"},
 
   "components": [
+                {"src": "gnome:gnome-continuous-kernel",
+                 "component": "minimal",
+                 "child-components": [
+                     {"src": "kernel:stable/linux-stable",
+                      "name": "linux",
+                      "branch": "linux-3.14.y"}
+                 ]},
+
    		{"src": "gnome:gtk-doc-stub",
 		 "component": "devel",
 		 "noarch": true},
