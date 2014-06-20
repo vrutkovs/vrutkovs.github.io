@@ -454,6 +454,8 @@
                 {"src": "git:git://github.com/jpirko/libndp.git"},
 
 		{"src": "fd-NM:NetworkManager",
+		 "tag": "dcc109516d4e8706836031ad175ce9176f7c3c72",
+		 "tag-reason": "http://build.gnome.org/continuous/buildmaster/builds/2014/06/19/23/build/log-NetworkManager.txt",
 		 "config-opts": ["--with-dhclient=yes",
 		                 "--with-session-tracking=systemd",
 				 "--with-crypto=nss",
