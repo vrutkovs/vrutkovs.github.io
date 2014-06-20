@@ -1131,7 +1131,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 53,
+	"build-epoch": {"version": 54,
 		        "all": false,
-		        "component-names": ["evolution-ews"]}
+		        "component-names": ["pango"]}
 }
