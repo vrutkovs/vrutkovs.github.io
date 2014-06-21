@@ -117,9 +117,7 @@
 		 "patches": ["freetype-autogen.patch"]},
 
    		{"src": "fd:fontconfig",
-		 "config-opts": ["--with-cache-dir=/usr/lib/fontconfig/cache"],
-                 "tag": "8f62ccaa962b13781d7916d4d1c061993b991e69",
-                 "tag-reason": "http://build.gnome.org/continuous/buildmaster/builds/2014/06/17/10/build/output.txt"},
+		 "config-opts": ["--with-cache-dir=/usr/lib/fontconfig/cache"]},
 
 		{"src": "fd:xorg/util/macros",
 		 "component": "devel"},
