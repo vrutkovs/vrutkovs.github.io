@@ -581,7 +581,8 @@
 		{"src": "gnome:librsvg",
 		 "config-opts": ["--disable-gtk-theme"]},
 
-		{"src": "fd-gstreamer:orc"},
+		{"src": "fd-gstreamer:orc",
+		 "config-opts": ["--disable-gtk-doc"]},
 
 		{"src": "fd-gstreamer:gstreamer",
 		 "config-opts": ["--disable-tests",
