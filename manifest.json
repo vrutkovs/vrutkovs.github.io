@@ -581,8 +581,7 @@
 		{"src": "gnome:librsvg",
 		 "config-opts": ["--disable-gtk-theme"]},
 
-		{"src": "fd-gstreamer:orc",
-		 "patches": ["orc-autogen.patch"]},
+		{"src": "fd-gstreamer:orc"},
 
 		{"src": "fd-gstreamer:gstreamer",
 		 "config-opts": ["--disable-tests",
