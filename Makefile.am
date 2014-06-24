@@ -30,15 +30,8 @@ typelibdir = $(pkglibdir)/girepository-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
 typelib_DATA = $(gir_DATA:.gir=.typelib)
 
-libgsystem_srcpath := src/libgsystem
-libgsystem_cflags = $(GIO_UNIX_CFLAGS) -I$(srcdir)/src/libgsystem
-libgsystem_libs = $(GIO_UNIX_LIBS)
-include src/libgsystem/Makefile-libgsystem.am
-privlib_LTLIBRARIES += libgsystem.la
-
 include Makefile-ostbuild.am
 include Makefile-tests.am
-include Makefile-gsystem-introspection.am
 
 release-tag:
 	git tag -m "Release $(VERSION)" v$(VERSION)
