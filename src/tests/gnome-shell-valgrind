@@ -19,6 +19,7 @@
 
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
+const GSystem = imports.gi.GSystem;
 const Lang = imports.lang;
 
 let running = true;
@@ -98,8 +99,5 @@ print("gnome-shell-valgrind: exiting, results in " + logPath);
 
 Gio.Subprocess.new(['sync'], 0).wait_check(null);
 
-let [success, stdout, stderr, estatus] =
-    GLib.spawn_sync(null,
-                    ['gnome-continuous-journal-log-hack',
-                     'c15ddcb848ed44d9b39fadcfe7a34795=gnome-shell-valgrind complete'],
-                    null, GLib.SpawnFlags.SEARCH_PATH, null);
+GSystem.log_structured("gnome-shell-valgrind complete",
+                       ["MESSAGE_ID=c15ddcb848ed44d9b39fadcfe7a34795"]);

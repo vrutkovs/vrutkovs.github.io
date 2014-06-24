@@ -20,6 +20,7 @@
 const Gtk = imports.gi.Gtk;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
+const GSystem = imports.gi.GSystem;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 
@@ -210,11 +211,8 @@ function main() {
 
     let startstopapps = new StartStopApps();
     startstopapps.run(cancellable);
-    let [success, stdout, stderr, estatus] =
-        GLib.spawn_sync(null,
-                        ['gnome-continuous-journal-log-hack',
-                         '6912513dead443cea8ddb6b716185fa5=startstopapps complete'],
-                        null, GLib.SpawnFlags.SEARCH_PATH, null);  
+    GSystem.log_structured("startstopapps complete",
+                           ["MESSAGE_ID=6912513dead443cea8ddb6b716185fa5"]);
 }
 
 printerr("Running gnome-continuous-startstopapps");
