@@ -62,7 +62,7 @@ function getAppIcon(app) {
     }
 }
 
-const StartStopApps = new GObject.Class({
+const StartStopApps = new Lang.Class({
     Name: 'StartStopApps',
     
     _init: function(props) {
