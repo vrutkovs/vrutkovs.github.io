@@ -133,6 +133,7 @@ const StartStopApps = new Lang.Class({
             this._testNextApp();
             return false;
         }
+        this._appCheckRunningIterations = this._appCheckRunningIterations + 1;
 
         let runningApps = this._shellEval(GET_APP_IDS, this._cancellable);
         for (let i = 0; i < runningApps.length; i++) {
