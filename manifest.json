@@ -1129,7 +1129,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 54,
+	"build-epoch": {"version": 55,
 		        "all": false,
-		        "component-names": ["pango"]}
+		        "component-names": ["gnome-shell", "evolution-data-server", "evolution", "clutter", "glib"]}
 }
