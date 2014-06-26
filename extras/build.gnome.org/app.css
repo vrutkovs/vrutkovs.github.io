@@ -52,3 +52,7 @@ body {
 .app.good .emblem {
     background-image: url(images/app-good.png);
 }
+
+.app.bad .emblem {
+    background-image: url(images/app-bad.png);
+}
