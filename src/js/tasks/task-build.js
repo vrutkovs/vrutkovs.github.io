@@ -704,6 +704,7 @@ const TaskBuild = new Lang.Class({
             '--mount-bind', '/', '/sysroot',
             '--mount-proc', '/proc', 
             '--mount-bind', '/dev', '/dev',
+            '--mount-bind', '/tmp', '/sysroot/tmp',
             '--mount-bind', componentSrc.get_path(), chrootSourcedir.get_path(),
             '--mount-bind', componentResultdir.get_path(), '/ostbuild/results',
             '--chdir', chrootChdir.get_path(),
