@@ -884,6 +884,7 @@ const TaskBuild = new Lang.Class({
 	    '--mount-bind', '/', '/sysroot',
             '--mount-proc', '/proc', 
             '--mount-bind', '/dev', '/dev',
+            '--mount-bind', '/tmp', '/tmp',
             rootdir.get_path(), rootdir.get_relative_path(tmpTriggersScriptPath),
 	    rootdir.get_relative_path(tmpTriggersPath)]);
 	let envCopy = {};
@@ -1035,7 +1036,7 @@ const TaskBuild = new Lang.Class({
 			'--mount-proc', '/proc',
 			'--mount-bind', '/dev', '/dev',
 			'--mount-bind', '/', '/sysroot',
-			'--mount-bind', tmpDir.get_path(), '/sysroot/tmp',
+			'--mount-bind', tmpDir.get_path(), '/tmp',
 			'--mount-bind', varDir.get_path(), '/var',
 			composeRootdir.get_path(),
 			'dracut', '--tmpdir=/tmp', '-f', '/tmp/initramfs-ostree.img',
