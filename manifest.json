@@ -91,10 +91,14 @@
 		 "config-opts": ["--enable-vapigen"]},
 
    		{"src": "git:git://anongit.freedesktop.org/systemd/systemd",
-		 "tag": "v208",
 		 "initramfs-depends": true,
+		 "cflags": {
+		     "x86_64": "-O0 -g -m64 -mtune=generic",
+		     "i686": "-O0 -g -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables"},
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
+				 "--disable-resolved",
+				 "--enable-compat-libs",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
 
