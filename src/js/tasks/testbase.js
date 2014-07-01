@@ -545,8 +545,7 @@ const TestBase = new Lang.Class({
     CompleteIdleWaitSeconds: 10,
     Timeout: 5 * 60,
 
-    BaseRequiredMessageIDs: ["39f53479d3a045ac8e11786248231fbf", // graphical.target 
-                             "f77379a8490b408bbe5f6940505a777b",  // systemd-journald
+    BaseRequiredMessageIDs: ["f77379a8490b408bbe5f6940505a777b",  // systemd-journald
                             ],
 
     BaseFailedMessageIDs: [],
