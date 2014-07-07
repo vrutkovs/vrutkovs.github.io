@@ -42,6 +42,23 @@ const GitMirror = new Lang.Class({
         this.parser.addArgument('components', {nargs:'*'});
     },
 
+    _mirrorComponent: function(component, args, recurse, cancellable) {
+        if (!args.fetch) {
+            Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
+	} else {
+	    print("Running git fetch for " + component['name']);
+	    Vcs.fetch(this.mirrordir, component, cancellable,
+		      { keepGoing:args.keep_going,
+			timeoutSec: args.timeout_sec });
+	}
+
+        if (recurse && component['child-components']) {
+            let childComponents = component['child-components'];
+            for (let i = 0; i < childComponents.length; i++)
+                this._mirrorComponent(childComponents[i], args, recurse, cancellable);
+        }
+    },
+
     execute: function(args, loop, cancellable) {
 	this._initWorkdir(args.workdir, cancellable);
 
@@ -56,23 +73,18 @@ const GitMirror = new Lang.Class({
 	}
 
 	let componentNames;
+        let recurse;
         if (args.components.length == 0) {
 	    componentNames = this._snapshot.getAllComponentNames();
+            recurse = true;
         } else {
             componentNames = args.components;
+            recurse = false;
 	}
 
 	componentNames.forEach(Lang.bind(this, function (name) {
 	    let component = this._snapshot.getComponent(name);
-
-            if (!args.fetch) {
-                Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
-	    } else {
-		print("Running git fetch for " + name);
-		Vcs.fetch(this.mirrordir, component, cancellable,
-			  { keepGoing:args.keep_going,
-			    timeoutSec: args.timeout_sec });
-	    }
+            this._mirrorComponent(component, args, recurse, cancellable);
 	}));
 
 	return true;

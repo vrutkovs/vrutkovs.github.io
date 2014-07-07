@@ -69,6 +69,44 @@ const TaskResolve = new Lang.Class({
 	return commit;
     },
 
+    _storeComponentRevision: function(component, resolveCache, cancellable) {
+        let tagOrBranch = component['tag'] || component['branch'] || 'master';
+        let mirrordir;
+        let modifiedCache = false;
+
+        try {
+            mirrordir = Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
+        } catch (e) {
+            print("Failed to create mirror for component " + component['name']);
+            throw e;
+        }
+        let currentCommit = Vcs.revParse(mirrordir, tagOrBranch, cancellable);
+        let revision = null;
+        let cachedEntry = resolveCache[component['name']];
+        if (cachedEntry) {
+            let previousCommit = cachedEntry['revision'];
+            if (currentCommit == previousCommit)
+                revision = cachedEntry['describe'];
+        }
+        if (revision == null) {
+            print("Describe cache miss for " + component['name']);
+            revision = Vcs.describeVersion(mirrordir, tagOrBranch);
+            modifiedCache = true;
+            resolveCache[component['name']] = {'revision': currentCommit,
+                                               'describe': revision};
+        }
+        component['revision'] = revision;
+
+        if (component['child-components']) {
+            let childComponents = component['child-components'];
+            for (let i = 0; i < childComponents.length; i++) {
+                modifiedCache = this._storeComponentRevision(childComponents[i], resolveCache, cancellable);
+            }
+        }
+
+        return modifiedCache;
+    },
+
     execute: function(cancellable) {
         let manifestPath = this.workdir.get_child('manifest.json');
         this._snapshot = Snapshot.fromFile(manifestPath, cancellable, { prepareResolve: true });
@@ -101,31 +139,7 @@ const TaskResolve = new Lang.Class({
 	let componentNames = this._snapshot.getAllComponentNames();
 	for (let i = 0; i < componentNames.length; i++) {
 	    let component = this._snapshot.getComponent(componentNames[i]);
-	    let tagOrBranch = component['tag'] || component['branch'] || 'master';
-            let mirrordir;
-
-	    try {
-		mirrordir = Vcs.ensureVcsMirror(this.mirrordir, component, cancellable);
-	    } catch (e) {
-		print("Failed to create mirror for component " + component['name']);
-		throw e;
-	    }
-	    let currentCommit = Vcs.revParse(mirrordir, tagOrBranch, cancellable);
-	    let revision = null;
-	    let cachedEntry = resolveCache[component['name']];
-	    if (cachedEntry) {
-		let previousCommit = cachedEntry['revision'];
-		if (currentCommit == previousCommit)
-		    revision = cachedEntry['describe'];
-	    }
-	    if (revision == null) {
-		print("Describe cache miss for " + component['name']);
-		revision = Vcs.describeVersion(mirrordir, tagOrBranch);
-		modifiedCache = true;
-		resolveCache[component['name']] = {'revision': currentCommit,
-						   'describe': revision};
-	    }
-            component['revision'] = revision;
+            modifiedCache = this._storeComponentRevision(component, resolveCache, cancellable);
 	}
 
 	if (modifiedCache)

@@ -239,7 +239,7 @@ const TaskBuild = new Lang.Class({
 		}
 	    }
 	}
-            
+
         if (previousMetadata['patches']) {
             if (!newMetadata['patches']) {
                 return 'patches differ';
@@ -260,6 +260,26 @@ const TaskBuild = new Lang.Class({
 	} else if (newMetadata['patches']) {
 	    return 'patches differ';
 	}
+
+        if (previousMetadata['child-components']) {
+            if (!newMetadata['child-components'])
+                return 'child components differ';
+
+            let oldChildComponents = previousMetadata['child-components'];
+            let newChildComponents = newMetadata['child-components'];
+
+            if (oldChildComponents.length != newChildComponents.length)
+                return 'child components differ';
+
+            for (let i = 0; i <oldChildComponents.length; i++) {
+                if (this._needsRebuild(oldChildComponents[i], newChildComponents[i]))
+                    return 'child component ' + newChildComponents[i].name + ' differs';
+            }
+
+        } else if (newMetadata['child-components']) {
+	    return 'child components differ';
+        }
+
         return null;
     },
 
@@ -576,28 +596,7 @@ const TaskBuild = new Lang.Class({
 			    cancellable);
     },
 
-    _buildOneComponent: function(component, architecture, cancellable, params) {
-	params = Params.parse(params, { installedTests: false });
-        let basename = component['name'];
-
-	if (params.installedTests)
-	    basename = basename + '-installed-tests';
-        let archBuildname = Format.vprintf('%s/%s', [basename, architecture]);
-        let unixBuildname = archBuildname.replace(/\//g, '_');
-        let buildRef = this._componentBuildRefFromName(basename, architecture);
-
-        let currentVcsVersion = component['revision'];
-        let expandedComponent = this._snapshot.getExpanded(component['name']);
-        let previousMetadata = this._componentBuildCache[buildRef];
-	let previousBuildVersion = null;
-	let previousVcsVersion = null;
-        if (previousMetadata != null) {
-            previousBuildVersion = previousMetadata['ostree'];
-            previousVcsVersion = previousMetadata['revision'];
-        } else {
-            print("No previous build for " + archBuildname);
-	}
-
+    _expandPatchDetails: function(expandedComponent, previousMetadata, cancellable) {
 	let patchdir;
         if (expandedComponent['patches']) {
             let patchesRevision = expandedComponent['patches']['revision'];
@@ -626,6 +625,49 @@ const TaskBuild = new Lang.Class({
         } else {
             patchdir = null;
 	}
+
+        return patchdir;
+    },
+
+    _buildOneComponent: function(component, architecture, cancellable, params) {
+	params = Params.parse(params, { installedTests: false });
+        let basename = component['name'];
+
+	if (params.installedTests)
+	    basename = basename + '-installed-tests';
+        let archBuildname = Format.vprintf('%s/%s', [basename, architecture]);
+        let unixBuildname = archBuildname.replace(/\//g, '_');
+        let buildRef = this._componentBuildRefFromName(basename, architecture);
+
+        let currentVcsVersion = component['revision'];
+        let expandedComponent = this._snapshot.getExpanded(component['name']);
+        let previousMetadata = this._componentBuildCache[buildRef];
+	let previousBuildVersion = null;
+	let previousVcsVersion = null;
+        if (previousMetadata != null) {
+            previousBuildVersion = previousMetadata['ostree'];
+            previousVcsVersion = previousMetadata['revision'];
+        } else {
+            print("No previous build for " + archBuildname);
+	}
+
+        let patchdir = this._expandPatchDetails(expandedComponent, previousMetadata, cancellable);
+        let childComponentPatchdirs = []
+
+        if (expandedComponent['child-components']) {
+            let childComponents = expandedComponent['child-components'];
+            for (let i = 0; i < childComponents.length; i++) {
+                let expandedChildComponent = childComponents[i];
+                let previousChildComponentMetadata;
+                if (previousMetadata != null && previousMetadata['child-components'] &&
+                    previousMetadata['child-components'].length == childComponents.length &&
+                    previousMetadata['child-components'][i]['name'] == expandedChildComponent['name'])
+                    previousChildComponentMetadata = previousMetadata['child-components'][i];
+                else
+                    previousChildComponentMetadata = null;
+                childComponentPatchdirs.push(this._expandPatchDetails(expandedChildComponent, previousChildComponentMetadata, cancellable));
+            }
+        }
 
         let forceRebuild = (this.forceBuildComponents[basename] ||
                             expandedComponent['src'].indexOf('local:') == 0);
@@ -1250,6 +1292,8 @@ const TaskBuild = new Lang.Class({
             // We don't want to attempt to apply patches over top
             // of what the override has.
             delete component['patches'];
+            // We also assume that the override also has any child components
+            delete component['child-components'];
         }
     },
 

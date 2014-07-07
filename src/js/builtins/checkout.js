@@ -89,6 +89,16 @@ function _checkoutOneComponent(workdir, mirrordir, patchdir, component, cancella
     let metadataPath = checkoutdir.get_child('_ostbuild-meta.json');
     JsonUtil.writeJsonFileAtomic(metadataPath, component, cancellable);
 
+    if (component['child-components']) {
+        let childComponents = component['child-components'];
+        for (let i = 0; i < childComponents.length; i++) {
+	    let childParams = {};
+	    Lang.copyProperties(params, childParams);
+            childParams.checkoutdir = checkoutdir.get_child(childComponents[i]['name']).get_path();
+            _checkoutOneComponent(workdir, mirrordir, patchdir, childComponents[i], cancellable, childParams);
+        }
+    }
+
     print("Checked out " + component['name'] + " at " + component['revision'] + " in " + checkoutdir.get_path());
 }
 

@@ -30,6 +30,16 @@ function _componentDict(snapshot) {
 	if (r[name])
             throw new Error("Duplicate component name " + name);
         r[name] = component;
+
+        if (component['child-components']) {
+            let childComponents = component['child-components'];
+            for (let j = 0; j < childComponents.length; j++) {
+                let childName = childComponents[j]['name'];
+	        if (r[childName])
+                    throw new Error("Duplicate component name " + chidlName);
+                r[childName] = childComponents[j];
+            }
+        }
     }
 
     let patches = snapshot['patches'];
@@ -84,12 +94,21 @@ const Snapshot = new Lang.Class({
 	    for (let i = 0; i < data['components'].length; i++) {
 		let component = this._resolveComponent(data, data['components'][i]);
 		data['components'][i] = component;
+                if (component['child-components']) {
+                    let childComponents = component['child-components'];
+                    for (let j = 0; j < childComponents.length; j++) {
+                        childComponents[j] = this._resolveComponent(data, childComponents[j]);
+                        childComponents[j]['is-child'] = true;
+                    }
+                }
 	    }
 	}
 	this._componentDict = _componentDict(data);
 	this._componentNames = [];
-	for (let k in this._componentDict)
-	    this._componentNames.push(k);
+	for (let k in this._componentDict) {
+            if (!this._componentDict[k]['is-child'])
+	        this._componentNames.push(k);
+        }
     },
 
     _resolveComponent: function(manifest, componentMeta) {
@@ -161,20 +180,30 @@ const Snapshot = new Lang.Class({
 		r['patches'] = patches;
 	    }
 	}
+        let childComponents = component['child-components'];
+        if (childComponents) {
+            r['child-components'] = [];
+            for (let i = 0; i < childComponents.length; i++)
+                r['child-components'].push(this._expandComponent(childComponents[i]));
+        }
+
 	let configOpts = (this.data['config-opts'] || []).concat();
 	configOpts.push.apply(configOpts, component['config-opts'] || []);
 	r['config-opts'] = configOpts;
 	return r;
     },
 
+    /* child components are not included */
     getAllComponentNames: function() {
 	return this._componentNames;
     },
 
+    /* the component map includes child components! */
     getComponentMap: function() {
 	return this._componentDict;
     },
 
+    /* the name of a child component can be passed */
     getComponent: function(name, allowNone) {
 	let r = this._componentDict[name] || null;
 	if (!r && !allowNone)
