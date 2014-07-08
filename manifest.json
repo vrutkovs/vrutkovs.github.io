@@ -27,6 +27,7 @@
                 "fd-gstreamer": "git:git://anongit.freedesktop.org/gstreamer/",
                 "fd-wayland": "git:git://anongit.freedesktop.org/wayland/",
                 "fd-telepathy": "git:git://anongit.freedesktop.org/telepathy/",
+                "fd-nice": "git:git://anongit.freedesktop.org/libnice/",
                 "0pointer": "git:git://git.0pointer.de/",
                 "ibus": "git:git://github.com/ibus/",
                 "linuxwacom": "git:git://linuxwacom.git.sourceforge.net/gitroot/linuxwacom/",
@@ -899,9 +900,7 @@
 		 "config-opts": ["--disable-Werror"],
 		 "patches": ["telepathy-logger-autogen.patch"]},
 
-		{"src": "git:git://git.collabora.co.uk/git/libnice.git",
-		 "tag": "267a67672169d8586a291583357391533433684f",
-		 "tag-reason": "next commit still references marshaller header"},
+		{"src": "fd-nice:libnice"},
 
 		{"src": "fd-telepathy:telepathy-gabble"},
 
