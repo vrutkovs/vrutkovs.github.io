@@ -781,6 +781,7 @@
 		{"src": "gnome:zenity"},
 
 		{"src": "gnome:mutter",
+                 "irc_room": "gnome-shell",
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
 
                 {"src": "tarball:https://ftp.mozilla.org/pub/mozilla.org/js/mozjs-24.2.0.tar.bz2",
@@ -958,6 +959,7 @@
 		{"src": "gnome:caribou"},
 
 		{"src": "gnome:gnome-shell",
+                 "irc_room": "gnome-shell",
 		 "config-opts": ["--enable-compile-warnings=maximum",
                                  "--disable-man"]},
 
