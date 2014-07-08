@@ -296,9 +296,7 @@
 
                 {"src": "git:http://bitmath.org/git/mtdev.git"},
 
-        {"src": "fd:libevdev",
-		 "tag": "f415f2a6943f24ff19f2fe1bdd955ac6863c478a",
-		 "tag-reason": "http://build.gnome.org/continuous/buildmaster/builds/2014/06/20/7/build/log-libevdev.txt",
+                {"src": "fd:libevdev",
 		 "config-opts": ["--disable-gcov"]},
 
 		{"src": "fd:wayland/libinput"},
