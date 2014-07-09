@@ -1018,9 +1018,7 @@
 
 		{"src": "gnome:polari"},
 
-		{"src": "gnome:baobab",
-		 "tag": "9d06479268f867f69dc44600bc3984d2ecf6f6ef",
-		 "tag-reason": "srcdir != builddir with gresources"},
+		{"src": "gnome:baobab"},
 
 		{"src": "gnome:gnome-maps"},
 
