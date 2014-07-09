@@ -782,6 +782,8 @@
 
 		{"src": "gnome:mutter",
                  "irc_room": "gnome-shell",
+         "tag": "2edf822bc6aad09250fc54d6e427079a31030e8f",
+         "tag-reason": "breaks smoketest",
 		 "config-opts": ["--enable-compile-warnings=maximum"]},
 
                 {"src": "tarball:https://ftp.mozilla.org/pub/mozilla.org/js/mozjs-24.2.0.tar.bz2",
