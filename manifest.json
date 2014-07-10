@@ -765,6 +765,8 @@
 		                 "--disable-gtk-doc"]},
 
 		{"src": "gnome:tracker",
+		 "tag": "7c7e44787f54d6e507a1f13a3b4f895dd8eb636f",
+		 "tag-reason": "incorrectly changes name of .pc file",
 		 "config-opts": ["--enable-miner-firefox=no",
 				 "--enable-miner-thunderbird=no",
 				 "--enable-miner-evolution=no",
