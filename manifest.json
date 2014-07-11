@@ -1010,7 +1010,9 @@
                                  "--disable-offline-appstream-data",
                                  "--enable-installed-tests"]},
 
-		{"src": "gnome:epiphany"},
+		{"src": "gnome:epiphany",
+		 "tag": "9c22098211b7cc825f426c64c0926912889eb300",
+		 "tag-reason": "requires webkit 2.4.4"},
 
 		{"src": "gnome:gnome-calculator",
                  "config-opts": ["--enable-installed-tests"]},
