@@ -449,8 +449,8 @@
                             "/runtime/usr/lib/polkit-1/polkit-agent-helper-1"]},
 
                 {"src": "git:git://git.kernel.org/pub/scm/bluetooth/bluez.git",
-		 "config-opts": ["--disable-cups", "--disable-obex", "--disable-usb", "--disable-tools", "--disable-manpages"],
-		 "patches": ["bluez-autogen.patch", "bluez-disable-docs.patch"]},
+		 "config-opts": ["--disable-cups", "--disable-obex", "--disable-usb", "--disable-tools"],
+		 "patches": ["bluez-autogen.patch"]},
 
                 {"src": "git:git://github.com/jpirko/libndp.git"},
 
