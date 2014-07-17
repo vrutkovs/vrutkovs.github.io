@@ -100,7 +100,8 @@ const TaskResolve = new Lang.Class({
         if (component['child-components']) {
             let childComponents = component['child-components'];
             for (let i = 0; i < childComponents.length; i++) {
-                modifiedCache = this._storeComponentRevision(childComponents[i], resolveCache, cancellable);
+                if (this._storeComponentRevision(childComponents[i], resolveCache, cancellable))
+                    modifiedCache = true;
             }
         }
 
