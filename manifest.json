@@ -371,6 +371,8 @@
 		{"src": "anholt:libepoxy"},
 
 		{"src": "fd:xorg/xserver",
+		 "tag": "55f5bfb578e934319d1308cbb56c900c5ac7cfa7",
+		 "tag-reason": "breaks compilation of intel driver, patch sent upstream",
                  "config-opts": ["--enable-xwayland"]},
 
 		{"src": "fd:xcb/util"},
