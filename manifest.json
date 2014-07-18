@@ -115,6 +115,8 @@
 		 "cflags": {
 		     "x86_64": "-O0 -g -m64 -mtune=generic",
 		     "i686": "-O0 -g -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables"},
+		 "tag": "93c0969cf91c4e4973806181a6098b66a4e8e2f8",
+		 "tag-reason": "https://bugs.freedesktop.org/show_bug.cgi?id=81505",
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
 				 "--disable-resolved",
