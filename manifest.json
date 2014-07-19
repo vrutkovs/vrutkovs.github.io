@@ -1224,7 +1224,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 56,
+	"build-epoch": {"version": 57,
 		        "all": false,
-		        "component-names": ["gnome-photos"]}
+		        "component-names": ["gnome-session"]}
 }
