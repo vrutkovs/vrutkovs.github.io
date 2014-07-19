@@ -616,8 +616,7 @@
 
 		{"src": "gnome:libcroco"},
 
-		{"src": "gnome:librsvg",
-		 "config-opts": ["--disable-gtk-theme"]},
+		{"src": "gnome:librsvg"},
 
 		{"src": "fd-gstreamer:orc",
 		 "config-opts": ["--disable-gtk-doc"]},
