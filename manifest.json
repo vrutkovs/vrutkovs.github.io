@@ -747,7 +747,6 @@
 		 "checksum": "58cbfc7e352ae1e1f5e383f9f766795794d88483e9a52377a295f56eedf53ab9",
 		 "config-opts": ["--enable-introspection",
 				 "--enable-debug-symbols=min",
-				 "--disable-geolocation",
 				 "--disable-maintainer-mode"]},
 
 		{"src": "gnome:libgee",
