@@ -545,6 +545,11 @@
 				 "--disable-bash-completion",
 				 "--disable-installed-tests"]},
 
+		{"src": "gnome:gconf",
+		 "config-opts": ["--disable-orbit",
+		                 "--disable-gtk",
+				 "--disable-documentation"]},
+
                 {"src": "cgwalters:ragel-tarballs-as-git",
 		 "patches": ["ragel-gcc-4.7.patch"],
 		 "tag": "0b17ee79bf5237ffdc3a2a7480023a7d61063788"},
