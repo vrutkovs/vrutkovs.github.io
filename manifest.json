@@ -1224,7 +1224,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 58,
+	"build-epoch": {"version": 59,
 		        "all": false,
-		        "component-names": ["ibus"]}
+		        "component-names": ["glamor", "xorg-driver-xf86-video-modesetting"]}
 }
