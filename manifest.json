@@ -896,8 +896,7 @@
 		 "config-opts": ["--without-pcre"]},
 
                 {"src": "ibus:ibus.git",
-		 "patches": ["ibus-builddir.patch",
-			     "ibus-dconf-update.patch"],
+		 "patches": ["ibus-builddir.patch"],
 		 "config-opts": ["--disable-tests", 
 				 "--disable-gconf",
 				 "--enable-dconf",
