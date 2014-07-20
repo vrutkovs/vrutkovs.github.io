@@ -669,7 +669,6 @@
 		                 "--disable-migration"]},
 
 		{"src": "fd-pulse:pulseaudio",
-		 "branch": "stable-3.x",
 		 "config-opts": ["--disable-openssl"],
 		 "patches": ["pulseaudio-autogen.patch"]},
 
