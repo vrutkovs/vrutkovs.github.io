@@ -502,7 +502,6 @@
 		 "name": "libmbim"},
 
 		{"src": "fd-MM:ModemManager.git",
-		 "patches": ["ModemManager-headers.patch"],
 		 "config-opts": ["--with-udev-base-dir=/usr/lib/udev",
 		                 "--disable-more-warnings"]},
 
