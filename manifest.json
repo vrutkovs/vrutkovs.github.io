@@ -677,8 +677,7 @@
 		 "config-opts": ["--disable-openssl"],
 		 "patches": ["pulseaudio-autogen.patch"]},
 
-		{"src": "0pointer:libcanberra",
-		 "patches": ["libcanberra-no-lynx.patch"]},
+		{"src": "0pointer:libcanberra"},
 
                 {"src": "git:git://gitorious.org/itstool/itstool.git"},
 
