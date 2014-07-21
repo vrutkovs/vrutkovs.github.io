@@ -166,9 +166,6 @@
 		 "tag": "ead89ad84877551cc15d26b95cb19a3e205df71f",
 		 "component": "devel"},
 
-		{"src": "fd:xorg/proto/dri3proto",
-		 "component": "devel"},
-
 		{"src": "fd:xorg/proto/evieproto",
 		 "component": "devel"},
 
