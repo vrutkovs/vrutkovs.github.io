@@ -748,11 +748,6 @@
 				 "--disable-maintainer-mode"]},
 
 		{"src": "gnome:libgee",
-		 "name": "libgee-0.6",
-		 "branch": "0.6",
-		 "patches": ["gee-builddir.patch"]},
-
-		{"src": "gnome:libgee",
 		 "patches": ["gee-builddir.patch"]},
 
 		{"src": "git:git://gitorious.org/packagekit/packagekit.git",
