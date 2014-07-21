@@ -339,6 +339,9 @@
 
                 {"src": "fd-mesa:mesa",
                  "branch": "egl-drm",
+                 "cflags": {
+		     "x86_64": "-fno-rtti",
+                 },
                  "config-opts": [
                      "--enable-pic",
                      "--disable-asm",
