@@ -338,7 +338,7 @@
 		 "config-opts": ["--disable-documentation"]},
 
 		{"src": "fd-mesa:mesa",
-            	 "branch": "10.0", 
+            	 "branch": "egl-drm",
 		 "config-opts": [
             	     "--enable-pic", 
             	     "--disable-asm", 
