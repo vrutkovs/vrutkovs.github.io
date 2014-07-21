@@ -339,9 +339,10 @@
 
                 {"src": "fd-mesa:mesa",
                  "branch": "egl-drm",
-                 "cflags": {
-		     "x86_64": "-fno-rtti",
-                 },
+				 "cflags": {
+				     "x86_64": "-g -m64 -mtune=generic -fno-rtti",
+				     "i686": "-g -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables -fno-rtti"
+				 },
                  "config-opts": [
                      "--enable-pic",
                      "--disable-asm",
