@@ -341,7 +341,12 @@
 		 "config-opts": ["--disable-documentation"]},
 
                 {"src": "fd-mesa:mesa",
-                 "branch": "10.0",
+                 "branch": "egl-drm",
+                 "cflags": {
+                     "x86_64": "-g -m64 -mtune=generic -fno-rtti",
+                     "i686": "-g -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables -fno-rtti"
+                 },
+                 "patches": ["mesa-nv50-fix-build.patch"],
                  "config-opts": [
                      "--enable-pic",
                      "--disable-asm",
@@ -356,6 +361,7 @@
                      "--with-egl-platforms=wayland,x11,drm",
                      "--enable-shared-glapi",
                      "--enable-gbm",
+                     "--enable-gallium-gbm",
                      "--enable-xa",
                      "--with-gallium-drivers=svga,r300,r600,nouveau,swrast",
                      "--enable-gallium-llvm",
