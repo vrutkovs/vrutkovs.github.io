@@ -1092,8 +1092,6 @@
 		{"src": "gnome:nautilus"},
 
 		{"src": "gnome:gedit",
-		 "tag": "ab34df7f946b342c0d15904af6c1b3c8f169cdc4",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=732946",
 		 "config-opts": ["--enable-python=no",
 				 "--disable-spell"]},
 
