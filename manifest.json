@@ -892,9 +892,10 @@
                              "tgt-disable-man.patch"],
                  "config-opts": ["--disable-man"]},
 
-		{"src": "lighttpd:lighttpd/lighttpd-1.x",
+		{"src": "tarball:http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.35.tar.xz",
                  "name": "lighttpd",
-                 "tag": "lighttpd-1.4.x",
+                 "rm-configure": true,
+                 "checksum": "113e9b72ccbd1da5deb0774bf93cf0ca15dc82aad2da0f04e5ab27d37d3f30a3",
                  "component": "hwtest",
 		 "config-opts": ["--without-pcre"]},
 
