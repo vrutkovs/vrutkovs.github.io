@@ -34,12 +34,14 @@ const VersionedDir = new Lang.Class({
     Name: 'VersionedDir',
 
     _YMD_SERIAL_VERSION_RE: /^(\d+)(\d\d)(\d\d)\.(\d+)$/,
+    _YMD_PATH_RE: /^(\d+)\/(\d\d)\/(\d\d)$/,
     _YEAR_OR_SERIAL_VERSION_RE: /^(\d+)$/,
     _MONTH_OR_DAY_VERSION_RE: /^\d\d$/,
 
     _init: function(path) {
 	this.path = path;
 	this._cachedResults = null;
+	this._cachedTargets = {};
 	GSystem.file_ensure_directory(this.path, true, null);
     },
 
@@ -118,11 +120,60 @@ const VersionedDir = new Lang.Class({
 	return results;
     },
 
+    _loadTargets: function(version, cancellable) {
+        if (version in this._cachedTargets)
+            return this._cachedTargets[version];
+
+        let targets = null;
+
+        let path = this.createPathForVersion(version);
+        let buildJsonPath = path.get_child('build.json');
+        if (buildJsonPath.query_exists(cancellable)) {
+            let buildJson = JsonUtil.loadJson(buildJsonPath, cancellable);
+            if ('targets' in buildJson)
+                targets = buildJson['targets'];
+        }
+
+        this._cachedTargets[version] = targets;
+        return targets;
+    },
+
     currentVersion: function(cancellable) {
 	let versions = this.loadVersions(cancellable);
 	if (versions.length > 0)
 	    return versions[versions.length - 1];
 	return null;
+    },
+
+    _updateIndex: function(path, force, cancellable) {
+	let relpath = this.path.get_relative_path(path);
+        let isDayIndex = this._YMD_PATH_RE.test(relpath);
+
+	let indexJsonPath = path.get_child('index.json');
+	if (indexJsonPath.query_exists(cancellable) && !force)
+            return;
+
+	let childNames = [];
+        let targetMap = isDayIndex ? {} : null;
+	FileUtil.walkDir(path, { depth: 1,
+				   fileType: Gio.FileType.DIRECTORY },
+			 Lang.bind(this, function(filePath, cancellable) {
+                             let baseName = filePath.get_basename();
+			     childNames.push(baseName);
+                             if (isDayIndex) {
+                                 let version = this.pathToVersion(filePath);
+                                 let targets = this._loadTargets(version, cancellable);
+                                 if (targets) {
+                                     for (let target in targets)
+                                         targetMap[targets[target]] = [baseName, target];
+                                 }
+                             }
+			 }), cancellable);
+
+        let data = { 'subdirs': childNames };
+        if (isDayIndex != null)
+            data['targetMap'] = targetMap;
+	JsonUtil.writeJsonFileAtomic(indexJsonPath, data, cancellable);
     },
 
     _makeDirUpdateIndex: function(path, cancellable) {
@@ -143,19 +194,7 @@ const VersionedDir = new Lang.Class({
 	    if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS))
 		throw e;
 	}
-	let indexJsonPath = parent.get_child('index.json');
-	if (!created)
-	    created = !indexJsonPath.query_exists(null);
-	if (created) {
-	    let childNames = [];
-	    FileUtil.walkDir(parent, { depth: 1,
-				       fileType: Gio.FileType.DIRECTORY },
-			     Lang.bind(this, function(filePath, cancellable) {
-				 childNames.push(filePath.get_basename());
-			     }), cancellable);
-	    JsonUtil.writeJsonFileAtomic(indexJsonPath,
-					 { 'subdirs': childNames }, cancellable);
-	}
+        this._updateIndex(parent, created, cancellable);
     },
 
     allocateNewVersion: function(cancellable) {
@@ -190,5 +229,13 @@ const VersionedDir = new Lang.Class({
 	let last = versions.pop();
 	let path = this.createPathForVersion(last);
 	GSystem.shutil_rm_rf(path, cancellable);
+    },
+
+    updateTargets: function(version, cancellable) {
+        delete this._cachedTargets[version];
+
+        let path = this.createPathForVersion(version);
+	let parent = path.get_parent();
+        this._updateIndex(parent, true, cancellable);
     }
 });

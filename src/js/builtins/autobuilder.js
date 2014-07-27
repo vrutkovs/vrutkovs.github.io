@@ -124,6 +124,12 @@ const Autobuilder = new Lang.Class({
 
         BuildUtil.atomicSymlinkSwap(resultsPath, task.buildPath, null);
 
+        if (task.name == 'build' && success) {
+	    print("Updating targets " + task.buildName + " - " + test.buildPath);
+            this._buildsDir.updateTargets(VersionedDir.relpathToVersion(task.buildName),
+                                          cancellable);
+        }
+
 	this._updateStatus();
     },
 
