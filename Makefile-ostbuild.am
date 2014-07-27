@@ -86,6 +86,7 @@ jsostbuiltins_DATA= \
 	src/js/builtins/qa_make_disk.js \
 	src/js/builtins/run_task.js \
 	src/js/builtins/shell.js \
+	src/js/builtins/update_indices.js \
 	$(NULL)
 
 jsosttasksdir=$(jsostbuilddir)/tasks

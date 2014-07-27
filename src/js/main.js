@@ -25,7 +25,8 @@ const BUILTINS = ['autobuilder',
                   'make',
                   'qa-make-disk',
                   'run-task',
-                  'shell'];
+                  'shell',
+                  'update-indices'];
 
 function getModule(unixName) {
     return imports.builtins[unixName.replace(/-/g, '_')];

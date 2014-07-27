@@ -237,5 +237,31 @@ const VersionedDir = new Lang.Class({
         let path = this.createPathForVersion(version);
 	let parent = path.get_parent();
         this._updateIndex(parent, true, cancellable);
+    },
+
+    _updateIndicesTargetsYear: function(yeardir, cancellable) {
+	this._iterateChildrenMatching(yeardir, this._MONTH_OR_DAY_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  this._updateIndicesTargetsMonth(srcpath, cancellable);
+				      }), cancellable);
+    },
+
+    _updateIndicesTargetsMonth: function(monthdir, cancellable) {
+	this._iterateChildrenMatching(monthdir, this._MONTH_OR_DAY_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  this._updateIndicesTargetsDay(srcpath, cancellable);
+				      }), cancellable);
+    },
+
+    _updateIndicesTargetsDay: function(daydir, cancellable) {
+	print("Updating index for " + this.path.get_relative_path(daydir));
+        this._updateIndex(daydir, true, cancellable);
+    },
+
+    updateAllIndices: function(cancellable) {
+	this._iterateChildrenMatching(this.path, this._YEAR_OR_SERIAL_VERSION_RE,
+				      Lang.bind(this, function(srcpath, match, cancellable) {
+					  this._updateIndicesTargetsYear(srcpath, cancellable);
+				      }), cancellable);
     }
 });
