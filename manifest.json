@@ -798,6 +798,8 @@
 		                 "--disable-scrollkeeper"]},
 
 		{"src": "gnome:libmediaart",
+		 "tag": "733ce3f5ae97de8ef03552c1f225e4cd4851c59d",
+		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=733863",
 		 "config-opts": ["--enable-vala",
 		                 "--disable-gtk-doc"]},
 
