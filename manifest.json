@@ -810,7 +810,9 @@
 				 "--disable-tracker-preferences",
 				 "--disable-tracker-search-bar",
 				 "--disable-tracker-explorer",
-				 "--with-unicode-support=libicu"]},
+				 "--with-unicode-support=libicu"],
+		 "tag": "279c59edbb6c40e4d8a93592e0b0a5e011f1e94c",
+		 "tag-reason": "http://build.gnome.org/#/build/20140728.21"},
 
 		{"src": "gnome:dconf",
 		 "config-opts": ["--disable-man", "--disable-editor"]},
