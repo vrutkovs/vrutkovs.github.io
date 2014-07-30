@@ -381,6 +381,8 @@
 		{"src": "anholt:libepoxy"},
 
 		{"src": "fd:xorg/xserver",
+                 "tag": "860cd209679a2e56460977882b3b3826ddcb8710",
+                 "tag-reason": "broken build",
                  "config-opts": ["--enable-xwayland"]},
 
 		{"src": "fd:xcb/util"},
