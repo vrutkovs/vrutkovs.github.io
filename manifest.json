@@ -613,8 +613,6 @@
 		{"src": "gnome:libsecret",
 		 "config-opts": ["--disable-manpages"]},
 
-		{"src": "gnome:libgnome-keyring"},
-
 		{"src": "gnome:gnome-keyring",
 		 "config-opts": ["--disable-doc"]},
 
