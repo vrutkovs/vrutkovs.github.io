@@ -1098,7 +1098,9 @@
                                  "--disable-offline-appstream-data",
                                  "--enable-installed-tests"]},
 
-		{"src": "gnome:epiphany"},
+		{"src": "gnome:epiphany",
+		 "tag": "9e8e34a398788754ce76119b502eb8e458f1aec8",
+		 "tag-reason": "requires webkitgtk 2.5.1"},
 
 		{"src": "gnome:gnome-calculator",
                  "config-opts": ["--enable-installed-tests"]},
