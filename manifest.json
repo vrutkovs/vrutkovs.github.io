@@ -693,7 +693,9 @@
                  "component": "minimal"},
 
 		{"src": "gnome:gnome-desktop",
-		 "config-opts": ["--disable-desktop-docs"]},
+		 "config-opts": [
+		 		"--disable-desktop-docs",
+		 		"--enable-installed-tests"]},
 
 		{"src": "linuxwacom:libwacom",
 		 "patches": ["libwacom-autogen.patch"]},
