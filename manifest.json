@@ -639,7 +639,8 @@
 				 "--enable-wayland-egl-server",
 				 "--enable-kms-egl-platform",
 				 "--enable-xlib-egl-platform",
-				 "--enable-cogl-gst"],
+				 "--enable-cogl-gst",
+				 "--enable-installed-tests"],
 		 "branch": "cogl-1.18"},
 
 		{"src": "gnome:clutter",
