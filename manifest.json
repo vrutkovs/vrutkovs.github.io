@@ -393,8 +393,7 @@
 
 		{"src": "fd:xorg/driver/xf86-video-modesetting"},
 
-                {"src": "git:git://github.com/xkbcommon/libxkbcommon",
-		 "config-opts": ["--disable-x11"]},
+                {"src": "git:git://github.com/xkbcommon/libxkbcommon"},
 
                 {"src": "git:git://git.xiph.org/celt.git"},
 
