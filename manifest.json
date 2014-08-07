@@ -725,7 +725,9 @@
 
 		{"src": "gnome:libsoup",
 		 "component": "minimal",
-		 "config-args": ["--disable-tls-check"]},
+		 "config-args": [
+		 		"--disable-tls-check",
+		 		"--enable-installed-tests"]},
 
 		{"src": "gnome:gnome-ostree-integration",
                  "component": "minimal"},
