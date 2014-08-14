@@ -602,6 +602,7 @@
 		 "patches": ["ca-certs-build.patch"]},
 
 		{"src": "fd-p11:p11-kit",
+                 "tag": "6333aedd27b1a9cb81ac2d0556c1a97f726bdb33",
                  "component": "minimal"},
 
 		{"src": "gnome:gcr",
