@@ -1066,7 +1066,8 @@
 		 "config-opts": ["--enable-extensions=classic-mode"]},
 
 
-		{"src": "git:git://github.com/hughsie/appstream-glib.git"},
+		{"src": "git:git://github.com/hughsie/appstream-glib.git",
+		 "config-opts": ["--disable-dep11"]},
 
                 {"src": "git:https://github.com/hughsie/appdata-tools.git"},
 
