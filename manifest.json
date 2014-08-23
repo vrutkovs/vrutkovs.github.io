@@ -118,6 +118,7 @@
 		 "config-opts": ["--disable-manpages",
 				 "--disable-networkd",
 				 "--disable-resolved",
+                                 "--disable-timesyncd",
 				 "--enable-compat-libs",
 				 "--with-sysvinit-path=",
 				 "--with-sysvrcnd-path="]},
