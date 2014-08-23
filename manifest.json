@@ -602,8 +602,6 @@
 		 "patches": ["ca-certs-build.patch"]},
 
 		{"src": "fd-p11:p11-kit",
-		 "tag": "92523973caae8b195c4d39b6cf872ea09d72d497",
-		 "tag-reason": "build breakage, works without subdir-objects; I think this would be best with nonrecursive make",
                  "component": "minimal"},
 
 		{"src": "gnome:gcr",
