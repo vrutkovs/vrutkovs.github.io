@@ -219,7 +219,7 @@ RateLimitInterval=0\n', null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, ca
 
 function injectTestUserCreation(currentDir, currentEtcDir, username, params, cancellable) {
     params = Params.parse(params, { password: null, session: null });
-    let execLine, passwordCommand, setSessionCommand;
+    let passwordCommand, setSessionCommand;
     let commandTemplate = '/usr/bin/dbus-send --print-reply --reply-timeout=60000 --system --type=method_call --print-reply' +
         ' --dest=org.freedesktop.Accounts /org/freedesktop/Accounts%s org.freedesktop.Accounts.%s %s'
 
@@ -231,18 +231,21 @@ function injectTestUserCreation(currentDir, currentEtcDir, username, params, can
         passwordCommand = Format.vprintf("echo %s | passwd --stdin %s", [params.password, username]);
     }
     let cacheUserCommand = Format.vprintf(commandTemplate, ['', 'CacheUser', 'string:' + username])
-    execLine = Format.vprintf('/bin/sh -c "%s"; /bin/sh -c "%s"; /bin/sh -c "%s"', [addUserCommand, passwordCommand, cacheUserCommand])
-    if (params.session) {
-        setSessionCommand = Format.vprintf(commandTemplate, ['/User1000', 'User.SetXSession', 'string:' + params.session])
-        execLine += Format.vprintf('; /bin/sh -c "%s"', [setSessionCommand])
-    }
     let addUserService = '[Unit]\n\
 Description=Add user %s\n\
 Before=gdm.service\n\
 [Service]\n\
+Type=oneshot\n\
 ExecStart=%s\n\
-Type=oneshot\n';
-    addUserService = Format.vprintf(addUserService, [username, execLine]);
+ExecStart=%s\n\
+ExecStart=%s\n\
+';
+    addUserService = Format.vprintf(addUserService, [username, addUserCommand, passwordCommand, cacheUserCommand]);
+
+    if (params.session) {
+        setSessionCommand = Format.vprintf(commandTemplate, ['/User1000', 'User.SetXSession', 'string:' + params.session])
+        addUserService = addUserService + Format.vprintf('ExecStart=%s\n', [setSessionCommand]);
+    }
 
     let addUserServicePath = getMultiuserWantsDir(currentEtcDir).get_child('gnome-ostree-add-user-' + username + '.service');
     addUserServicePath.replace_contents(addUserService, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
