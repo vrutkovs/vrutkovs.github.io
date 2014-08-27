@@ -763,6 +763,8 @@
 		 "patches": ["gee-builddir.patch"]},
 
 		{"src": "git:git://gitorious.org/packagekit/packagekit.git",
+		 "tag": "57c504e4e20eebdbb900bbcdc9ea278452121eeb",
+		 "tag-reason": "srcdir != builddir issue",
 		 "config-opts": ["--disable-strict",
 				 "--disable-service-packs",
 				 "--enable-NetworkManager",
