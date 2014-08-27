@@ -716,7 +716,8 @@
 
 		{"src": "gnome:gvfs",
 		 "config-opts": ["--disable-gphoto2",
-				 "--disable-documentation"]},
+				 "--disable-documentation",
+				 "--enable-installed-tests"]},
 
 		{"src": "gnome:gnome-menus"},
 
