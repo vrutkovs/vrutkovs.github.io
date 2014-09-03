@@ -1188,7 +1188,8 @@
 				 "--disable-spamassassin",
 				 "--disable-text-highlight",
 				 "--disable-pst-import",
-				 "--disable-libcryptui"]},
+				 "--disable-libcryptui",
+				 "--disable-autoar"]},
 
 		{"src": "gnome:evolution-ews",
 		 "irc_room": "evolution",
