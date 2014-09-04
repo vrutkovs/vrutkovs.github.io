@@ -774,7 +774,9 @@
 				 "--disable-cron",
 				 "--disable-pm-utils",
 				 "--with-security-framework=polkit",
-				 "--disable-systemd-updates"]},
+				 "--disable-systemd-updates"],
+		 "tag": "5aeedb340209a4eb94f5dd359ee3c8e5ea0e14e8",
+		 "tag-reason": "https://gitorious.org/packagekit/packagekit/commit/47c751312f499dcbac5d3bce1b7b925b46f34b38#c107938"},
 
                 {"src": "gnome:gtksourceview",
                  "config-opts": ["--enable-compile-warnings=maximum",
