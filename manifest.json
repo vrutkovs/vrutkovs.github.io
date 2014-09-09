@@ -764,7 +764,6 @@
 
 		{"src": "git:git://github.com/hughsie/PackageKit.git",
 		 "config-opts": ["--disable-strict",
-				 "--disable-service-packs",
 				 "--enable-NetworkManager",
 				 "--enable-systemd",
 				 "--disable-man-pages",
@@ -772,8 +771,6 @@
 				 "--disable-tests",
 				 "--disable-browser-plugin",
 				 "--disable-cron",
-				 "--disable-pm-utils",
-				 "--with-security-framework=polkit",
 				 "--disable-systemd-updates"]},
 
                 {"src": "gnome:gtksourceview",
