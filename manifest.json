@@ -762,7 +762,7 @@
 		{"src": "gnome:libgee",
 		 "patches": ["gee-builddir.patch"]},
 
-		{"src": "git:git://gitorious.org/packagekit/packagekit.git",
+		{"src": "git:git://github.com/hughsie/PackageKit.git",
 		 "config-opts": ["--disable-strict",
 				 "--disable-service-packs",
 				 "--enable-NetworkManager",
