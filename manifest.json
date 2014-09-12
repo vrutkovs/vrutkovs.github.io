@@ -820,7 +820,8 @@
 
 		{"src": "gnome:mutter",
                  "irc_room": "gnome-shell",
-		 "config-opts": ["--enable-compile-warnings=maximum"]},
+		 "config-opts": ["--enable-compile-warnings=maximum",
+				 "--enable-installed-tests"]},
 
                 {"src": "tarball:https://ftp.mozilla.org/pub/mozilla.org/js/mozjs-24.2.0.tar.bz2",
 		 "name": "js24",
