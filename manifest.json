@@ -1232,7 +1232,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 61,
+	"build-epoch": {"version": 62,
 		        "all": false,
-		        "component-names": ["mesa"]}
+		        "component-names": ["libinput", "clutter", "mutter"]}
 }
