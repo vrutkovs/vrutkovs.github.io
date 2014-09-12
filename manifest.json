@@ -1232,7 +1232,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 62,
+	"build-epoch": {"version": 63,
 		        "all": false,
-		        "component-names": ["libinput", "clutter", "mutter"]}
+		        "component-names": ["wayland/libinput", "clutter", "mutter"]}
 }
