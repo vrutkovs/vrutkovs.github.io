@@ -522,7 +522,7 @@ const TestOneDisk = new Lang.Class({
             gfmnt.umount(cancellable);
         }
 
-        //GSystem.shutil_rm_rf(diskClone, cancellable);
+        GSystem.shutil_rm_rf(diskClone, cancellable);
 
         if (this._failed) {
             throw new Error(this._failedMessage);
