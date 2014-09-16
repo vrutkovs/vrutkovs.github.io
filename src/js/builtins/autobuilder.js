@@ -125,7 +125,10 @@ const Autobuilder = new Lang.Class({
         BuildUtil.atomicSymlinkSwap(resultsPath, task.buildPath, null);
 
         if (task.name == 'build' && success) {
-            this._buildsDir.updateTargets(VersionedDir.relpathToVersion(task.buildName),
+            if (task.buildName.indexOf('builds/') != 0)
+                throw new Error("Unexpected buildName: ", task.buildName);
+            let relpath = task.buildName.substring(7);
+            this._buildsDir.updateTargets(VersionedDir.relpathToVersion(relpath),
                                           cancellable);
         }
 
