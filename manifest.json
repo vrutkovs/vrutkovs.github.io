@@ -714,11 +714,6 @@
 
 		{"src": "gnome:adwaita-icon-theme"},
 
-		{"src": "gnome:gvfs",
-		 "config-opts": ["--disable-gphoto2",
-				 "--disable-documentation",
-				 "--enable-installed-tests"]},
-
 		{"src": "gnome:gnome-menus"},
 
                 {"src": "gnome:glib-networking",
@@ -730,6 +725,11 @@
 		 "config-args": [
 		 		"--disable-tls-check",
 		 		"--enable-installed-tests"]},
+
+		{"src": "gnome:gvfs",
+		 "config-opts": ["--disable-gphoto2",
+				 "--disable-documentation",
+				 "--enable-installed-tests"]},
 
 		{"src": "gnome:gnome-ostree-integration",
                  "component": "minimal"},
