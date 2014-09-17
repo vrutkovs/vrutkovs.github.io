@@ -1233,7 +1233,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 64,
+	"build-epoch": {"version": 65,
 		        "all": false,
-		        "component-names": ["clutter", "mutter"]}
+		        "component-names": ["libsoup", "gvfs"]}
 }
