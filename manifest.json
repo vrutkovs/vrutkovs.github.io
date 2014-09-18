@@ -121,7 +121,9 @@
                                  "--disable-timesyncd",
 				 "--enable-compat-libs",
 				 "--with-sysvinit-path=",
-				 "--with-sysvrcnd-path="]},
+				 "--with-sysvrcnd-path="],
+		 "tag": "b1604b341bcd190d67894f416d842990a082a4a4",
+		 "tag-reason": "breaks smoketest, http://build.gnome.org/#/build/20140918.54"},
 
    		{"src": "git:git://git.fedorahosted.org/git/lvm2.git",
 		 "tag": "v2_02_106"},
