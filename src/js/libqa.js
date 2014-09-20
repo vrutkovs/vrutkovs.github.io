@@ -93,14 +93,15 @@ function newReadWriteMount(diskpath, cancellable) {
     return [gfmnt, mntdir];
 }
 
-function createDisk(diskpath, cancellable) {
-    let sizeMb = 8 * 1024;
+function createDisk(diskpath, params, cancellable) {
+    params = Params.parse(params, { sizeMB: 8 * 1024 });
+
     let bootsizeMb = 200;
     let swapsizeMb = 64;
 
     let guestfishProcess;
     
-    ProcUtil.runSync(['qemu-img', 'create', '-f', 'qcow2', diskpath.get_path(), '' + sizeMb + 'M'], cancellable);
+    ProcUtil.runSync(['qemu-img', 'create', '-f', 'qcow2', diskpath.get_path(), '' + params.sizeMB + 'M'], cancellable);
     let makeDiskCmd = 'launch\n\
 part-init /dev/sda mbr\n\
 blockdev-getsize64 /dev/sda\n\

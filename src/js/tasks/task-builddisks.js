@@ -111,7 +111,11 @@ const TaskBuildDisks = new Lang.Class({
             if (doCloneDisk) {
                 LibQA.copyDisk(prevPath, diskPath, cancellable);
             } else {
-                LibQA.createDisk(diskPath, cancellable);
+                // create a smaller disk for the hwtest image to facilitate writing to a thumbdrive
+                let params = {};
+                if (JSUtil.stringEndswith(targetName, '-hwtest'))
+                    params.sizeMB = 4 * 1024;
+                LibQA.createDisk(diskPath, params, cancellable);
             }
             let mntdir = Gio.File.new_for_path('mnt-' + squashedName);
             GSystem.file_ensure_directory(mntdir, true, cancellable);
