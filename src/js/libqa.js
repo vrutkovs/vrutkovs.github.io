@@ -374,7 +374,8 @@ function pullDeploy(mntdir, srcrepo, osname, target, revision, originRepoUrl, ca
     let defaultFstab = 'LABEL=gnostree-root / ext4 defaults 1 1\n\
 LABEL=gnostree-boot /boot ext4 defaults 1 2\n\
 LABEL=gnostree-swap swap swap defaults 0 0\n';
-    let fstabPath = ostreeOsdir.resolve_relative_path('current/etc/fstab');
+    let [currentDir, currentEtcDir] = getDeployDirs(mntdir, osname);
+    let fstabPath = currentEtcDir.resolve_relative_path('fstab');
     fstabPath.replace_contents(defaultFstab, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable);
 };
 
