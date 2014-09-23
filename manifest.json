@@ -6,8 +6,8 @@
   "architectures": ["x86_64"],
   "base": {
             "name": "yocto",
-	    "src": "cgwalters:poky",
-            "branch": "gnomeostree-3.10-dylan"
+	    "src": "gnome:gnome-continuous-yocto",
+            "branch": "gnomeostree-3.14-dizzy"
           },
 
   "config-opts": ["--disable-static", "--disable-silent-rules"],
@@ -41,6 +41,7 @@
                 "ipxe": "git:git://git.ipxe.org/",
                 "socat": "git:git://repo.or.cz/",
 		"cgwalters": "git:git://github.com/cgwalters/",
+		"alexlarsson": "git:git://github.com/alexlarsson/",
                 "anholt": "git:git://github.com/anholt/",
                 "fujita": "git:git://github.com/fujita/",
                 "mikechristie" : "git:git://github.com/mikechristie/"},
@@ -599,11 +600,6 @@
 		{"src": "fd-fprint:libfprint"},
 
 		{"src": "fd-fprint:fprintd"},
-
-		{"src": "git:git://pkgs.fedoraproject.org/ca-certificates.git",
-		 "tag": "8c27f267a89811f60b0cb442f637a01b2978e2c2",
-                 "component": "minimal",
-		 "patches": ["ca-certs-build.patch"]},
 
 		{"src": "fd-p11:p11-kit",
                  "component": "minimal"},

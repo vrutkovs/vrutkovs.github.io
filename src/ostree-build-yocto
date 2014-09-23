@@ -85,12 +85,12 @@ EOF
     mv ${localconf}.tmp ${localconf}
 fi
 
-IMAGEDIR=${builddir}/tmp-eglibc/deploy/images
+IMAGEDIR=${builddir}/tmp-glibc/deploy/images
 mkdir -p "${IMAGEDIR}"
 ln -sf ${repo_path} ${IMAGEDIR}/repo
 
 bitbake gnomeos-contents-{runtime,devel}
 
 for basetype in runtime devel; do
-    ln -sf ${builddir}/tmp-eglibc/deploy/images/gnomeos-contents-${basetype}-${MACHINE}.tar.gz gnomeos-contents-${basetype}-${architecture}.tar.gz
+    ln -sf ${builddir}/tmp-glibc/deploy/images/${MACHINE}/gnomeos-contents-${basetype}-${MACHINE}.tar.gz gnomeos-contents-${basetype}-${architecture}.tar.gz
 done
