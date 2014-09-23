@@ -1001,7 +1001,8 @@
                  "tag": "5f2a2dd6fc5869689d6bdb72b1ddfb91cd1aa138",
                  "tag-reason": "broken build"},
 
-		{"src": "fd-telepathy:telepathy-gabble"},
+		{"src": "fd-telepathy:telepathy-gabble",
+		 "config-opts": ["--disable-Werror"]},
 
 		{"src": "fd-telepathy:telepathy-idle"},
 
