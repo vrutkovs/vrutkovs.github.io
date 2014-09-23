@@ -669,7 +669,8 @@
 
 		{"src": "git:git://github.com/json-c/json-c.git",
 		 "tag": "381f77c5bccf20234a2bddae2b6ac43997faf0a2",
-		 "patches": ["json-c-autogen.patch"]},
+		 "patches": ["json-c-autogen.patch",
+                             "json-c-Fix-build-failure-by-adding-Wno-error-unused-value.patch"]},
 
 		{"src": "gnome:mobile-broadband-provider-info"},
 
