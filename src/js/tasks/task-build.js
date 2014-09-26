@@ -1211,7 +1211,14 @@ const TaskBuild = new Lang.Class({
         let sstateDir = oldBuilddir.get_child('sstate-cache');
         let downloads = oldBuilddir.get_child('downloads');
 
-        let cmd = [this.libdir.get_path() + '/ostree-build-yocto',
+        let ostree_build_yocto = this.libdir.get_path() + '/ostree-build-yocto';
+        let overridePath = this.workdir.resolve_relative_path('overrides/ostree-build-yocto');
+        if (overridePath.query_exists(null)) {
+            print("Using override: " + overridePath.get_path());
+            ostree_build_yocto = overridePath.get_path();
+        }
+
+        let cmd = [ostree_build_yocto,
 		   checkoutdir.get_path(), builddir.get_path(), architecture,
 		   this.repo.get_path()];
         // We specifically want to kill off any environment variables jhbuild
