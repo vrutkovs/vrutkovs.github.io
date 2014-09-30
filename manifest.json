@@ -469,8 +469,6 @@
 		 "patches": ["libarchive-autogen.patch"]},
 
                 {"src": "fd-poppler:poppler",
-		 "tag": "70a851b0cc58241d1f2f6bc48af2614595326c8f",
-		 "tag-reason": "breaks with --disable-utils, mail sent to Hib Eris",
                  "config-opts": ["--disable-poppler-cpp",
                                  "--disable-utils"]},
 
