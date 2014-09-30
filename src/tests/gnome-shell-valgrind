@@ -31,7 +31,7 @@ let shellProxy = null;
 // for 10 seconds later.
 function onShellProxy(obj, result) {
     print("Shell proxy created");
-    shellProxy = obj.new_finish(result);
+    shellProxy = Gio.DBusProxy.new_finish(result);
     let delayus = 5 * imports.gi.GLib.USEC_PER_SEC;
     let result;
     for (let i = 0; i < 30; i++) {
