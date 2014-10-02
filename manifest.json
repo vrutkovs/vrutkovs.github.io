@@ -1236,7 +1236,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 65,
-		        "all": false,
-		        "component-names": ["libsoup", "gvfs"]}
+	"build-epoch": {"version": 66,
+		        "all": true,
+		        "component-names": []}
 }
