@@ -120,6 +120,7 @@ const TaskBuild = new Lang.Class({
 	}));
 
 	BuildUtil.timeSubtask("compose buildroot", Lang.bind(this, function () {
+	    this.ostreeRepo.set_disable_fsync(true);
             trees.forEach(Lang.bind(this, function([root, commit, subpath]) {
 		let subtree = root.resolve_relative_path(subpath);
 		let subtreeInfo = subtree.query_info(OSTREE_GIO_FAST_QUERYINFO,
@@ -130,6 +131,7 @@ const TaskBuild = new Lang.Class({
                                               OSTree.RepoCheckoutOverwriteMode.UNION_FILES,
                                               cachedRootTmp, subtree, subtreeInfo, cancellable);
             }));
+	    this.ostreeRepo.set_disable_fsync(false);
 	    this._runTriggersInRoot(cachedRootTmp, cancellable);
 	    let builddirTmp = cachedRootTmp.get_child('ostbuild');
 	    GSystem.file_ensure_directory(builddirTmp.resolve_relative_path('source/' + componentName), true, cancellable);
@@ -856,6 +858,7 @@ const TaskBuild = new Lang.Class({
 	GSystem.shutil_rm_rf(composeRootdir, cancellable);
         GSystem.file_ensure_directory(composeRootdir, true, cancellable);
 
+	this.ostreeRepo.set_disable_fsync(true);
         composeContents.forEach(Lang.bind(this, function([branch, subpath]) {
             let [, root] = this.ostreeRepo.read_commit(branch, cancellable);
             let subtree = root.resolve_relative_path(subpath);
@@ -872,6 +875,7 @@ const TaskBuild = new Lang.Class({
                                           OSTree.RepoCheckoutOverwriteMode.UNION_FILES,
                                           composeRootdir, subtree, subtreeInfo, cancellable);
         }));
+	this.ostreeRepo.set_disable_fsync(false);
 
 	if (params.runTriggers)
 	    this._runTriggersInRoot(composeRootdir, cancellable);
@@ -967,11 +971,13 @@ const TaskBuild = new Lang.Class({
 	print("Preparing commit of " + composeRootdir.get_path() + " to " + targetName);
 	let rev;
 	BuildUtil.timeSubtask("compose " + targetName, Lang.bind(this, function() {
+	    this.ostreeRepo.set_disable_fsync(false);
             this.ostreeRepo.prepare_transaction(cancellable);
             this.ostreeRepo.scan_hardlinks(cancellable);
             let file = this._writeMtreeFromDirectory(composeRootdir, [], cancellable);
             rev = this._commit(treename, "Compose", file, cancellable);
             this.ostreeRepo.commit_transaction(cancellable);
+	    this.ostreeRepo.set_disable_fsync(true);
 	}));
         print("Compose of " + targetName + " is " + rev);
 
