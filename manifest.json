@@ -1234,7 +1234,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 66,
-		        "all": true,
-		        "component-names": []}
+	"build-epoch": {"version": 67,
+		        "all": false,
+		        "component-names": ["xorg-driver-xf86-video-modesetting"]}
 }
