@@ -5,8 +5,8 @@
          xmlns:gnome="http://api.gnome.org/doap-extensions#"
          xmlns="http://usefulinc.com/ns/doap#">
 
-  <name>gnome-ostree</name>
-  <shortname>gnome-ostree</shortname>
+  <name>gnome-continuous</name>
+  <shortname>gnome-continuous</shortname>
   <category rdf:resource="http://api.gnome.org/doap-extensions#infrastructure" />
 
   <shortdesc xml:lang="en">Continuous integration and deployment</shortdesc>
