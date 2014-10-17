@@ -798,6 +798,8 @@
 		                 "--disable-scrollkeeper"]},
 
 		{"src": "gnome:libmediaart",
+                 "tag": "969517fa94c76e300b4cbaeb8d03e23204907917",
+                 "tag-reason": "broken build",
 		 "config-opts": ["--enable-vala",
 		                 "--disable-gtk-doc",
                                  "--enable-installed-tests"]},
