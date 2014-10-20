@@ -1221,9 +1221,7 @@
 
 		{"src": "gnome:nautilus-sendto"},
 
-		{"src": "gnome:yelp"},
-
-		{"src": "gnome:gnome-music"}
+		{"src": "gnome:yelp"}
 
 	],
 
