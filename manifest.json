@@ -805,8 +805,6 @@
                                  "--enable-installed-tests"]},
 
 		{"src": "gnome:tracker",
-		 "tag": "1.0.5-17-g6ccf4711a1cafee3457d478a27c9a5510fc40d1d",
-		 "tag-reason": "https://bugzilla.gnome.org/show_bug.cgi?id=739260",
 		 "config-opts": ["--enable-miner-firefox=no",
 				 "--enable-miner-thunderbird=no",
 				 "--enable-miner-evolution=no",
