@@ -1234,7 +1234,7 @@
 
     "initramfs-build-epoch": {"version": 0},
     
-	"build-epoch": {"version": 69,
+	"build-epoch": {"version": 70,
 		        "all": false,
-		        "component-names": ["mutter"]}
+		        "component-names": ["xf86-video-intel", "xf86-video-nouveau", "xf86-video-ati", "xf86-video-modesetting", "xf86-video-qxl", "xf86-video-vesa" ]}
 }
