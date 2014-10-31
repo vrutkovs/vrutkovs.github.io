@@ -1236,5 +1236,5 @@
     
 	"build-epoch": {"version": 70,
 		        "all": false,
-		        "component-names": ["xf86-video-intel", "xf86-video-nouveau", "xf86-video-ati", "xf86-video-modesetting", "xf86-video-qxl", "xf86-video-vesa" ]}
+		        "component-names": ["xorg-driver-xf86-video-intel", "nouveau-xf86-video-nouveau", "xorg-driver-xf86-video-ati", "xorg-driver-xf86-video-modesetting", "xorg-driver-xf86-video-qxl", "xorg-driver-xf86-video-vesa" ]}
 }
