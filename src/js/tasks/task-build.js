@@ -541,7 +541,8 @@ const TaskBuild = new Lang.Class({
     },
 
     _commit: function(branch, subject, file, cancellable, params) {
-	params = Params.parse(params, { withParent: true });
+	params = Params.parse(params, { withParent: true,
+					version: null });
         let [, parentRev] = this.ostreeRepo.resolve_rev(branch, true);
 	let changed;
 	if (parentRev) {
@@ -551,8 +552,13 @@ const TaskBuild = new Lang.Class({
 	    changed = true;
 	}
 
+	let metadata = null;
+	if (params.version != null) {
+	    metadata = GLib.Variant.new('a{sv}', {'version': GLib.Variant.new("s", params.version)});
+	}
         if (changed) {
-            let [, rev] = this.ostreeRepo.write_commit(params.withParent ? parentRev : null, subject, "", null, file, cancellable);
+            let [, rev] = this.ostreeRepo.write_commit(params.withParent ? parentRev : null, subject, "", 
+						       metadata, file, cancellable);
             this.ostreeRepo.transaction_set_ref(null, branch, rev);
             return rev;
         } else {
@@ -975,7 +981,7 @@ const TaskBuild = new Lang.Class({
             this.ostreeRepo.prepare_transaction(cancellable);
             this.ostreeRepo.scan_hardlinks(cancellable);
             let file = this._writeMtreeFromDirectory(composeRootdir, [], cancellable);
-            rev = this._commit(treename, "Compose", file, cancellable);
+            rev = this._commit(treename, "Compose", file, cancellable, { version: this._buildName });
             this.ostreeRepo.commit_transaction(cancellable);
 	    this.ostreeRepo.set_disable_fsync(true);
 	}));
