@@ -5,7 +5,7 @@
 
     var taskNames = ['resolve', 'bdiff', 'build', 'builddisks', 'smoketest', 'smoketest-classic', 'smoketest-wayland', 'integrationtest','applicationstest', ];
 
-    var ROOT = '/continuous/buildmaster/';
+    var ROOT = 'http://build.gnome.org/continuous/buildmaster/';
 
     var YMD_SERIAL_VERSION_RE = /^(\d+)(\d\d)(\d\d)\.(\d+)$/;
 
