@@ -205,4 +205,65 @@
         });
     });
 
+    bgoControllers.controller('ContinuousScreenshotCtrl', function($scope, $http, $routeParams) {
+        var buildVersion = $routeParams.buildVersion;
+        if (buildVersion === undefined) {
+            return
+        } 
+        $scope.buildVersion = buildVersion;
+
+        var task = $routeParams.task;
+        if (task === undefined) {
+            return
+        } 
+
+        var buildPath = versionToRelpath(buildVersion);
+        var workDirRoot = ROOT + 'builds/' + buildPath + '/' + task + '/work-gnome-continuous-x86_64-runtime/';
+        $scope.workDirRoot = workDirRoot;
+        var images = [];
+
+        $http.get(workDirRoot).success(function(data) {
+            $scope.trs = data.split(/<tr>(.*?)<\/tr>/);
+            $scope.trs.forEach(function(tr) {
+                if (tr.indexOf('[IMG]') != -1) {
+                    images.push(workDirRoot + (/href="(.*?)"/.exec(tr)[1]));
+                }
+            });
+        });
+    });
+
+    bgoControllers.directive('loadImage', function($filter){
+        // Updated version of https://github.com/sketchynix/loadImagesDirective
+        return {
+            restrict: 'EA',
+            template: '<div class="load-image-wrap">'+
+                '<img src="{{imgSrc}}" ng-hide="loading" />'+
+                '<p ng-show="loading">Loading...</p></div>',
+            scope: {
+                imgSrc: '@', //path of the image path to load
+                fallbackSrc: '@' //path of the fallback image loacation
+            },
+            replace: true,
+            link: function(scope, el, attrs) {
+                scope.loading = true;
+
+                function stopLoading(){
+                    scope.loading = false;
+                    scope.$digest();
+                }
+
+                angular.element(el.children()[0]).bind("load" , function(event){
+                    stopLoading();
+                });
+
+                angular.element(el.children()[0]).bind("error", function(){
+                    stopLoading();
+                    if(angular.isString(scope.fallbackSrc)){
+                        el.children()[0].src = scope.fallbackSrc;
+                    }
+                });
+            }
+        }
+    });
+
 })(window);

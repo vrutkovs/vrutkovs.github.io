@@ -94,7 +94,7 @@
           <span ng-if='task.started'>
               <span ng-if='task.complete'>
                 <span ng-if='task.success'>
-                  <span class='task-succeded'>Smoketest</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
+                  <span class='task-succeded'>Smoketest</span><span> completed in {{ task.elapsed }}s</span> <a href='#/build/{{buildVersion}}/screenshots/smoketest'>Screenshots</a>
                 </span>
                 <span ng-if='!task.success'>
                   <span class='task-failed'>Smoketest</span><span> <a href="{{ buildRoot+task.name }}">failed</a></span>
@@ -111,7 +111,7 @@
             <span ng-if='task.started'>
               <span ng-if='task.complete'>
                 <span ng-if='task.success'>
-                  <span class='task-succeded'>Smoketest Classic</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
+                  <span class='task-succeded'>Smoketest Classic</span><span> completed in {{ task.elapsed }}s</span> <a href='#/build/{{buildVersion}}/screenshots/smoketest-classic'>Screenshots</a>
                 </span>
                 <span ng-if='!task.success'>
                   <span class='task-failed'>Smoketest Classic</span><span> <a href="{{ buildRoot+task.name }}">failed</a></span>
@@ -128,7 +128,7 @@
           <span ng-if='task.started'>
               <span ng-if='task.complete'>
                 <span ng-if='task.success'>
-                  <span class='task-succeded'>Smoketest Wayland</span><span> completed in {{ task.elapsed }}s</span> <a href="{{ buildRoot+task.name }}/work-gnome-continuous-x86_64-runtime/screenshot-final.png">screenshot</a>
+                  <span class='task-succeded'>Smoketest Wayland</span><span> completed in {{ task.elapsed }}s</span> <a href='#/build/{{buildVersion}}/screenshots/smoketest-wayland'>Screenshots</a>
                 </span>
                 <span ng-if='!task.success'>
                   <span class='task-failed'>Smoketest Wayland</span><span> <a href="{{ buildRoot+task.name }}">failed</a></span>
@@ -163,6 +163,7 @@
                     </span>
                   </div>
                 </span>
+                <a href='#/build/{{buildVersion}}/screenshots/integrationtest'>Screenshots</a>
               </span>
               <span ng-if='!task.complete'>
                 <span class='task-running'>Integration test</span><span> in progress</span>
@@ -175,6 +176,7 @@
             <span ng-if='task.complete'>
               <span ng-if='task.success'>
                 <span class='task-succeded'>Application test</span> completed in {{ task.elapsed }}s
+                <a href='#/build/{{buildVersion}}/screenshots/applicationstest'>Screenshots</a>
                 <div class="app-grid">
                   <a ng-repeat="app in task.apps" class="app" ng-class="app.status" title="{{ app.name }}" href="{{ app.screenshot }}">
                     <div class="icon">

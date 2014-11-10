@@ -16,6 +16,10 @@
                 templateUrl: 'partials/gnome-continuous-build.html',
                 controller: 'ContinuousBuildViewCtrl',
             }).
+            when('/build/:buildVersion/screenshots/:task', {
+                templateUrl: 'partials/gnome-continuous-screenshots.html',
+                controller: 'ContinuousScreenshotCtrl',
+            }).
             otherwise({
                 redirectTo: '/',
             });
